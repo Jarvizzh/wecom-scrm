@@ -17,6 +17,8 @@ import java.util.Optional;
 @Repository
 public interface GroupChatRepository extends JpaRepository<WecomGroupChat, Long> {
     Optional<WecomGroupChat> findByChatId(String chatId);
+    
+    List<WecomGroupChat> findByChatIdIn(Collection<String> chatIds);
 
     @Query("SELECT new com.wecom.scrm.vo.GroupChatVO(g.id, g.chatId, g.name, g.owner, u.name, g.createTime, g.memberCount, g.status) " +
            "FROM WecomGroupChat g LEFT JOIN WecomUser u ON g.owner = u.userid " +

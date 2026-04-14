@@ -56,6 +56,10 @@ public class MpService {
         return mpAccountRepository.findAll();
     }
 
+    public List<WecomMpAccount> getActiveAccounts() {
+        return mpAccountRepository.findByStatus(1);
+    }
+
     @Transactional
     public WecomMpAccount saveAccount(WecomMpAccount account) {
         WecomMpAccount saved = mpAccountRepository.save(account);

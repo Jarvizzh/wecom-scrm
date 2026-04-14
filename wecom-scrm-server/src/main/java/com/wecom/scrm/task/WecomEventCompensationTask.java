@@ -43,7 +43,6 @@ public class WecomEventCompensationTask {
                 WxCpServiceManager.setCurrentCorpId(corpId);
                 
                 processTenantEvents(corpId);
-                eventService.cleanupOldEvents();
                 
             } catch (Exception e) {
                 log.error("Error in compensation task for tenant: {}", corpId, e);
@@ -51,6 +50,23 @@ public class WecomEventCompensationTask {
                 // Clear multi-tenant context
                 DynamicDataSourceContextHolder.poll();
                 WxCpServiceManager.clearCurrentCorpId();
+            }
+        }
+    }
+
+    @Scheduled(cron = "0 0 3 * * ?") // 3:00 AM every day
+    public void runEventCleanup() {
+        log.info("Starting WeCom Event Cleanup Task...");
+        List<WecomEnterprise> enterprises = enterpriseService.findAll();
+        for (WecomEnterprise enterprise : enterprises) {
+            String corpId = enterprise.getCorpId();
+            try {
+                DynamicDataSourceContextHolder.push(corpId);
+                eventService.cleanupOldEvents();
+            } catch (Exception e) {
+                log.error("Error in cleanup task for tenant: {}", corpId, e);
+            } finally {
+                DynamicDataSourceContextHolder.poll();
             }
         }
     }

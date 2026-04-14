@@ -18,10 +18,17 @@ public class WecomEventLogDTO {
     private String errorMsg;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
-    
+
     // Extended fields
     private String userName;
     private String externalUserName;
     private String userAvatar;
     private String externalUserAvatar;
+
+    // Group Chat fields
+    private String chatId;
+    private String groupName;
+    private String updateDetail;
+    private String memberId;
+    private String memberName;
 }

@@ -39,8 +39,8 @@ public class MpUserSyncTask {
                 // Set multi-tenant context
                 DynamicDataSourceContextHolder.push(corpId);
                 
-                // Get all MP accounts for this enterprise
-                List<WecomMpAccount> accounts = mpService.getAllAccounts();
+                // Get only active MP accounts for this enterprise
+                List<WecomMpAccount> accounts = mpService.getActiveAccounts();
                 if (accounts.isEmpty()) {
                     continue;
                 }
