@@ -40,7 +40,12 @@
               <el-tag size="small" type="success" v-else-if="scope.row.updateDetail === 'add_member'">入群</el-tag>
               <el-tag size="small" type="info" v-else>{{ scope.row.updateDetail }}</el-tag>
             </template>
-            <el-tag size="small" type="warning" v-else-if="scope.row.changeType">{{ scope.row.changeType }}</el-tag>
+            <template v-else-if="scope.row.changeType">
+              <el-tag size="small" type="danger" v-if="scope.row.changeType === 'del_follow_user'">用户流失</el-tag>
+              <el-tag size="small" type="danger" v-else-if="scope.row.changeType === 'del_external_contact'">删除用户</el-tag>
+              <el-tag size="small" type="success" v-else-if="scope.row.changeType === 'add_external_contact'">添加用户</el-tag>
+              <el-tag size="small" type="warning" v-else>{{ scope.row.changeType }}</el-tag>
+            </template>
             <span v-else>-</span>
           </template>
         </el-table-column>
@@ -49,27 +54,27 @@
             <div class="relation-container">
               <div v-if="scope.row.userid" class="entity-item">
                 <el-avatar :size="24" :src="scope.row.userAvatar" class="avatar-sm">
-                  {{ scope.row.userName?.charAt(0) || '员' }}
+                  <el-icon><UserFilled /></el-icon>
                 </el-avatar>
                 <div class="entity-details">
                   <span class="entity-name">{{ scope.row.userName || '未知员工' }}</span>
-                  <span class="entity-id">{{ scope.row.userid }}</span>
                 </div>
               </div>
               <div v-if="scope.row.externalUserid" class="entity-item">
                 <el-avatar :size="24" :src="scope.row.externalUserAvatar" class="avatar-sm">
-                  {{ scope.row.externalUserName?.charAt(0) || '外' }}
+                  <el-icon><UserFilled /></el-icon>
                 </el-avatar>
                 <div class="entity-details">
                   <span class="entity-name customer-name">{{ scope.row.externalUserName || '未知联系人' }}</span>
-                  <span class="entity-id">{{ scope.row.externalUserid }}</span>
                 </div>
               </div>
               <div v-if="scope.row.chatId" class="entity-item">
                 <el-icon class="group-icon-avatar"><ChatLineRound /></el-icon>
                 <div class="entity-details">
                   <span class="entity-name group-name">{{ scope.row.groupName || '未知客户群' }}</span>
-                  <span class="entity-id">{{ scope.row.chatId }}</span>
+                  <span class="entity-name member-name" v-if="scope.row.memberName">
+                    成员: {{ scope.row.memberName }}
+                  </span>
                 </div>
               </div>
               <span v-if="!scope.row.userid && !scope.row.externalUserid && !scope.row.chatId" class="no-data">-</span>
@@ -137,20 +142,22 @@
           <el-descriptions-item label="重试次数">{{ selectedEvent.retryCount }}</el-descriptions-item>
           <el-descriptions-item label="相关员工">
             <div v-if="selectedEvent.userid" class="detail-entity">
-              <el-avatar :size="32" :src="selectedEvent.userAvatar" />
+              <el-avatar :size="32" :src="selectedEvent.userAvatar">
+                <el-icon><UserFilled /></el-icon>
+              </el-avatar>
               <div class="entity-meta">
                 <div class="name">{{ selectedEvent.userName || '未知员工' }}</div>
-                <div class="id">{{ selectedEvent.userid }}</div>
               </div>
             </div>
             <span v-else>-</span>
           </el-descriptions-item>
           <el-descriptions-item label="外部联系人">
             <div v-if="selectedEvent.externalUserid" class="detail-entity">
-              <el-avatar :size="32" :src="selectedEvent.externalUserAvatar" />
+              <el-avatar :size="32" :src="selectedEvent.externalUserAvatar">
+                <el-icon><UserFilled /></el-icon>
+              </el-avatar>
               <div class="entity-meta">
                 <div class="name customer-name">{{ selectedEvent.externalUserName || '未知联系人' }}</div>
-                <div class="id">{{ selectedEvent.externalUserid }}</div>
               </div>
             </div>
             <span v-else>-</span>
@@ -160,10 +167,19 @@
               <el-icon class="group-icon-detail"><ChatLineRound /></el-icon>
               <div class="entity-meta">
                 <div class="name group-name">{{ selectedEvent.groupName || '未知客户群' }}</div>
-                <div class="id">{{ selectedEvent.chatId }}</div>
               </div>
             </div>
             <span v-else>-</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="变更成员" v-if="selectedEvent.memberName">
+            <div class="detail-entity">
+              <el-avatar :size="32" :src="selectedEvent.memberAvatar">
+                <el-icon><UserFilled /></el-icon>
+              </el-avatar>
+              <div class="entity-meta">
+                <div class="name">{{ selectedEvent.memberName }}</div>
+              </div>
+            </div>
           </el-descriptions-item>
           <el-descriptions-item label="变更详情" v-if="selectedEvent.updateDetail">
              <el-tag size="small" type="info">{{ selectedEvent.updateDetail }}</el-tag>
@@ -185,7 +201,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Refresh, Notification, View, ChatLineRound } from '@element-plus/icons-vue'
+import { Refresh, Notification, View, ChatLineRound, UserFilled } from '@element-plus/icons-vue'
 import { getWecomEvents } from '../api/wecomEvent'
 import { useResponsive } from '../hooks/useResponsive'
 
@@ -342,6 +358,15 @@ const formatJson = (content: string) => {
 
 .entity-name.group-name {
   color: #E6A23C;
+}
+.member-name {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 2px;
+}
+.user-icon-detail {
+  font-size: 32px;
+  color: #909399;
 }
 
 .group-icon-avatar {

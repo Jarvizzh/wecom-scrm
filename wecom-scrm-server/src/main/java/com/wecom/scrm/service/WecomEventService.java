@@ -208,7 +208,9 @@ public class WecomEventService {
 
             if (dto.getMemberId() != null) {
                 if (customerMap.containsKey(dto.getMemberId())) {
-                    dto.setMemberName(customerMap.get(dto.getMemberId()).getName());
+                    WecomCustomer customer = customerMap.get(dto.getMemberId());
+                    dto.setMemberName(customer.getName());
+                    dto.setMemberAvatar(customer.getAvatar());
                 } else {
                     dto.setMemberName(dto.getMemberId()); // Fallback to ID
                 }

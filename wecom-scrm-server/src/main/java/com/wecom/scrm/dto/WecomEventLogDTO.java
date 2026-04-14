@@ -31,4 +31,5 @@ public class WecomEventLogDTO {
     private String updateDetail;
     private String memberId;
     private String memberName;
+    private String memberAvatar;
 }

@@ -66,8 +66,10 @@ public class MpService {
         // Ensure its service is initialized
         wxMpServiceManager.addAccount(saved.getAppId(), saved.getSecret());
 
-        // Auto trigger sync
-        self.syncUsers(saved.getAppId(), DynamicDataSourceContextHolder.peek());
+        // Auto trigger sync if active
+        if (saved.getStatus() != null && saved.getStatus() == 1) {
+            self.syncUsers(saved.getAppId(), DynamicDataSourceContextHolder.peek());
+        }
 
         return saved;
     }
@@ -100,6 +102,10 @@ public class MpService {
                 return;
             }
             WecomMpAccount account = accountOpt.get();
+            if (account.getStatus() == null || account.getStatus() != 1) {
+                log.info("Account is inactive, skipping sync for appId: {}", appId);
+                return;
+            }
 
             WecomSyncLog syncLog = new WecomSyncLog();
             syncLog.setSyncType("MP_USER_SYNC");
@@ -169,8 +175,10 @@ public class MpService {
             // 直接调用（不需要 self 代理了，因为里面全是独立 JDBC 代码，不依赖 Spring 事务）
             saveInTargetEnterprise(source, request.getTargetCorpId());
 
-            // Auto trigger sync in target enterprise (Async)
-            self.syncUsers(request.getAppId(), request.getTargetCorpId());
+            // Auto trigger sync in target enterprise if active (Async)
+            if (source.getStatus() != null && source.getStatus() == 1) {
+                self.syncUsers(request.getAppId(), request.getTargetCorpId());
+            }
 
             log.info("Successfully initiated copy and sync for MP account {} in enterprise {}", request.getAppId(),
                     request.getTargetCorpId());
