@@ -25,7 +25,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="120">
+        <el-table-column prop="status" label="自动同步用户" width="150">
           <template #default="scope">
             <el-tag :type="scope.row.status === 1 ? 'success' : 'info'" round effect="light">
               {{ scope.row.status === 1 ? '已启用' : '已禁用' }}
@@ -55,7 +55,7 @@
       append-to-body
     >
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px" style="padding: 20px 20px 0">
-        <el-form-item label="名称" prop="name">
+        <el-form-item label="公众号名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入公众号名称" />
         </el-form-item>
         <el-form-item label="AppID" prop="appId">
@@ -64,7 +64,7 @@
         <el-form-item label="Secret" prop="secret">
           <el-input v-model="form.secret" type="password" show-password placeholder="请输入公众号 AppSecret" />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item label="自动同步用户" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio :label="1">启用</el-radio>
             <el-radio :label="0">禁用</el-radio>

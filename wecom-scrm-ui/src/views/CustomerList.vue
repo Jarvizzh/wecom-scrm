@@ -77,6 +77,7 @@
                 <el-icon><Connection /></el-icon>
               </template>
               <el-option label="正常" :value="0" />
+              <el-option label="已流失" :value="2" />
               <el-option label="已删除" :value="1" />
             </el-select>
           </el-form-item>
@@ -266,8 +267,13 @@
         <el-table-column prop="status" label="关系状态" width="90">
           <template #default="scope">
             <div class="status-cell">
-              <span :class="['status-dot', scope.row.status === 0 ? 'is-active' : 'is-inactive']"></span>
-              <span class="status-text">{{ scope.row.status === 0 ? '正常' : '已删除' }}</span>
+              <span :class="['status-dot', 
+                scope.row.status === 0 ? 'is-active' : 
+                scope.row.status === 2 ? 'is-lost' : 'is-inactive']"></span>
+              <span class="status-text">
+                {{ scope.row.status === 0 ? '正常' : 
+                   scope.row.status === 2 ? '已流失' : '已删除' }}
+              </span>
             </div>
           </template>
         </el-table-column>
@@ -926,6 +932,10 @@ onMounted(() => {
 
 .status-dot.is-inactive {
   background-color: #94a3b8;
+}
+
+.status-dot.is-lost {
+  background-color: #f59e0b;
 }
 
 @keyframes pulse {
