@@ -19,3 +19,6 @@ logs/
 # Secrets (Add any specific secret files if discovered)
 *.secret
 *.key
+
+# Documentation
+product.md
