@@ -36,8 +36,8 @@
         <el-table-column prop="changeType" label="变更类型" width="180" class-name="hidden-sm-and-down">
           <template #default="scope">
             <template v-if="scope.row.event === 'change_external_chat' && scope.row.updateDetail">
-              <el-tag size="small" type="danger" v-if="scope.row.updateDetail === 'del_member'">退群</el-tag>
-              <el-tag size="small" type="success" v-else-if="scope.row.updateDetail === 'add_member'">入群</el-tag>
+              <el-tag size="small" type="danger" v-if="scope.row.updateDetail === 'del_member'">退出群聊</el-tag>
+              <el-tag size="small" type="success" v-else-if="scope.row.updateDetail === 'add_member'">加入群聊</el-tag>
               <el-tag size="small" type="info" v-else>{{ scope.row.updateDetail }}</el-tag>
             </template>
             <template v-else-if="scope.row.changeType">
@@ -68,13 +68,17 @@
                   <span class="entity-name customer-name">{{ scope.row.externalUserName || '未知联系人' }}</span>
                 </div>
               </div>
-              <div v-if="scope.row.chatId" class="entity-item">
-                <el-icon class="group-icon-avatar"><ChatLineRound /></el-icon>
+              <div v-if="scope.row.chatId" class="entity-item no-avatar">
                 <div class="entity-details">
-                  <span class="entity-name group-name">{{ scope.row.groupName || '未知客户群' }}</span>
-                  <span class="entity-name member-name" v-if="scope.row.memberName">
-                    成员: {{ scope.row.memberName }}
-                  </span>
+                  <span class="entity-name">{{ scope.row.groupName || '未知客户群' }}</span>
+                </div>
+              </div>
+              <div v-if="scope.row.memberName" class="entity-item">
+                <el-avatar :size="24" :src="scope.row.memberAvatar" class="avatar-sm">
+                  <el-icon><UserFilled /></el-icon>
+                </el-avatar>
+                <div class="entity-details">
+                  <span class="entity-name customer-name">{{ scope.row.memberName }}</span>
                 </div>
               </div>
               <span v-if="!scope.row.userid && !scope.row.externalUserid && !scope.row.chatId" class="no-data">-</span>
@@ -162,14 +166,12 @@
             </div>
             <span v-else>-</span>
           </el-descriptions-item>
-          <el-descriptions-item label="客户群">
-            <div v-if="selectedEvent.chatId" class="detail-entity">
-              <el-icon class="group-icon-detail"><ChatLineRound /></el-icon>
+          <el-descriptions-item label="客户群" v-if="selectedEvent.chatId">
+            <div class="detail-entity">
               <div class="entity-meta">
-                <div class="name group-name">{{ selectedEvent.groupName || '未知客户群' }}</div>
+                <div class="name">{{ selectedEvent.groupName || '未知客户群' }}</div>
               </div>
             </div>
-            <span v-else>-</span>
           </el-descriptions-item>
           <el-descriptions-item label="变更成员" v-if="selectedEvent.memberName">
             <div class="detail-entity">
@@ -177,7 +179,7 @@
                 <el-icon><UserFilled /></el-icon>
               </el-avatar>
               <div class="entity-meta">
-                <div class="name">{{ selectedEvent.memberName }}</div>
+                <div class="name customer-name">{{ selectedEvent.memberName }}</div>
               </div>
             </div>
           </el-descriptions-item>
@@ -201,7 +203,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Refresh, Notification, View, ChatLineRound, UserFilled } from '@element-plus/icons-vue'
+import { Refresh, Notification, View, UserFilled } from '@element-plus/icons-vue'
 import { getWecomEvents } from '../api/wecomEvent'
 import { useResponsive } from '../hooks/useResponsive'
 
@@ -333,7 +335,7 @@ const formatJson = (content: string) => {
 .entity-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .avatar-sm {
@@ -343,7 +345,8 @@ const formatJson = (content: string) => {
 .entity-details {
   display: flex;
   flex-direction: column;
-  line-height: 1.2;
+  line-height: 1.4;
+  justify-content: center;
 }
 
 .entity-name {
@@ -357,25 +360,24 @@ const formatJson = (content: string) => {
 }
 
 .entity-name.group-name {
-  color: #E6A23C;
+  color: #303133;
 }
 .member-name {
   font-size: 12px;
-  color: #606266;
-  margin-top: 2px;
+  color: #909399;
+  margin-top: 4px;
 }
 .user-icon-detail {
   font-size: 32px;
   color: #909399;
 }
 
-.group-icon-avatar {
-  font-size: 20px;
-  color: #E6A23C;
-  padding: 2px;
-  border: 1px solid #fdf6ec;
-  border-radius: 4px;
-  background-color: #fdf6ec;
+.entity-item.no-avatar {
+  padding-left: 0;
+}
+
+.entity-item.no-avatar .entity-details {
+  padding-left: 0;
 }
 
 .entity-id {
@@ -400,12 +402,20 @@ const formatJson = (content: string) => {
 }
 
 .entity-meta .name.group-name {
-  color: #E6A23C;
+  color: #303133;
 }
 
 .group-icon-detail {
   font-size: 24px;
   color: #E6A23C;
+}
+
+.entity-item.no-avatar {
+  padding-left: 0;
+}
+
+.entity-item.no-avatar .entity-details {
+  padding-left: 0;
 }
 
 .entity-meta .id {
