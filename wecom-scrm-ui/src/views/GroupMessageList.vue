@@ -65,6 +65,19 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-block">
+        <el-pagination 
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <!-- Send Result Dialog -->
@@ -98,6 +111,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const router = useRouter()
 const taskList = ref([])
 const loading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 const sendResultVisible = ref(false)
 const resultLoading = ref(false)
 const sendResultList = ref([])
@@ -105,13 +121,32 @@ const sendResultList = ref([])
 const fetchTasks = async () => {
   loading.value = true
   try {
-    const res = await getGroupMessageList() as any
-    taskList.value = res || []
+    const res = await getGroupMessageList({
+      page: currentPage.value,
+      size: pageSize.value
+    }) as any
+    if (res && res.content) {
+      taskList.value = res.content
+      total.value = res.totalElements
+    } else {
+      taskList.value = res || []
+      total.value = taskList.value.length
+    }
   } catch (error) {
     ElMessage.error('获取列表失败')
   } finally {
     loading.value = false
   }
+}
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  fetchTasks()
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
+  fetchTasks()
 }
 
 const handleEdit = (row: any) => {
@@ -157,4 +192,10 @@ onMounted(fetchTasks)
 <style scoped>
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .header-actions { display: flex; gap: 10px; }
+
+.pagination-block {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

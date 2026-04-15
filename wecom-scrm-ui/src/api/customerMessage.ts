@@ -32,10 +32,11 @@ export function createCustomerMessage(data: CustomerMessage) {
   })
 }
 
-export function getCustomerMessageList() {
+export function getCustomerMessageList(params?: { page: number; size: number }) {
   return request({
     url: '/customer-message/list',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 

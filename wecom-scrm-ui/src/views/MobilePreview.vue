@@ -42,7 +42,7 @@
             <div v-if="att.msgtype === 'image'" class="msg-bubble image">
               <img 
                 v-if="!imageErrors[idx]"
-                :src="getImageUrl(att.image?.mediaId, att.image?.picUrl)" 
+                :src="getImageUrl(att.image?.mediaId || att.image?.media_id, att.image?.picUrl || att.image?.pic_url)" 
                 alt="image" 
                 @error="handleImageError(idx)"
               />
@@ -72,7 +72,7 @@
               <div class="mp-content">
                 <img 
                   v-if="!mpErrors[idx]"
-                  :src="getImageUrl(att.miniprogram?.picMediaId, att.miniprogram?.picUrl)" 
+                  :src="getImageUrl(att.miniprogram?.picMediaId || att.miniprogram?.pic_media_id, att.miniprogram?.picUrl || att.miniprogram?.pic_url)" 
                   class="mp-thumb" 
                   @error="handleMpError(idx)"
                 />
@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { getImageUrl } from '../api/media'
 import {
   Link, Compass, ArrowLeft, MoreFilled, UserFilled, Microphone, ChatLineRound, CirclePlus,
@@ -136,6 +136,12 @@ const handleImageError = (idx: number) => {
 const handleMpError = (idx: number) => {
   mpErrors.value[idx] = true
 }
+
+// Reset errors when attachments change to avoid sticky "expired" states
+watch(() => props.attachments, () => {
+  imageErrors.value = {}
+  mpErrors.value = {}
+}, { deep: true })
 </script>
 
 <style scoped>

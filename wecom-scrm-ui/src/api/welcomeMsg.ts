@@ -1,9 +1,10 @@
 import request from './request'
 
-export function getWelcomeMsgs() {
+export function getWelcomeMsgs(params?: { page: number; size: number }) {
   return request({
     url: '/welcome-msg',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 

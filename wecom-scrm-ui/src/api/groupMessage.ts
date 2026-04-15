@@ -30,10 +30,11 @@ export function createGroupMessage(data: GroupMessage) {
   })
 }
 
-export function getGroupMessageList() {
+export function getGroupMessageList(params?: { page: number; size: number }) {
   return request({
     url: '/group-message/list',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 

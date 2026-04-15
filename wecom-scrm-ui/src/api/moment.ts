@@ -8,10 +8,11 @@ export function createMoment(data: any) {
   })
 }
 
-export function getMoments() {
+export function getMoments(params?: { page: number; size: number }) {
   return request({
-    url: '/moments',
-    method: 'get'
+    url: '/moments/list',
+    method: 'get',
+    params
   })
 }
 

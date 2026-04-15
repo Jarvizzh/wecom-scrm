@@ -77,10 +77,22 @@
         <el-table-column label="操作" width="180" fixed="right" align="center">
           <template #default="scope">
             <el-button type="primary" link @click="viewDetail(scope.row)">详情</el-button>
-            <el-button type="primary" link @click="viewRecords(scope.row)">发布明细</el-button>
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-block">
+        <el-pagination 
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
 
       <!-- Create Moment Dialog -->
       <el-dialog v-model="createDialogVisible" title="创建朋友圈任务" :width="isMobile ? '95%' : '600px'" destroy-on-close>
@@ -298,7 +310,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getMoments, createMoment, getMomentRecords, syncMomentStatuses } from '../api/moment'
+import { getMoments, createMoment, syncMomentStatuses } from '../api/moment'
 import { uploadMedia } from '../api/media'
 import { getUsers, getDepartments } from '../api/user'
 import { getTagGroups, getTagsByGroup } from '../api/tag'
@@ -312,6 +324,9 @@ const tableData = ref([])
 const loading = ref(false)
 const syncing = ref(false)
 const creating = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 const createDialogVisible = ref(false)
 const recordsDialogVisible = ref(false)
 const detailDialogVisible = ref(false)
@@ -356,12 +371,32 @@ const mpForm = reactive({
 const fetchMoments = async () => {
   loading.value = true
   try {
-    tableData.value = await getMoments() as any
+    const res = await getMoments({
+      page: currentPage.value,
+      size: pageSize.value
+    }) as any
+    if (res && res.content) {
+      tableData.value = res.content
+      total.value = res.totalElements
+    } else {
+      tableData.value = res || []
+      total.value = tableData.value.length
+    }
   } catch (error) {
     ElMessage.error('获取列表失败')
   } finally {
     loading.value = false
   }
+}
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  fetchMoments()
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
+  fetchMoments()
 }
 
 const fetchDepartmentsAndUsers = async () => {
@@ -619,15 +654,6 @@ const handleSync = async () => {
   }
 }
 
-const viewRecords = async (row: any) => {
-  try {
-    recordData.value = await getMomentRecords(row.id) as any
-    recordsDialogVisible.value = true
-  } catch (error) {
-    ElMessage.error('获取发布明细失败')
-  }
-}
-
 const viewDetail = (row: any) => {
   currentMoment.value = row
   detailDialogVisible.value = true
@@ -714,6 +740,11 @@ onMounted(() => {
 .header-actions {
   display: flex;
   gap: 10px;
+}
+.pagination-block {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 .help-text {
   font-size: 12px;

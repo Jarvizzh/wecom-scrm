@@ -30,6 +30,19 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-block">
+        <el-pagination 
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
   </div>
@@ -43,6 +56,9 @@ import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const welcomeMsgs = ref<any[]>([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 onMounted(async () => {
   fetchData()
@@ -51,13 +67,32 @@ onMounted(async () => {
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await getWelcomeMsgs() as any
-    welcomeMsgs.value = res || []
+    const res = await getWelcomeMsgs({
+      page: currentPage.value,
+      size: pageSize.value
+    }) as any
+    if (res && res.content) {
+      welcomeMsgs.value = res.content
+      total.value = res.totalElements
+    } else {
+      welcomeMsgs.value = res || []
+      total.value = welcomeMsgs.value.length
+    }
   } catch (e) {
     ElMessage.error('加载列表失败')
   } finally {
     loading.value = false
   }
+}
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  fetchData()
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
+  fetchData()
 }
 
 const handleDelete = (row: any) => {
@@ -100,5 +135,11 @@ const formatTime = (time: string) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.pagination-block {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
