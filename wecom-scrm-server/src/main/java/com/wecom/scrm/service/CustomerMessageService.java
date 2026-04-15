@@ -13,12 +13,14 @@ import com.wecom.scrm.config.WxCpServiceManager;
 import me.chanjar.weixin.cp.bean.external.WxCpMsgTemplate;
 import me.chanjar.weixin.cp.bean.external.WxCpMsgTemplateAddResult;
 import me.chanjar.weixin.cp.bean.external.contact.WxCpGroupMsgSendResult;
+import me.chanjar.weixin.cp.bean.external.contact.WxCpGroupMsgSendResult.ExternalContactGroupMsgSendInfo;
 import me.chanjar.weixin.cp.bean.external.contact.WxCpGroupMsgTaskResult;
 import me.chanjar.weixin.cp.bean.external.msg.Attachment;
 import me.chanjar.weixin.cp.bean.external.msg.Link;
 import me.chanjar.weixin.cp.bean.external.msg.MiniProgram;
 import me.chanjar.weixin.cp.bean.external.msg.Text;
 import me.chanjar.weixin.cp.bean.external.msg.Image;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -131,7 +133,7 @@ public class CustomerMessageService {
                 WxCpMsgTemplate template = new WxCpMsgTemplate();
                 template.setExternalUserid(targetExternalUserids);
                 populateTemplateContent(template, message);
-                
+
                 WxCpMsgTemplateAddResult result = wxCpServiceManager.getWxCpService().getExternalContactService()
                         .addMsgTemplate(template);
                 if (result != null && result.getMsgId() != null) {
@@ -145,7 +147,7 @@ public class CustomerMessageService {
                 List<String> msgIds = Collections.synchronizedList(new ArrayList<>());
                 StringBuilder failMsgs = new StringBuilder();
                 AtomicBoolean allEmpty = new AtomicBoolean(true);
-                
+
                 List<CompletableFuture<Void>> futures = new ArrayList<>();
                 for (String sender : senders) {
                     try {
@@ -160,7 +162,7 @@ public class CustomerMessageService {
                                 template.setExternalUserid(targetExternalUserids);
                                 template.setSender(sender);
                                 populateTemplateContent(template, message);
-                                
+
                                 WxCpMsgTemplateAddResult result = wxCpServiceManager.getWxCpService().getExternalContactService()
                                         .addMsgTemplate(template);
                                 if (result != null && result.getMsgId() != null) {
@@ -187,9 +189,9 @@ public class CustomerMessageService {
                         }
                     }
                 }
-                
+
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                
+
                 if (allEmpty.get()) {
                     message.setStatus(2);
                     message.setFailMsg("No matching customers found for selected senders.");
@@ -434,47 +436,68 @@ public class CustomerMessageService {
         CustomerMessageDTO.SendResult sendResult = new CustomerMessageDTO.SendResult();
         List<CustomerMessageDTO.MemberTask> allTasks = new ArrayList<>();
 
-        for (String msgid : msgIds) {
-            String cleanMsgid = msgid.trim();
-            if (cleanMsgid.isEmpty()) continue;
-            
+        for (String msgId : msgIds) {
+            String cleanMsgId = msgId.trim();
+            if (cleanMsgId.isEmpty())
+                continue;
+
             try {
-                WxCpGroupMsgTaskResult result = wxCpServiceManager.getWxCpService().getExternalContactService()
-                        .getGroupMsgTask(cleanMsgid, 1000, null);
+                List<CustomerMessageDTO.MemberTask> tasks = new ArrayList<>();
 
-                if (result != null && result.getTaskList() != null) {
-                    List<CustomerMessageDTO.MemberTask> tasks = objectMapper.convertValue(result.getTaskList(),
-                            new TypeReference<List<CustomerMessageDTO.MemberTask>>() {});
-
-                    for (CustomerMessageDTO.MemberTask task : tasks) {
-                        if (task.getUserId() != null) {
-                            userRepository.findByUserid(task.getUserId()).ifPresent(u -> task.setUserName(u.getName()));
-
-                            try {
-                                WxCpGroupMsgSendResult customerResults = wxCpServiceManager.getWxCpService()
-                                        .getExternalContactService().getGroupMsgSendResult(cleanMsgid, task.getUserId(), 1000, null);
-                                
-                                if (customerResults != null && customerResults.getSendList() != null) {
-                                    List<?> details = customerResults.getSendList();
-                                    task.setTotalCount(details.size());
-
-                                    List<CustomerMessageDTO.CustomerResult> results = objectMapper.convertValue(details,
-                                            new TypeReference<List<CustomerMessageDTO.CustomerResult>>() {});
-                                    task.setSuccessCount((int) results.stream()
-                                            .filter(r -> Integer.valueOf(1).equals(r.getStatus())).count());
-                                    task.setFailCount((int) results.stream()
-                                            .filter(r -> Integer.valueOf(2).equals(r.getStatus())
-                                                    || Integer.valueOf(3).equals(r.getStatus())).count());
-                                }
-                            } catch (Exception e) {
-                                log.error("Failed to fetch customer results for msgid: {}, user: {}", cleanMsgid, task.getUserId(), e);
-                            }
+                int limit = 1000;
+                String nextCursor = null;
+                do {
+                    WxCpGroupMsgTaskResult result = wxCpServiceManager.getWxCpService().getExternalContactService()
+                            .getGroupMsgTask(cleanMsgId, limit, nextCursor);
+                    if (result != null) {
+                        if (result.getTaskList() != null) {
+                            tasks.addAll(objectMapper.convertValue(result.getTaskList(),
+                                    new TypeReference<List<CustomerMessageDTO.MemberTask>>() {}));
                         }
-                        allTasks.add(task);
+                        nextCursor = result.getNextCursor();
                     }
+                } while (StringUtils.isNotEmpty(nextCursor));
+
+                for (CustomerMessageDTO.MemberTask task : tasks) {
+                    if (task.getUserId() != null) {
+                        userRepository.findByUserid(task.getUserId()).ifPresent(u -> task.setUserName(u.getName()));
+                        try {
+                            String cursor = null;
+                            List<ExternalContactGroupMsgSendInfo> sendInfos = new ArrayList<>();
+                            do {
+                                WxCpGroupMsgSendResult result = wxCpServiceManager.getWxCpService()
+                                        .getExternalContactService().getGroupMsgSendResult(cleanMsgId, task.getUserId(), limit, cursor);
+                                if (result != null) {
+                                    if (result.getSendList() != null) {
+                                        sendInfos.addAll(result.getSendList());
+                                    }
+                                    cursor = result.getNextCursor();
+                                }
+                                log.info("id:{} msgId: {} task.User: {} nextCursor:{}", id, cleanMsgId, task.getUserName(), cursor);
+                            } while (StringUtils.isNotEmpty(cursor));
+
+                            log.info("id:{} msgId: {} task.User: {} total:{}", id, cleanMsgId, task.getUserName(), sendInfos.size());
+                            task.setTotalCount(sendInfos.size());
+
+                            List<CustomerMessageDTO.CustomerResult> results = objectMapper.convertValue(sendInfos,
+                                    new TypeReference<List<CustomerMessageDTO.CustomerResult>>() {});
+                            task.setSuccessCount((int) results.stream()
+                                    .filter(r -> Integer.valueOf(1).equals(r.getStatus())).count());
+                            task.setFailCount((int) results.stream()
+                                    .filter(r -> Integer.valueOf(2).equals(r.getStatus())
+                                            || Integer.valueOf(3).equals(r.getStatus())).count());
+
+                        } catch (Exception e) {
+                            log.error("Failed to fetch customer results for msgid: {}, user: {}", cleanMsgId, task.getUserId(), e);
+                        }
+                    }
+
+                    allTasks.add(task);
                 }
+
+
             } catch (Exception e) {
-                log.error("Failed to fetch task result for msgid: {}", cleanMsgid, e);
+                log.error("Failed to fetch task result for msgid: {}", cleanMsgId, e);
             }
         }
 
@@ -489,19 +512,27 @@ public class CustomerMessageService {
         userRepository.findByUserid(userid).ifPresent(u -> detail.setUserName(u.getName()));
 
         List<CustomerMessageDTO.CustomerResult> allCustomerResults = new ArrayList<>();
-        
+
         if (message.getMsgid() != null && !message.getMsgid().trim().isEmpty()) {
             String[] msgIds = message.getMsgid().split(",");
             for (String msgid : msgIds) {
                 String cleanMsgid = msgid.trim();
                 if (cleanMsgid.isEmpty()) continue;
-                
-                try {
-                    WxCpGroupMsgSendResult result = wxCpServiceManager.getWxCpService().getExternalContactService()
-                            .getGroupMsgSendResult(cleanMsgid, userid, 1000, null);
-                    List<?> sendList = result.getSendList();
 
-                    if (sendList != null && !sendList.isEmpty()) {
+                try {
+                    int limit = 1000;
+                    String nextCursor = null;
+                    List<ExternalContactGroupMsgSendInfo> sendList = new ArrayList<>();
+                    do {
+                        WxCpGroupMsgSendResult result = wxCpServiceManager.getWxCpService().getExternalContactService()
+                                .getGroupMsgSendResult(cleanMsgid, userid, limit, nextCursor);
+                        if (result.getSendList() != null) {
+                            sendList.addAll(result.getSendList());
+                        }
+                        nextCursor = result.getNextCursor();
+                    } while (StringUtils.isNotEmpty(nextCursor));
+
+                    if (!sendList.isEmpty()) {
                         List<CustomerMessageDTO.CustomerResult> customerResults = objectMapper.convertValue(sendList,
                                 new TypeReference<List<CustomerMessageDTO.CustomerResult>>() {
                                 });
@@ -526,7 +557,7 @@ public class CustomerMessageService {
                 }
             }
         }
-        
+
         detail.setCustomerList(allCustomerResults);
         return detail;
     }

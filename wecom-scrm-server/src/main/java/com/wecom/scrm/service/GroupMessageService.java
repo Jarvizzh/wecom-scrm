@@ -17,6 +17,7 @@ import me.chanjar.weixin.cp.bean.external.msg.Link;
 import me.chanjar.weixin.cp.bean.external.msg.MiniProgram;
 import me.chanjar.weixin.cp.bean.external.msg.Text;
 import me.chanjar.weixin.cp.bean.external.msg.Image;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -395,20 +396,28 @@ public class GroupMessageService {
             if (cleanMsgid.isEmpty()) continue;
             
             try {
-                WxCpGroupMsgResult rawResult = wxCpServiceManager.getWxCpService().getExternalContactService()
-                        .getGroupMsgResult(cleanMsgid, 10000, null);
+                int limit = 10000;
+                String nextCursor = null;
+                do {
+                    WxCpGroupMsgResult rawResult = wxCpServiceManager.getWxCpService().getExternalContactService()
+                            .getGroupMsgResult(cleanMsgid, limit, nextCursor);
 
-                if (rawResult != null && rawResult.getDetailList() != null) {
-                    for (WxCpGroupMsgResult.ExternalContactGroupMsgDetailInfo item : rawResult.getDetailList()) {
-                        GroupMessageDTO.GroupSendRecord record = new GroupMessageDTO.GroupSendRecord();
-                        record.setChatId(item.getChatId());
-                        record.setStatus(item.getStatus());
-                        record.setSendTime(item.getSendTime());
-                        groupChatRepository.findByChatId(item.getChatId())
-                                .ifPresent(g -> record.setGroupName(g.getName()));
-                        groupList.add(record);
+                    if (rawResult != null) {
+                        if ( rawResult.getDetailList() != null) {
+                            for (WxCpGroupMsgResult.ExternalContactGroupMsgDetailInfo item : rawResult.getDetailList()) {
+                                GroupMessageDTO.GroupSendRecord record = new GroupMessageDTO.GroupSendRecord();
+                                record.setChatId(item.getChatId());
+                                record.setStatus(item.getStatus());
+                                record.setSendTime(item.getSendTime());
+                                groupChatRepository.findByChatId(item.getChatId())
+                                        .ifPresent(g -> record.setGroupName(g.getName()));
+                                groupList.add(record);
+                            }
+                        }
+                        nextCursor = rawResult.getNextCursor();
                     }
-                }
+                } while (StringUtils.isNotEmpty(nextCursor));
+
             } catch (Exception e) {
                 log.error("Failed to fetch group result for msgid: {}", cleanMsgid, e);
             }

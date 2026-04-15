@@ -222,8 +222,8 @@ public class WecomEventService {
 
     @Transactional
     public void cleanupOldEvents() {
-        // Delete successfully processed events older than 7 days
-        LocalDateTime cleanupThreshold = LocalDateTime.now().minusDays(7);
+        // Delete successfully processed events older than 30 days
+        LocalDateTime cleanupThreshold = LocalDateTime.now().minusDays(30);
         eventLogRepository.deleteOldEvents(cleanupThreshold);
         log.info("Cleaned up WeCom events older than {}", cleanupThreshold);
     }

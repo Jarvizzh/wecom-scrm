@@ -18,7 +18,7 @@ public class JwtUtils {
 
     // For production, this should be in application.properties
     private String secret = "wecom_scrm_secret_key_for_jwt_tokens_must_be_long_enough_32_chars";
-    private long expiration = 86400000; // 24 hours
+    private long expiration = 7 * 24 * 60 * 60 * 1000; // 7 days
 
     private Key key;
 

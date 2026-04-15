@@ -25,10 +25,10 @@ public class MpUserSyncTask {
 
     /**
      * Scheduled task to sync MP users for all enterprises.
-     * Cron: 0 15 0/6 * * ? (Starting from 00:15, every 6 hours)
-     * Hours: 00:15, 06:15, 12:15, 18:15
+     * Cron: 0 15 0/3 * * ? (Starting from 00:15, every 3 hours)
+     * Hours: 00:15, 03:15, 06:15, 09:15, 12:15, 15:15, 18:15, 21:15
      */
-    @Scheduled(cron = "0 15 0/6 * * ?")
+    @Scheduled(cron = "0 15 0/3 * * ?")
     public void runMpUserSync() {
         log.info("Starting Scheduled MP User Sync Task...");
 
