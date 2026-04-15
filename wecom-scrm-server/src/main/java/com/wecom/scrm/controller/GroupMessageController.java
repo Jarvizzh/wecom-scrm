@@ -3,10 +3,9 @@ package com.wecom.scrm.controller;
 import com.wecom.scrm.dto.GroupMessageDTO;
 import com.wecom.scrm.entity.WecomGroupMessage;
 import com.wecom.scrm.service.GroupMessageService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/group-message")
@@ -25,8 +24,10 @@ public class GroupMessageController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<WecomGroupMessage>> listTasks() {
-        return ResponseEntity.ok(messageService.listTasks());
+    public ResponseEntity<Page<WecomGroupMessage>> listTasks(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(messageService.listTasks(page, size));
     }
 
     @GetMapping("/{id}")

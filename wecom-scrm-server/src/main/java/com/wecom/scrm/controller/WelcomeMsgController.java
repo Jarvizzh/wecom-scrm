@@ -4,8 +4,12 @@ import com.wecom.scrm.entity.WecomWelcomeMsg;
 import com.wecom.scrm.repository.WecomWelcomeMsgRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -20,8 +24,10 @@ public class WelcomeMsgController {
     }
 
     @GetMapping
-    public List<WecomWelcomeMsg> getWelcomeMsgs() {
-        return welcomeMsgRepository.findAll();
+    public Page<WecomWelcomeMsg> getWelcomeMsgs(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return welcomeMsgRepository.findAll(PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "id")));
     }
 
     @GetMapping("/{id}")

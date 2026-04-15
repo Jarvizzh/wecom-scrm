@@ -26,6 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Qualifier;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -353,8 +357,9 @@ public class CustomerMessageService {
         return result;
     }
 
-    public List<WecomCustomerMessage> listTasks() {
-        return messageRepository.findAllByOrderByCreateTimeDesc();
+    public Page<WecomCustomerMessage> listTasks(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createTime"));
+        return messageRepository.findAll(pageable);
     }
 
     public WecomCustomerMessage getTask(Long id) {

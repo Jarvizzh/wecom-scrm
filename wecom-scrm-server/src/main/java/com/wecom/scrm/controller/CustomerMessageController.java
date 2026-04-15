@@ -3,6 +3,7 @@ package com.wecom.scrm.controller;
 import com.wecom.scrm.dto.CustomerMessageDTO;
 import com.wecom.scrm.entity.WecomCustomerMessage;
 import com.wecom.scrm.service.CustomerMessageService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,8 +27,10 @@ public class CustomerMessageController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<WecomCustomerMessage>> listTasks() {
-        return ResponseEntity.ok(messageService.listTasks());
+    public ResponseEntity<Page<WecomCustomerMessage>> listTasks(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(messageService.listTasks(page, size));
     }
 
     @GetMapping("/{id}")

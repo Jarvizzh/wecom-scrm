@@ -21,6 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.ArrayList;
@@ -89,11 +93,16 @@ public class GroupMessageService {
         return message;
     }
 
-    @Transactional
     public void executeTask(WecomGroupMessage message) {
+        // Atomic claim at repository level
+        int updated = messageRepository.updateStatusIfPending(message.getId(), 0, 1);
+        if (updated <= 0) {
+            log.info("Group Task {} already claimed or processed by another thread.", message.getId());
+            return;
+        }
+
         try {
             message.setStatus(1); // Sending
-            messageRepository.save(message);
 
             List<String> owners = findMatchedOwners(message);
             if (owners.isEmpty()) {
@@ -316,8 +325,9 @@ public class GroupMessageService {
         return (List<String>) query.getResultList();
     }
 
-    public List<WecomGroupMessage> listTasks() {
-        return messageRepository.findAllByOrderByCreateTimeDesc();
+    public Page<WecomGroupMessage> listTasks(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createTime"));
+        return messageRepository.findAll(pageable);
     }
 
     public WecomGroupMessage getTask(Long id) {

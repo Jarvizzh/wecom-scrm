@@ -4,6 +4,7 @@ import com.wecom.scrm.dto.MomentDTO;
 import com.wecom.scrm.entity.WecomMoment;
 import com.wecom.scrm.entity.WecomMomentRecord;
 import com.wecom.scrm.service.MomentService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,9 +28,11 @@ public class MomentController {
         return ResponseEntity.ok(moment);
     }
 
-    @GetMapping
-    public ResponseEntity<List<WecomMoment>> listMoments() {
-        return ResponseEntity.ok(momentService.listMoments());
+    @GetMapping("/list")
+    public ResponseEntity<Page<WecomMoment>> listTasks(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(momentService.listMoments(page, size));
     }
 
     @GetMapping("/{id}/records")

@@ -16,6 +16,9 @@ import me.chanjar.weixin.cp.bean.external.moment.SenderList;
 import me.chanjar.weixin.cp.bean.external.moment.VisibleRange;
 import me.chanjar.weixin.cp.bean.external.moment.ExternalContactList;
 import me.chanjar.weixin.cp.bean.external.msg.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -189,8 +192,8 @@ public class MomentService {
         } while (cursor != null && !cursor.isEmpty());
     }
 
-    public List<WecomMoment> listMoments() {
-        return momentRepository.findAllByOrderByCreateTimeDesc();
+    public Page<WecomMoment> listMoments(int page, int size) {
+        return momentRepository.findAll(PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createTime")));
     }
 
     public List<WecomMomentRecord> getRecords(Long momentId) {
