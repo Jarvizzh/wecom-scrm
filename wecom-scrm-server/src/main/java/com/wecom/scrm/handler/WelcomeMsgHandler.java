@@ -3,9 +3,7 @@ package com.wecom.scrm.handler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wecom.scrm.dto.WelcomeMessageAttachmentDTO;
-import com.wecom.scrm.entity.WecomUser;
 import com.wecom.scrm.entity.WecomWelcomeMsg;
-import com.wecom.scrm.repository.WecomUserRepository;
 import com.wecom.scrm.repository.WecomWelcomeMsgRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +21,7 @@ import me.chanjar.weixin.cp.bean.external.msg.Text;
 import me.chanjar.weixin.cp.message.WxCpMessageHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,14 +31,11 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
     private final Logger logger = LoggerFactory.getLogger(WelcomeMsgHandler.class);
 
     private final WecomWelcomeMsgRepository welcomeMsgRepository;
-    private final WecomUserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     public WelcomeMsgHandler(WecomWelcomeMsgRepository welcomeMsgRepository, 
-                             WecomUserRepository userRepository,
                              ObjectMapper objectMapper) {
         this.welcomeMsgRepository = welcomeMsgRepository;
-        this.userRepository = userRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -60,7 +56,7 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
 
         WecomWelcomeMsg config = null;
         
-        // 1. Match by specific UserID
+        // Match by specific UserID
         for (WecomWelcomeMsg msg : allConfigs) {
             String userIdsJson = msg.getUserIds();
             if (userIdsJson != null && !userIdsJson.isEmpty()) {
@@ -76,17 +72,9 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
             }
         }
 
-        // 2. Match by DepartmentID
         if (config == null) {
-            config = matchByDepartment(currentUserId, allConfigs);
-        }
-
-        // 3. Fallback to Default
-        if (config == null) {
-            config = allConfigs.stream()
-                    .filter(m -> m.getIsDefault() != null && m.getIsDefault() == 1)
-                    .findFirst()
-                    .orElse(allConfigs.get(0));
+            logger.info("No welcome message matched for userid: {}. Skipping.", currentUserId);
+            return null;
         }
 
         String welcomeCode = wxMessage.getWelcomeCode();
@@ -97,9 +85,8 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
 
         WxCpWelcomeMsg welcomeMsg = new WxCpWelcomeMsg();
         welcomeMsg.setWelcomeCode(welcomeCode);
+        welcomeMsg.setAttachments(new ArrayList<>());
 
-        // Ensure that text is properly set, treating empty string as valid but null as
-        // no text
         if (config.getText() != null) {
             Text text = new Text();
             text.setContent(config.getText());
@@ -200,28 +187,4 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
         return null;
     }
 
-    private WecomWelcomeMsg matchByDepartment(String userid, List<WecomWelcomeMsg> allConfigs) {
-        WecomUser user = userRepository.findByUserid(userid).orElse(null);
-        if (user == null || user.getDepartmentIds() == null || user.getDepartmentIds().isEmpty()) {
-            return null;
-        }
-
-        try {
-            List<Long> userDeptIds = objectMapper.readValue(user.getDepartmentIds(), new TypeReference<List<Long>>() {});
-            for (WecomWelcomeMsg msg : allConfigs) {
-                String deptIdsJson = msg.getDepartmentIds();
-                if (deptIdsJson != null && !deptIdsJson.isEmpty()) {
-                    List<Long> targetDeptIds = objectMapper.readValue(deptIdsJson, new TypeReference<List<Long>>() {});
-                    for (Long userDeptId : userDeptIds) {
-                        if (targetDeptIds.contains(userDeptId)) {
-                            return msg;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Failed to match welcome message by department for user: " + userid, e);
-        }
-        return null;
-    }
 }
