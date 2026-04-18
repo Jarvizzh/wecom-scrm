@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <div class="header-left left">
-            <el-icon><Monitor /></el-icon>
+            <el-icon><Tickets /></el-icon>
             <span class="title">阅文产品管理</span>
           </div>
           <el-button type="primary" :icon="Plus" @click="handleAdd">新增产品</el-button>
@@ -142,7 +142,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { getProducts, saveProduct, deleteProduct, syncUsers, type YuewenProduct } from '../../api/yuewen'
 import { ElMessage } from 'element-plus'
-import { Plus, Monitor, Reading } from '@element-plus/icons-vue'
+import { Plus, Reading } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const submitting = ref(false)

@@ -37,6 +37,11 @@ export const batchMarkCustomerTags = (data: {
   tagIds?: string[];
   status?: number;
   onlyDuplicates?: boolean;
+  // yuewen
+  appFlag?: string;
+  openid?: string;
+  minAmount?: number;
+  maxAmount?: number;
 }) => {
   return request.post('/admin/tags/batch-mark', data);
 };

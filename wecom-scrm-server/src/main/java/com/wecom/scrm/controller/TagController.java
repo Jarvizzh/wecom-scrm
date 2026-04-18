@@ -78,6 +78,12 @@ public class TagController {
         private List<String> tagIds;
         private Integer status;
         private boolean onlyDuplicates;
+
+        // Yuewen filters
+        private String appFlag;
+        private String openid;
+        private Long minAmount;
+        private Long maxAmount;
     }
 
     @Data

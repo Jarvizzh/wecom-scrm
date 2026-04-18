@@ -7,6 +7,16 @@
             <el-icon><User /></el-icon>
             <span class="title">阅文用户列表</span>
           </div>
+          <div class="right">
+            <el-button 
+              type="primary" 
+              :icon="CollectionTag" 
+              :disabled="multipleSelection.length === 0"
+              @click="handleBatchTag"
+            >
+              批量打标签 {{ multipleSelection.length > 0 ? `(${multipleSelection.length})` : '' }}
+            </el-button>
+          </div>
         </div>
       </template>
 
@@ -63,7 +73,37 @@
         </el-form>
       </div>
 
-      <el-table :data="users" style="width: 100%" v-loading="loading" class="modern-table" @sort-change="handleSortChange">
+      <!-- Selection Info Banner -->
+      <div v-if="multipleSelection.length > 0" class="selection-info-banner">
+        <el-alert type="info" :closable="false" show-icon>
+          <template #title>
+            <div class="selection-banner-content">
+              <span>已选择本页 {{ multipleSelection.length }} 位阅文用户</span>
+              <template v-if="!isAllSelected">
+                <el-button type="primary" link @click="selectAllMatching" class="banner-link">
+                  选择满足当前条件的全部 {{ total }} 位用户
+                </el-button>
+              </template>
+              <template v-else>
+                <span class="all-selected-text">已选择满足当前条件的全部 {{ total }} 位用户</span>
+                <el-button type="primary" link @click="clearAllSelected" class="banner-link">
+                  清除全选，仅保留本页选择
+                </el-button>
+              </template>
+            </div>
+          </template>
+        </el-alert>
+      </div>
+
+      <el-table 
+        :data="users" 
+        style="width: 100%" 
+        v-loading="loading" 
+        class="modern-table" 
+        @sort-change="handleSortChange"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" width="55" />
         <el-table-column label="用户名" width="180">
           <template #default="scope">
             <div class="user-info-cell">
@@ -122,13 +162,69 @@
         />
       </div>
     </el-card>
+
+    <!-- Tagging Dialog -->
+    <el-dialog 
+      v-model="tagDialogVisible" 
+      width="600px"
+      class="custom-tag-dialog"
+      destroy-on-close
+      align-center
+    >
+      <template #header>
+        <div class="dialog-custom-header">
+          <div class="header-icon-box">
+             <el-icon><CollectionTag /></el-icon>
+          </div>
+          <div class="header-text-box">
+            <h3 class="dialog-title">批量打标签</h3>
+            <p class="dialog-subtitle">为选中的阅文用户同步微信标签</p>
+          </div>
+        </div>
+      </template>
+
+      <div v-loading="tagsLoading" class="tags-scroll-area">
+        <div v-if="allTagGroups.length === 0" class="empty-state">
+           <el-empty description="暂无标签数据" />
+        </div>
+        <div v-for="group in allTagGroups" :key="group.groupId" class="tag-group-section">
+          <div class="group-title">
+            <span class="title-dot"></span>
+            {{ group.groupName }}
+          </div>
+          <div class="tag-grid">
+            <el-checkbox-group v-model="selectedTagIds">
+              <el-checkbox 
+                v-for="tag in group.tags" 
+                :key="tag.tagId" 
+                :label="tag.tagId" 
+                class="modern-tag-checkbox"
+              >
+                {{ tag.name }}
+              </el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="tagDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmBatchTag" :loading="marking">
+            确认应用
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { getUsers, getProducts, type YuewenUser, type YuewenProduct } from '../../api/yuewen'
-import { User, UserFilled, Search } from '@element-plus/icons-vue'
+import { getTagGroups, getTagsByGroup, batchMarkCustomerTags } from '../../api/tag'
+import { User, UserFilled, Search, CollectionTag } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
 const users = ref<YuewenUser[]>([])
@@ -138,6 +234,13 @@ const size = ref(10)
 const sortField = ref('')
 const sortOrder = ref('')
 const activeProducts = ref<YuewenProduct[]>([])
+const multipleSelection = ref<YuewenUser[]>([])
+const isAllSelected = ref(false)
+const tagDialogVisible = ref(false)
+const tagsLoading = ref(false)
+const marking = ref(false)
+const allTagGroups = ref<any[]>([])
+const selectedTagIds = ref<string[]>([])
 
 const queryForm = reactive({
   appFlag: '',
@@ -148,6 +251,7 @@ const queryForm = reactive({
 
 const fetchData = async () => {
   loading.value = true
+  isAllSelected.value = false // Reset global selection on data fetch
   try {
     const params = {
       ...queryForm,
@@ -194,6 +298,98 @@ const handleSortChange = ({ prop, order }: { prop: string, order: string }) => {
   sortField.value = prop
   sortOrder.value = order
   fetchData()
+}
+
+const handleSelectionChange = (val: YuewenUser[]) => {
+  multipleSelection.value = val
+  if (val.length === 0) {
+    isAllSelected.value = false
+  }
+}
+
+const selectAllMatching = () => {
+  isAllSelected.value = true
+}
+
+const clearAllSelected = () => {
+  isAllSelected.value = false
+}
+
+const fetchTagGroupsData = async () => {
+  tagsLoading.value = true
+  try {
+    const groups = await getTagGroups() as any
+    const groupsWithTags = await Promise.all(groups.map(async (g: any) => {
+       const tags = await getTagsByGroup(g.groupId) as any
+       return { ...g, tags }
+    }))
+    allTagGroups.value = groupsWithTags
+  } catch (error) {
+    ElMessage.error('获取标签库失败')
+  } finally {
+    tagsLoading.value = false
+  }
+}
+
+const handleBatchTag = () => {
+  const validTargets = multipleSelection.value.filter(u => u.externalUserid)
+  if (validTargets.length === 0 && !isAllSelected.value) {
+    ElMessage.warning('选中的用户均未关联外部联系人ID，无法打标签')
+    return
+  }
+  
+  if (validTargets.length < multipleSelection.value.length && !isAllSelected.value) {
+    ElMessageBox.confirm(
+      `选中的 ${multipleSelection.value.length} 个用户中，仅 ${validTargets.length} 个已关联外部联系人。是否继续为这 ${validTargets.length} 个用户打标签？`,
+      '提示',
+      { confirmButtonText: '继续', cancelButtonText: '取消', type: 'warning' }
+    ).then(() => {
+      openTagDialog()
+    }).catch(() => {})
+  } else {
+    openTagDialog()
+  }
+}
+
+const openTagDialog = () => {
+  selectedTagIds.value = []
+  tagDialogVisible.value = true
+  fetchTagGroupsData()
+}
+
+const confirmBatchTag = async () => {
+  if (selectedTagIds.value.length === 0) {
+    ElMessage.warning('请至少选择一个标签')
+    return
+  }
+
+  marking.value = true
+  try {
+    const params: any = {
+      targets: isAllSelected.value ? [] : multipleSelection.value.map(u => ({
+        externalUserid: u.externalUserid,
+        userid: ''
+      })),
+      addTagIds: selectedTagIds.value,
+      selectAll: isAllSelected.value
+    }
+
+    if (isAllSelected.value) {
+      params.appFlag = queryForm.appFlag
+      params.openid = queryForm.openid
+      params.minAmount = queryForm.minAmount ? Math.round(queryForm.minAmount * 100) : undefined
+      params.maxAmount = queryForm.maxAmount ? Math.round(queryForm.maxAmount * 100) : undefined
+    }
+
+    await batchMarkCustomerTags(params)
+    ElMessage.success('批量打标签任务已启动，后台处理中')
+    tagDialogVisible.value = false
+    isAllSelected.value = false
+  } catch (error) {
+    console.error('Batch tag error:', error)
+  } finally {
+    marking.value = false
+  }
 }
 
 
@@ -287,5 +483,111 @@ onMounted(() => {
 
 .range-separator {
   color: #909399;
+}
+
+/* Tag Dialog Styles */
+.dialog-custom-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.header-icon-box {
+  width: 48px;
+  height: 48px;
+  background: #ecf5ff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #409eff;
+  font-size: 24px;
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.dialog-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #909399;
+}
+
+.tags-scroll-area {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.tag-group-section {
+  margin-bottom: 24px;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 12px;
+}
+
+.title-dot {
+  width: 6px;
+  height: 6px;
+  background: #409eff;
+  border-radius: 50%;
+}
+
+.tag-grid :deep(.el-checkbox-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+}
+
+.modern-tag-checkbox {
+  margin-right: 0 !important;
+  border: 1px solid #e4e7ed;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.modern-tag-checkbox :deep(.el-checkbox__label) {
+  padding-left: 8px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.modern-tag-checkbox:hover {
+  border-color: #c0c4cc;
+  background: #f5f7fa;
+}
+
+.modern-tag-checkbox.is-checked {
+  border-color: #409eff;
+  background: #f0f7ff;
+}
+
+.modern-tag-checkbox.is-checked :deep(.el-checkbox__label) {
+  color: #409eff;
+}
+
+.dialog-footer {
+  padding-top: 16px;
+  border-top: 1px solid #f0f2f5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style>

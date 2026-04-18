@@ -1,5 +1,6 @@
 package com.wecom.scrm.service;
 
+import com.wecom.scrm.entity.WecomCustomerRelation;
 import com.wecom.scrm.entity.WecomCustomerTag;
 import com.wecom.scrm.entity.WecomTag;
 import com.wecom.scrm.entity.WecomTagGroup;
@@ -7,6 +8,7 @@ import com.wecom.scrm.repository.WecomCustomerTagRepository;
 import com.wecom.scrm.repository.WecomTagGroupRepository;
 import com.wecom.scrm.repository.WecomTagRepository;
 import com.wecom.scrm.repository.WecomCustomerRelationRepository;
+import com.wecom.scrm.repository.yuewen.YuewenUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import com.wecom.scrm.config.WxCpServiceManager;
 import me.chanjar.weixin.cp.bean.WxCpBaseResp;
@@ -31,17 +33,20 @@ public class TagService {
     private final WecomTagRepository tagRepository;
     private final WecomCustomerTagRepository customerTagRepository;
     private final WecomCustomerRelationRepository customerRelationRepository;
+    private final YuewenUserRepository yuewenUserRepository;
 
     public TagService(WxCpServiceManager wxCpServiceManager,
             WecomTagGroupRepository tagGroupRepository,
             WecomTagRepository tagRepository,
             WecomCustomerTagRepository customerTagRepository,
-            WecomCustomerRelationRepository customerRelationRepository) {
+            WecomCustomerRelationRepository customerRelationRepository,
+            com.wecom.scrm.repository.yuewen.YuewenUserRepository yuewenUserRepository) {
         this.wxCpServiceManager = wxCpServiceManager;
         this.tagGroupRepository = tagGroupRepository;
         this.tagRepository = tagRepository;
         this.customerTagRepository = customerTagRepository;
         this.customerRelationRepository = customerRelationRepository;
+        this.yuewenUserRepository = yuewenUserRepository;
     }
 
     public List<WecomTagGroup> getAllTagGroups() {
@@ -159,22 +164,40 @@ public class TagService {
                 cleanTagIds = null;
             }
 
-            List<CustomerTargetDTO> candidates = customerRelationRepository.findTargetsByFilters(
-                    request.getCustomerName(),
-                    request.getUnionid(),
-                    request.getEmployeeName(),
-                    request.getMpAppId(),
-                    cleanTagIds,
-                    hasTags,
-                    request.getStatus(),
-                    request.isOnlyDuplicates()
-            );
-            targets = candidates.stream().map(dto -> {
-                TagController.TagTarget target = new TagController.TagTarget();
-                target.setUserid(dto.getUserid());
-                target.setExternalUserid(dto.getExternalUserid());
-                return target;
-            }).collect(Collectors.toList());
+            if (request.getAppFlag() != null && !request.getAppFlag().trim().isEmpty()) {
+                // Yuewen selection
+                log.info("Using Yuewen filters for global selection: appFlag={}, openid={}", 
+                        request.getAppFlag(), request.getOpenid());
+                List<String> externalUserids = yuewenUserRepository.findExternalUseridsByFilters(
+                        request.getAppFlag(),
+                        request.getOpenid(),
+                        request.getMinAmount(),
+                        request.getMaxAmount()
+                );
+                targets = externalUserids.stream().map(eid -> {
+                    TagController.TagTarget target = new TagController.TagTarget();
+                    target.setExternalUserid(eid);
+                    return target;
+                }).collect(Collectors.toList());
+            } else {
+                // Customer list selection
+                List<CustomerTargetDTO> candidates = customerRelationRepository.findTargetsByFilters(
+                        request.getCustomerName(),
+                        request.getUnionid(),
+                        request.getEmployeeName(),
+                        request.getMpAppId(),
+                        cleanTagIds,
+                        hasTags,
+                        request.getStatus(),
+                        request.isOnlyDuplicates()
+                );
+                targets = candidates.stream().map(dto -> {
+                    TagController.TagTarget target = new TagController.TagTarget();
+                    target.setUserid(dto.getUserid());
+                    target.setExternalUserid(dto.getExternalUserid());
+                    return target;
+                }).collect(Collectors.toList());
+            }
         }
 
         if (targets == null || targets.isEmpty()) {
@@ -187,14 +210,33 @@ public class TagService {
         int failCount = 0;
 
         for (TagController.TagTarget target : targets) {
-            try {
-                markTags(target.getUserid(), target.getExternalUserid(), 
-                         request.getAddTagIds(), request.getRemoveTagIds());
-                successCount++;
-            } catch (Exception e) {
-                log.error("Failed to mark tags for customer {} / user {}: {}", 
-                        target.getExternalUserid(), target.getUserid(), e.getMessage());
-                failCount++;
+            String externalUserid = target.getExternalUserid();
+            String userid = target.getUserid();
+            
+            if (userid == null || userid.trim().isEmpty()) {
+                // Resolve all relations for this externalUserid
+                List<WecomCustomerRelation> relations = customerRelationRepository.findByExternalUserid(externalUserid);
+                for (WecomCustomerRelation relation : relations) {
+                    try {
+                        markTags(relation.getUserid(), externalUserid, 
+                                 request.getAddTagIds(), request.getRemoveTagIds());
+                        successCount++;
+                    } catch (Exception e) {
+                        log.error("Failed to mark tags for customer {} / user {}: {}", 
+                                externalUserid, relation.getUserid(), e.getMessage());
+                        failCount++;
+                    }
+                }
+            } else {
+                try {
+                    markTags(userid, externalUserid, 
+                             request.getAddTagIds(), request.getRemoveTagIds());
+                    successCount++;
+                } catch (Exception e) {
+                    log.error("Failed to mark tags for customer {} / user {}: {}", 
+                            externalUserid, userid, e.getMessage());
+                    failCount++;
+                }
             }
         }
         

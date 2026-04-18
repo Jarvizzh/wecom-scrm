@@ -20,6 +20,7 @@ export interface YuewenUser {
   chargeNum: number
   isSubscribe: number
   registTime: string
+  externalUserid: string
   yuewenUpdateTime: string
   productName?: string
 }
