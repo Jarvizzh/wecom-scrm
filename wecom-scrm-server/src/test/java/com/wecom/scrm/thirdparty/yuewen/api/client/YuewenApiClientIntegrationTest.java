@@ -1,6 +1,8 @@
 package com.wecom.scrm.thirdparty.yuewen.api.client;
 
 import com.wecom.scrm.WecomScrmServerApplication;
+import com.wecom.scrm.thirdparty.api.yuewen.client.YuewenApiClient;
+import com.wecom.scrm.thirdparty.api.yuewen.dto.*;
 import com.wecom.scrm.thirdparty.yuewen.api.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -9,8 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
