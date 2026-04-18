@@ -1,7 +1,5 @@
 package com.wecom.scrm.service.yuewen;
 
-import com.wecom.scrm.entity.WecomCustomer;
-import com.wecom.scrm.entity.WecomMpUser;
 import com.wecom.scrm.thirdparty.api.yuewen.client.IYuewenAPIClient;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.YuewenResponse;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.YuewenUserInfoRequest;
@@ -24,7 +22,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service

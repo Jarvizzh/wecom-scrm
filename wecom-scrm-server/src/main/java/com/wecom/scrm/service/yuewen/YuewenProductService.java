@@ -32,7 +32,6 @@ public class YuewenProductService {
         return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
-    @Transactional
     public YuewenProduct saveProduct(YuewenProduct product) {
         boolean isNew = product.getId() == null;
         YuewenProduct saved;
@@ -46,6 +45,8 @@ public class YuewenProductService {
         } else {
             saved = productRepository.save(product);
         }
+
+        try {Thread.sleep(200);} catch (InterruptedException ignored) {}
 
         // Trigger async one-year sync for new active products
         if (isNew && Integer.valueOf(1).equals(saved.getStatus())) {
