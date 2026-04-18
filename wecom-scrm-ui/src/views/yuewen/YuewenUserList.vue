@@ -80,16 +80,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getUsers, getProducts } from '../../api/yuewen'
+import { getUsers, getProducts, type YuewenUser, type YuewenProduct } from '../../api/yuewen'
 
 const loading = ref(false)
-const users = ref([])
+const users = ref<YuewenUser[]>([])
 const total = ref(0)
 const page = ref(1)
 const size = ref(10)
 const sortField = ref('')
 const sortOrder = ref('')
-const activeProducts = ref([])
+const activeProducts = ref<YuewenProduct[]>([])
 
 const queryForm = reactive({
   appFlag: '',
@@ -142,7 +142,7 @@ const handleSortChange = ({ prop, order }: { prop: string, order: string }) => {
 }
 
 const getProductName = (appFlag: string) => {
-  const product = activeProducts.value.find((p: any) => p.appFlag === appFlag)
+  const product = activeProducts.value.find(p => p.appFlag === appFlag)
   return product ? product.productName : appFlag
 }
 

@@ -122,14 +122,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getProducts, saveProduct, deleteProduct, syncUsers } from '../../api/yuewen'
+import { getProducts, saveProduct, deleteProduct, syncUsers, type YuewenProduct } from '../../api/yuewen'
 import { ElMessage } from 'element-plus'
 import { Plus, Tickets } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const submitting = ref(false)
 const syncing = ref(false)
-const products = ref([])
+const products = ref<YuewenProduct[]>([])
 const total = ref(0)
 const page = ref(1)
 const size = ref(10)
