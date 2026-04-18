@@ -58,17 +58,17 @@
               <span>客户朋友圈</span>
             </el-menu-item>
             <el-menu-item index="/customer-messages">
-              <el-icon><ChatLineRound /></el-icon>
+              <el-icon><ChatDotRound /></el-icon>
               <span>客户群发</span>
             </el-menu-item>
             <el-menu-item index="/group-messages">
-              <el-icon><ChatDotRound /></el-icon>
+              <el-icon><ChatLineRound /></el-icon>
               <span>客户群群发</span>
             </el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="mp">
             <template #title>
-              <el-icon><ChatLineRound /></el-icon>
+              <el-icon><Connection /></el-icon>
               <span>微信公众号</span>
             </template>
             <el-menu-item index="/mp-accounts">
@@ -77,8 +77,29 @@
             </el-menu-item>
             <el-menu-item index="/mp-users">
               <el-icon><User /></el-icon>
-              <span>用户管理</span>
+              <span>用户列表</span>
             </el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="thirdparty">
+            <template #title>
+              <el-icon><Connection /></el-icon>
+              <span>第三方平台</span>
+            </template>
+            <el-sub-menu index="yuewen">
+              <template #title>
+                <el-icon><Notebook /></el-icon>
+                <span>阅文小说</span>
+              </template>
+              <el-menu-item index="/yuewen-products">
+                <el-icon><Tickets /></el-icon>
+                <span>产品管理</span>
+              </el-menu-item>
+              <el-menu-item index="/yuewen-users">
+                <el-icon><User /></el-icon>
+                <span>用户列表</span>
+              </el-menu-item>
+            </el-sub-menu>
           </el-sub-menu>
           <el-menu-item index="/sync-logs">
             <el-icon><Fold /></el-icon>
@@ -157,17 +178,17 @@
                 <span>客户朋友圈</span>
               </el-menu-item>
               <el-menu-item index="/customer-messages">
-                <el-icon><ChatLineRound /></el-icon>
+                <el-icon><ChatDotRound /></el-icon>
                 <span>客户群发</span>
               </el-menu-item>
               <el-menu-item index="/group-messages">
-                <el-icon><ChatDotRound /></el-icon>
+                <el-icon><ChatLineRound /></el-icon>
                 <span>客户群群发</span>
               </el-menu-item>
             </el-sub-menu>
             <el-sub-menu index="mp">
               <template #title>
-                <el-icon><ChatLineRound /></el-icon>
+                <el-icon><Connection /></el-icon>
                 <span>微信公众号</span>
               </template>
               <el-menu-item index="/mp-accounts">
@@ -176,8 +197,28 @@
               </el-menu-item>
               <el-menu-item index="/mp-users">
                 <el-icon><User /></el-icon>
-                <span>用户管理</span>
+                <span>用户列表</span>
               </el-menu-item>
+            </el-sub-menu>
+
+            <el-sub-menu index="thirdparty">
+              <template #title>
+                <el-icon><Connection /></el-icon>
+                <span>第三方平台</span>
+              </template>
+              <el-sub-menu index="yuewen">
+                <template #title>
+                  <span>阅文</span>
+                </template>
+                <el-menu-item index="/yuewen-products">
+                  <el-icon><Tickets /></el-icon>
+                  <span>产品管理</span>
+                </el-menu-item>
+                <el-menu-item index="/yuewen-users">
+                  <el-icon><User /></el-icon>
+                  <span>用户列表</span>
+                </el-menu-item>
+              </el-sub-menu>
             </el-sub-menu>
             <el-menu-item index="/sync-logs">
               <el-icon><Fold /></el-icon>
@@ -301,7 +342,7 @@ import { useRoute, useRouter } from 'vue-router'
 import request from '../api/request'
 import { 
   Setting, CaretBottom, ArrowDown, Plus, Select, 
-  Expand, Fold, Notification, Menu 
+  Expand, Fold, Notification, Menu, Tickets, Connection
 } from '@element-plus/icons-vue'
 import EnterpriseFormDialog from '../views/EnterpriseFormDialog.vue'
 import { useResponsive } from '../hooks/useResponsive'

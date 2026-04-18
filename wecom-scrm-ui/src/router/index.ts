@@ -145,6 +145,18 @@ const routes = [
         meta: { title: '公众号用户 / MP Users' }
       },
       {
+        path: 'yuewen-products',
+        name: 'YuewenProducts',
+        component: () => import('../views/yuewen/YuewenProductList.vue'),
+        meta: { title: '阅文产品管理 / Yuewen Products' }
+      },
+      {
+        path: 'yuewen-users',
+        name: 'YuewenUsers',
+        component: () => import('../views/yuewen/YuewenUserList.vue'),
+        meta: { title: '阅文用户列表 / Yuewen Users' }
+      },
+      {
         path: 'enterprises',
         name: 'Enterprises',
         component: () => import('../views/EnterpriseList.vue'),
