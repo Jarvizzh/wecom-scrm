@@ -1,7 +1,6 @@
 package com.wecom.scrm.thirdparty.api.yuewen.client;
 
 import com.wecom.scrm.thirdparty.api.yuewen.dto.*;
-import com.wecom.scrm.thirdparty.yuewen.api.dto.*;
 
 /**
  * Interface for Yuewen API Client.

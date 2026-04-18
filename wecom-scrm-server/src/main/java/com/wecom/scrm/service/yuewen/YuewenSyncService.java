@@ -5,7 +5,6 @@ import com.wecom.scrm.thirdparty.api.yuewen.dto.YuewenResponse;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.YuewenUserInfoRequest;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.YuewenUserInfoResponse;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.YuewenUserItem;
-import com.wecom.scrm.thirdparty.yuewen.api.dto.*;
 import com.wecom.scrm.entity.yuewen.YuewenProduct;
 import com.wecom.scrm.entity.yuewen.YuewenUser;
 import com.wecom.scrm.repository.yuewen.YuewenProductRepository;

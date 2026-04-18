@@ -2,7 +2,6 @@ package com.wecom.scrm.thirdparty.api.yuewen.client;
 
 import com.wecom.scrm.thirdparty.api.yuewen.config.YuewenConfig;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.*;
-import com.wecom.scrm.thirdparty.yuewen.api.dto.*;
 import com.wecom.scrm.thirdparty.api.yuewen.util.YuewenSignUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;

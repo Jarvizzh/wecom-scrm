@@ -3,7 +3,6 @@ package com.wecom.scrm.thirdparty.yuewen.api.client;
 import com.wecom.scrm.WecomScrmServerApplication;
 import com.wecom.scrm.thirdparty.api.yuewen.client.YuewenApiClient;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.*;
-import com.wecom.scrm.thirdparty.yuewen.api.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
