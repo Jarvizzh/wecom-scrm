@@ -25,6 +25,9 @@ public class YuewenUser {
     @Column(length = 128)
     private String nickname;
 
+    @Column(length = 255)
+    private String avatar;
+
     @Column(name = "app_flag", nullable = false, length = 64)
     private String appFlag;
 
@@ -42,6 +45,9 @@ public class YuewenUser {
 
     @Column(name = "regist_time")
     private LocalDateTime registTime;
+
+    @Column(name = "external_userid", length = 64)
+    private String externalUserid;
 
     @Column(name = "yuewen_update_time")
     private LocalDateTime yuewenUpdateTime;

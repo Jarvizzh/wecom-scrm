@@ -36,7 +36,7 @@
       </div>
 
       <el-table v-loading="loading" :data="users" style="width: 100%" class="modern-table" @sort-change="handleSortChange">
-        <el-table-column prop="nickname" label="粉丝信息" min-width="200">
+        <el-table-column label="粉丝信息" min-width="200">
           <template #default="scope">
             <div class="user-info-cell">
               <el-avatar :size="40" :src="scope.row.avatarUrl" :icon="UserFilled" />
@@ -51,14 +51,14 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="mpName" label="所属公众号" width="180">
-          <template #default="scope">
-            <el-tag size="small" effect="plain">{{ scope.row.mpName }}</el-tag>
-          </template>
-        </el-table-column>
         <el-table-column prop="unionid" label="UnionID" width="280">
           <template #default="scope">
             <span class="monospace-id">{{ scope.row.unionid || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="mpName" label="所属公众号" width="180">
+          <template #default="scope">
+            <el-tag size="small" effect="plain">{{ scope.row.mpName }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="subscribeTime" label="关注时间" width="200" sortable="custom">
@@ -254,10 +254,8 @@ onMounted(() => {
 
 .monospace-id {
   font-family: monospace;
-  background-color: #f0f2f5;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
+  color: #606266;
 }
 
 .modern-table :deep(.el-table__header) th {

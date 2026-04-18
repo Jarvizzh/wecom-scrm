@@ -1,25 +1,43 @@
 <template>
-  <div class="product-container">
-    <el-card class="box-card">
+  <div class="product-container mp-container">
+    <el-card class="box-card account-card">
       <template #header>
         <div class="card-header">
-          <div class="header-left">
+          <div class="header-left left">
+            <el-icon><Monitor /></el-icon>
             <span class="title">阅文产品管理</span>
           </div>
-          <el-button type="primary" @click="handleAdd">
-            <el-icon class="mr-1"><Plus /></el-icon>新增产品
-          </el-button>
+          <el-button type="primary" :icon="Plus" @click="handleAdd">新增产品</el-button>
         </div>
       </template>
 
-      <el-table :data="products" style="width: 100%" v-loading="loading" border stripe>
-        <el-table-column prop="productName" label="产品名称" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="wxAppId" label="微信公众号AppId" min-width="150" />
-        <el-table-column prop="appFlag" label="APPFLAG" min-width="150" />
+      <el-table :data="products" style="width: 100%" v-loading="loading" class="modern-table">
+        <el-table-column label="产品信息" width="200">
+          <template #default="scope">
+            <div class="product-info-cell">
+              <div class="info-icon">
+                <el-icon><Reading /></el-icon>
+              </div>
+              <div class="product-text">
+                <div class="name">{{ scope.row.productName }}</div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="appFlag" label="AppFlag" min-width="150">
+          <template #default="scope">
+            <span class="monospace-id">{{ scope.row.appFlag }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="wxAppId" label="微信AppID" min-width="180">
+          <template #default="scope">
+            <span class="monospace-id">{{ scope.row.wxAppId }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="启用状态" width="120">
           <template #default="scope">
-            <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-              {{ scope.row.status === 1 ? '启用' : '禁用' }}
+            <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'" round effect="light">
+              {{ scope.row.status === 1 ? '已启用' : '已禁用' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -28,7 +46,7 @@
             {{ formatTime(scope.row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right" align="center">
           <template #default="scope">
             <el-button link type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button link type="success" @click="handleSync(scope.row)">同步用户</el-button>
@@ -124,7 +142,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { getProducts, saveProduct, deleteProduct, syncUsers, type YuewenProduct } from '../../api/yuewen'
 import { ElMessage } from 'element-plus'
-import { Plus, Tickets } from '@element-plus/icons-vue'
+import { Plus, Monitor, Reading } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -358,33 +376,78 @@ onMounted(() => {
 
 <style scoped>
 .product-container {
-  padding: 10px;
+  padding: 24px;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 84px);
 }
+
+.account-card {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.header-left {
+
+.card-header .left {
   display: flex;
   align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
 }
-.title {
+
+.card-header .el-icon {
   font-size: 18px;
+  color: #409eff;
+}
+
+.product-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.info-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #ecf5ff;
+  color: #409eff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.product-text .name {
   font-weight: 600;
   color: #303133;
 }
-.ml-2 {
-  margin-left: 8px;
+
+.monospace-id {
+  font-family: monospace;
+  font-size: 13px;
+  color: #606266;
 }
-.mr-1 {
-  margin-right: 4px;
+
+.modern-table :deep(.el-table__header) th {
+  background-color: #f8faff;
+  color: #606266;
+  font-weight: 600;
 }
+
 .pagination-container {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
 }
+
 .tip {
   font-size: 12px;
   color: #909399;

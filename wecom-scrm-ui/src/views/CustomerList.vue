@@ -250,7 +250,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="公众号OpenID" width="120" class-name="hidden-lg-and-down">
+        <el-table-column label="OpenID" width="120" class-name="hidden-lg-and-down">
           <template #default="scope">
              <el-tooltip
               v-if="scope.row.mpOpenid"
@@ -281,7 +281,7 @@
         <el-table-column prop="relationCreateTime" label="添加时间" width="180" class-name="hidden-sm-and-down">
           <template #default="scope">
             <div class="time-cell">
-              <el-icon><Calendar /></el-icon>
+              <!-- <el-icon><Calendar /></el-icon> -->
               <span>{{ formatDateTime(scope.row.relationCreateTime) }}</span>
             </div>
           </template>
@@ -297,6 +297,16 @@
               :icon="CollectionTag" 
               @click="openTagDialog(scope.row)" 
             />
+            <el-tooltip content="第三方平台数据" placement="top">
+              <el-button 
+                type="success" 
+                circle
+                plain
+                class="action-icon-btn"
+                :icon="Tickets" 
+                @click="openYuewenDialog(scope.row)" 
+              />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -385,6 +395,87 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- Yuewen Platform Data Dialog -->
+    <el-dialog 
+      v-model="yuewenDialogVisible" 
+      width="850px"
+      align-center
+      class="yuewen-data-dialog"
+    >
+      <template #header>
+        <div class="dialog-custom-header">
+          <div class="header-icon-box yuewen-icon-box">
+             <el-icon><Tickets /></el-icon>
+          </div>
+          <div class="header-text-box">
+            <h3 class="dialog-title">第三方平台数据</h3>
+            <p class="dialog-subtitle">查看该客户在关联平台的资产及消费概况</p>
+          </div>
+        </div>
+      </template>
+
+      <div v-loading="yuewenLoading" class="yuewen-dialog-content">
+        <div v-if="currentCustomer" class="customer-overview-card">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="客户名称">
+              <span class="overview-value">{{ currentCustomer.customerName }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="UnionID">
+              <span class="monospace-id no-bg">{{ currentCustomer.unionid || '-' }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="外部UserID">
+              <span class="monospace-id no-bg">{{ currentCustomer.externalUserid }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="总消费账号">
+              <span class="overview-value">{{ yuewenUsers.length }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
+
+        <div class="yuewen-table-section">
+          <div class="section-title">
+            <el-icon><List /></el-icon> 阅文平台账号消费明细
+          </div>
+          <el-table :data="yuewenUsers" class="modern-table yuewen-inner-table">
+            <el-table-column label="产品信息" width="130">
+              <template #default="scope">
+                <div class="product-info-cell">
+                  <div class="product-name">{{ scope.row.productName || '-' }}</div>
+                  <div class="appflag-text">{{ scope.row.appFlag }}</div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="平台用户信息" min-width="270">
+              <template #default="scope">
+                <div class="product-info-cell">
+                  <div class="product-name">{{ scope.row.nickname || '-' }}</div>
+                  <div class="appflag-text">{{ scope.row.openid }}</div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="累计充值" width="100">
+              <template #default="scope">
+                <div class="amount-cell">
+                  <span class="currency">￥</span>
+                  <span class="value">{{ (scope.row.chargeAmount / 100).toFixed(2) }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="chargeNum" label="充值次数" width="90" align="center" />
+            <el-table-column prop="registTime" label="注册时间" width="160">
+              <template #default="scope">
+                <span class="time-text">{{ formatDateTime(scope.row.registTime) }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        
+        <div v-if="yuewenUsers.length === 0 && !yuewenLoading" class="empty-state-container">
+          <el-empty description="暂未发现该客户在阅文平台的消费数据" :image-size="100" />
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -394,8 +485,9 @@ import { getCustomers, syncCustomers } from '../api/customer'
 import { getTagGroups, getTagsByGroup, markCustomerTags, batchMarkCustomerTags } from '../api/tag'
 import { getUsers } from '../api/user'
 import { getMpAccounts } from '../api/mp'
+import { getYuewenByCustomer } from '../api/yuewen'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Minus, CollectionTag, InfoFilled, User, Calendar, Cellphone, Connection } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Minus, CollectionTag, InfoFilled, User, Cellphone, Connection, Tickets, List } from '@element-plus/icons-vue'
 
 const tableData = ref([])
 const loading = ref(false)
@@ -424,6 +516,27 @@ const currentCustomer = ref<any>(null)
 const multipleSelection = ref<any[]>([])
 const isBatch = ref(false)
 const batchTagMode = ref<'add' | 'remove'>('add')
+const yuewenDialogVisible = ref(false)
+const yuewenLoading = ref(false)
+const yuewenUsers = ref<any[]>([])
+
+const openYuewenDialog = async (row: any) => {
+  if (!row.externalUserid) {
+    ElMessage.warning('该客户尚未关联外部联系人ID')
+    return
+  }
+  currentCustomer.value = row
+  yuewenDialogVisible.value = true
+  yuewenLoading.value = true
+  try {
+    const res = await getYuewenByCustomer(row.externalUserid)
+    yuewenUsers.value = res || []
+  } catch (error) {
+    ElMessage.error('获取阅文平台数据失败')
+  } finally {
+    yuewenLoading.value = false
+  }
+}
 
 const handleSelectionChange = (val: any[]) => {
   multipleSelection.value = val
@@ -1168,5 +1281,103 @@ onMounted(() => {
   padding: 0 24px;
   border-radius: 12px;
   font-weight: 600;
+}
+
+/* Yuewen Dialog Specific */
+.yuewen-data-dialog :deep(.el-dialog) {
+  border-radius: 20px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.yuewen-icon-box {
+  background-color: #f0f9eb;
+  color: #67c23a;
+}
+
+.yuewen-dialog-content {
+  padding: 0 32px 32px;
+}
+
+.customer-overview-card {
+  margin-top: 2px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+}
+
+.overview-value {
+  font-weight: normal;
+  color: #1e293b;
+}
+
+.yuewen-table-section {
+  margin-top: 32px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yuewen-inner-table {
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.product-info-cell .product-name {
+  font-weight: normal;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.product-info-cell .appflag-text {
+  font-size: 12px;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.nickname-text {
+  font-weight: normal;
+  color: #1e293b;
+}
+
+.amount-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.amount-cell .currency {
+  font-size: 12px;
+  color: #f56c6c;
+  font-weight: 700;
+}
+
+.amount-cell .value {
+  font-size: 16px;
+  color: #f56c6c;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+.time-text {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.empty-state-container {
+  padding: 40px 0;
+}
+
+.monospace-id.no-bg {
+  background-color: transparent;
+  padding: 0;
+  font-size: 13px;
 }
 </style>

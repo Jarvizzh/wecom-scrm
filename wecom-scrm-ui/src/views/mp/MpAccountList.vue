@@ -12,7 +12,7 @@
       </template>
 
       <el-table v-loading="loading" :data="accounts" style="width: 100%" class="modern-table">
-        <el-table-column prop="name" label="公众号信息">
+        <el-table-column prop="name" label="公众号名称" width="220">
           <template #default="scope">
             <div class="account-info-cell">
               <div class="info-icon">
@@ -20,9 +20,13 @@
               </div>
               <div class="account-text">
                 <div class="name">{{ scope.row.name }}</div>
-                <div class="appid">AppId: {{ scope.row.appId }}</div>
               </div>
             </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="appId" label="微信AppID" min-width="200">
+          <template #default="scope">
+            <span class="monospace-id">{{ scope.row.appId }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="自动同步用户" width="150">
@@ -309,12 +313,12 @@ onMounted(() => {
 .account-text .name {
   font-weight: 600;
   color: #303133;
-  margin-bottom: 4px;
 }
 
-.account-text .appid {
-  font-size: 12px;
-  color: #909399;
+.monospace-id {
+  font-family: monospace;
+  font-size: 13px;
+  color: #606266;
 }
 
 .modern-table :deep(.el-table__header) th {

@@ -1,7 +1,7 @@
 import request from './request'
 
 export interface YuewenProduct {
-  id?: number
+  id?: number | null
   productName: string
   wxAppId: string
   appFlag: string
@@ -10,15 +10,18 @@ export interface YuewenProduct {
 }
 
 export interface YuewenUser {
-  id: number
+  id: number | null
   guid: string
   openid: string
+  nickname: string
+  avatar: string
   appFlag: string
   chargeAmount: number
   chargeNum: number
   isSubscribe: number
   registTime: string
   yuewenUpdateTime: string
+  productName?: string
 }
 
 export interface PageResponse<T> {
@@ -65,5 +68,12 @@ export function getUsers(params: any): Promise<PageResponse<YuewenUser>> {
     url: '/admin/yuewen/user',
     method: 'get',
     params
+  })
+}
+
+export function getYuewenByCustomer(externalUserid: string): Promise<YuewenUser[]> {
+  return request({
+    url: `/admin/yuewen/user/customer/${externalUserid}`,
+    method: 'get'
   })
 }

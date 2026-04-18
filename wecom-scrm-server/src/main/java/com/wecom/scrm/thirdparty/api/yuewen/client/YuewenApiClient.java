@@ -175,17 +175,20 @@ public class YuewenApiClient implements IYuewenAPIClient {
     private <T> YuewenResponse<T> executeGet(String url, Map<String, String> params, ParameterizedTypeReference<YuewenResponse<T>> responseType) {
         // Generate signature
         String sign = YuewenSignUtils.generateSign(params, config.getAppSecret());
-        log.info("appSecret:{}", config.getAppSecret());
-        log.info("params:{}", params);
-        log.info("sign:{}", sign);
         params.put("sign", sign);
+
+        if (log.isDebugEnabled()) {
+            log.debug("appSecret:{} params:{} sign:{}", config.getAppSecret(), params, sign);
+        }
 
         // Build URI with query parameters
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
         params.forEach(builder::queryParam);
 
         String finalUrl = builder.toUriString();
-        log.info("Calling Yuewen API: {}", finalUrl);
+        if (log.isDebugEnabled()) {
+            log.debug("Calling Yuewen API: {}", finalUrl);
+        }
 
         try {
             ResponseEntity<YuewenResponse<T>> response = restTemplate.exchange(

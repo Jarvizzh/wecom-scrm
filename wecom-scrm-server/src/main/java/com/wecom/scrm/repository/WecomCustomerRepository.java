@@ -12,4 +12,6 @@ public interface WecomCustomerRepository extends JpaRepository<WecomCustomer, Lo
     Optional<WecomCustomer> findByExternalUserid(String externalUserid);
     
     List<WecomCustomer> findByExternalUseridIn(List<String> externalUserids);
+
+    Optional<WecomCustomer> findFirstByUnionid(String unionid);
 }

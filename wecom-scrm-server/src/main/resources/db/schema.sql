@@ -308,8 +308,10 @@ CREATE TABLE IF NOT EXISTS `wecom_yuewen_user` (
     `guid` BIGINT NOT NULL COMMENT '阅文用户ID',
     `openid` VARCHAR(64) NOT NULL COMMENT '微信OpenId',
     `nickname` VARCHAR(128) DEFAULT NULL COMMENT '用户昵称',
+    `avatar` VARCHAR(255) DEFAULT NULL COMMENT '用户头像URL',
     `app_flag` VARCHAR(64) NOT NULL COMMENT '所属产品标识',
     `wx_app_id` VARCHAR(64) DEFAULT NULL COMMENT '微信公众号AppId',
+    `external_userid` VARCHAR(64) DEFAULT NULL COMMENT '关联企微外部联系人ID',
     `charge_amount` BIGINT DEFAULT 0 COMMENT '累计充值金额(分)',
     `charge_num` INT DEFAULT 0 COMMENT '累计充值次数',
     `is_subscribe` TINYINT DEFAULT 0 COMMENT '是否关注: 0=否, 1=是',
@@ -318,5 +320,6 @@ CREATE TABLE IF NOT EXISTS `wecom_yuewen_user` (
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `uk_app_openid` (`app_flag`, `openid`),
-    KEY `idx_guid` (`guid`)
+    KEY `idx_guid` (`guid`),
+    KEY `idx_external_userid` (`external_userid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阅文同步用户表';
