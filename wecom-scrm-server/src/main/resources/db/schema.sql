@@ -290,3 +290,33 @@ CREATE TABLE IF NOT EXISTS `wecom_mp_user` (
     UNIQUE KEY `uk_mp_openid` (`mp_app_id`, `openid`),
     KEY `idx_unionid` (`unionid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='微信公众号用户表';
+
+-- 21. 阅文产品配置表
+CREATE TABLE IF NOT EXISTS `wecom_yuewen_product` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `product_name` VARCHAR(128) NOT NULL COMMENT '产品名称',
+    `app_flag` VARCHAR(64) NOT NULL UNIQUE COMMENT 'APPFLAG',
+    `wx_app_id` VARCHAR(64) DEFAULT NULL COMMENT '微信公众号AppId',
+    `status` TINYINT DEFAULT 1 COMMENT '启用状态: 1=启用, 0=禁用',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阅文产品管理配置表';
+
+-- 22. 阅文用户表
+CREATE TABLE IF NOT EXISTS `wecom_yuewen_user` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `guid` BIGINT NOT NULL COMMENT '阅文用户ID',
+    `openid` VARCHAR(64) NOT NULL COMMENT '微信OpenId',
+    `nickname` VARCHAR(128) DEFAULT NULL COMMENT '用户昵称',
+    `app_flag` VARCHAR(64) NOT NULL COMMENT '所属产品标识',
+    `wx_app_id` VARCHAR(64) DEFAULT NULL COMMENT '微信公众号AppId',
+    `charge_amount` BIGINT DEFAULT 0 COMMENT '累计充值金额(分)',
+    `charge_num` INT DEFAULT 0 COMMENT '累计充值次数',
+    `is_subscribe` TINYINT DEFAULT 0 COMMENT '是否关注: 0=否, 1=是',
+    `regist_time` DATETIME DEFAULT NULL COMMENT '用户在阅文的注册时间',
+    `yuewen_update_time` DATETIME DEFAULT NULL COMMENT '用户在阅文的更新时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uk_app_openid` (`app_flag`, `openid`),
+    KEY `idx_guid` (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阅文同步用户表';

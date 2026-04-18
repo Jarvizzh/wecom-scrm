@@ -60,6 +60,20 @@ public class AsyncConfig implements AsyncConfigurer {
         return new TenantThrottlingExecutor(executor, 5);
     }
 
+    @Bean(name = "thirdPartySyncExecutor")
+    public Executor thirdPartySyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(18);
+        executor.setMaxPoolSize(30);
+        executor.setQueueCapacity(2000);
+        executor.setThreadNamePrefix("thirdPartySyncExecutor-");
+        executor.setTaskDecorator(new MdcTaskDecorator());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return new TenantThrottlingExecutor(executor, 6);
+    }
+
     @Bean(name = "customerMessageExecutor")
     public Executor customerMessageExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

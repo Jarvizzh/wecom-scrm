@@ -16,9 +16,11 @@ Thumbs.db
 *.log
 logs/
 
-# Secrets (Add any specific secret files if discovered)
+# Secrets
 *.secret
 *.key
+secret.properties
 
 # Documentation
 product.md
+wecom-scrm-server/yuwen-api.md
