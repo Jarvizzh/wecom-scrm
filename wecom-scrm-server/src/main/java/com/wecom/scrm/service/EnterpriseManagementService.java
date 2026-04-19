@@ -68,7 +68,7 @@ public class EnterpriseManagementService {
         initDatabaseSchema(newDataSource);
 
         // 3. Register WxCpConfigStorage via Manager
-        wxCpServiceManager.addEnterprise(enterprise.getCorpId(), 
+        wxCpServiceManager.registerWxCpServices(enterprise.getCorpId(),
                 enterprise.getAgentId(), enterprise.getAgentSecret(),
                 enterprise.getToken(), enterprise.getEncodingAesKey());
         
@@ -114,7 +114,7 @@ public class EnterpriseManagementService {
         wecomEnterpriseService.save(existing);
 
         // Update WxCpConfigStorage
-        wxCpServiceManager.addEnterprise(existing.getCorpId(), existing.getAgentId(), 
+        wxCpServiceManager.registerWxCpServices(existing.getCorpId(), existing.getAgentId(),
                 existing.getAgentSecret(), existing.getToken(), existing.getEncodingAesKey());
 
         log.info("Successfully updated enterprise: {}", existing.getCorpId());

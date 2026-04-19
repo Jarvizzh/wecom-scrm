@@ -43,7 +43,7 @@ public class CustomerEventHandler implements WxCpMessageHandler {
 
         switch (changeType) {
             case "add_external_contact":
-            case "edit_external_contact":
+            case "edit_external_contact":  //TODO: 大量标签修改可能会打爆
             case "add_half_external_contact":
                 log.info("Triggering sync for customer: {}", externalUserid);
                 syncService.syncSingleCustomer(externalUserid);

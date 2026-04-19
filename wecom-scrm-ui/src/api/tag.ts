@@ -26,6 +26,7 @@ export const markCustomerTags = (data: {
 };
 
 export const batchMarkCustomerTags = (data: {
+  targetType?: string;
   targets: Array<{ userid: string; externalUserid: string }>;
   addTagIds?: string[];
   removeTagIds?: string[];

@@ -142,7 +142,14 @@
             {{ formatTime(scope.row.registTime) }}
           </template>
         </el-table-column>
-        <el-table-column prop="yuewenUpdateTime" label="最后同步" width="180">
+        <el-table-column prop="vipEndTime" label="会员到期" width="180">
+          <template #default="scope">
+            {{ formatTime(scope.row.vipEndTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="channelName" label="渠道" width="150" show-overflow-tooltip />
+        <el-table-column prop="bookName" label="书籍" width="200" show-overflow-tooltip />
+        <el-table-column prop="yuewenUpdateTime" label="更新时间" width="180">
           <template #default="scope">
             {{ formatTime(scope.row.yuewenUpdateTime) }}
           </template>
@@ -371,7 +378,8 @@ const confirmBatchTag = async () => {
         userid: ''
       })),
       addTagIds: selectedTagIds.value,
-      selectAll: isAllSelected.value
+      selectAll: isAllSelected.value,
+      targetType: 'yuewen'
     }
 
     if (isAllSelected.value) {

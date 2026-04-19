@@ -99,6 +99,10 @@
                 <el-icon><User /></el-icon>
                 <span>用户列表</span>
               </el-menu-item>
+              <el-menu-item index="/yuewen-consume">
+                <el-icon><Tickets /></el-icon>
+                <span>消费记录</span>
+              </el-menu-item>
             </el-sub-menu>
           </el-sub-menu>
           <el-menu-item index="/sync-logs">
@@ -217,6 +221,10 @@
                 <el-menu-item index="/yuewen-users">
                   <el-icon><User /></el-icon>
                   <span>用户列表</span>
+                </el-menu-item>
+                <el-menu-item index="/yuewen-consume">
+                  <el-icon><Tickets /></el-icon>
+                  <span>消费记录</span>
                 </el-menu-item>
               </el-sub-menu>
             </el-sub-menu>

@@ -20,6 +20,9 @@ export interface YuewenUser {
   chargeNum: number
   isSubscribe: number
   registTime: string
+  vipEndTime: string
+  channelName: string
+  bookName: string
   externalUserid: string
   yuewenUpdateTime: string
   productName?: string
@@ -76,5 +79,38 @@ export function getYuewenByCustomer(externalUserid: string): Promise<YuewenUser[
   return request({
     url: `/admin/yuewen/user/customer/${externalUserid}`,
     method: 'get'
+  })
+}
+
+export interface YuewenConsumeRecord {
+  id: number | null
+  appFlag: string
+  openid: string
+  guid: number
+  orderId: string
+  consumeId: string
+  worthAmount: number
+  freeAmount: number
+  consumeTime: string
+  bookId: number
+  bookName: string
+  chapterId: string
+  chapterName: string
+  productName?: string
+}
+
+export function getConsumeRecords(params: any): Promise<PageResponse<YuewenConsumeRecord>> {
+  return request({
+    url: '/admin/yuewen/user/consume',
+    method: 'get',
+    params
+  })
+}
+
+export function syncConsumeRecords(data: { appFlag: string, startTime: string, endTime: string }) {
+  return request({
+    url: '/admin/yuewen/user/sync/consume',
+    method: 'post',
+    data
   })
 }

@@ -2,12 +2,15 @@ package com.wecom.scrm.thirdparty.api.yuewen.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.ToString;
+
 import java.util.List;
 
 /**
  * Represents a single user info record in the Yuewen-4.3 API.
  */
 @Data
+@ToString
 public class YuewenUserItem {
     /**
      * Cumulative recharge amount (unit: cent).

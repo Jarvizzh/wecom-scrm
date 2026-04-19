@@ -54,7 +54,7 @@ public class DataSourceInitConfig {
                     dynamicRoutingDataSource.addDataSource(enterprise.getCorpId(), newDataSource);
 
                     // Reconstruct WxCpService config via Manager
-                    wxCpServiceManager.addEnterprise(enterprise.getCorpId(), 
+                    wxCpServiceManager.registerWxCpServices(enterprise.getCorpId(),
                             enterprise.getAgentId(), enterprise.getAgentSecret(),
                             enterprise.getToken(), enterprise.getEncodingAesKey());
 

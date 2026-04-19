@@ -316,6 +316,9 @@ CREATE TABLE IF NOT EXISTS `wecom_yuewen_user` (
     `charge_num` INT DEFAULT 0 COMMENT '累计充值次数',
     `is_subscribe` TINYINT DEFAULT 0 COMMENT '是否关注: 0=否, 1=是',
     `regist_time` DATETIME DEFAULT NULL COMMENT '用户在阅文的注册时间',
+    `vip_end_time` DATETIME DEFAULT NULL COMMENT '会员到期时间',
+    `channel_name` VARCHAR(128) DEFAULT NULL COMMENT '来源渠道',
+    `book_name` VARCHAR(255) DEFAULT NULL COMMENT '来源书籍',
     `yuewen_update_time` DATETIME DEFAULT NULL COMMENT '用户在阅文的更新时间',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -323,3 +326,25 @@ CREATE TABLE IF NOT EXISTS `wecom_yuewen_user` (
     KEY `idx_guid` (`guid`),
     KEY `idx_external_userid` (`external_userid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阅文同步用户表';
+ 
+-- 23. 阅文消费记录表
+CREATE TABLE IF NOT EXISTS `wecom_yuewen_consume_record` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `app_flag` VARCHAR(64) NOT NULL COMMENT '所属产品标识',
+    `openid` VARCHAR(64) NOT NULL COMMENT '微信OpenId',
+    `guid` BIGINT DEFAULT NULL COMMENT '阅文 user ID',
+    `order_id` VARCHAR(128) DEFAULT NULL COMMENT '订单号',
+    `consume_id` VARCHAR(128) DEFAULT NULL COMMENT '消费订单号id',
+    `worth_amount` INT DEFAULT 0 COMMENT '消费有价币金额',
+    `free_amount` INT DEFAULT 0 COMMENT '消费免费币金额',
+    `consume_time` DATETIME DEFAULT NULL COMMENT '消费时间',
+    `book_id` BIGINT DEFAULT NULL COMMENT '订阅作品id',
+    `book_name` VARCHAR(255) DEFAULT NULL COMMENT '订阅作品名称',
+    `chapter_id` VARCHAR(128) DEFAULT NULL COMMENT '订阅作品章节id',
+    `chapter_name` VARCHAR(255) DEFAULT NULL COMMENT '订阅作品章节名称',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_app_openid` (`app_flag`, `openid`),
+    KEY `idx_guid` (`guid`),
+    KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阅文消费记录表';

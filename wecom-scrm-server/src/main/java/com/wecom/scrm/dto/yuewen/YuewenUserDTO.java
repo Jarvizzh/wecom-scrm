@@ -19,6 +19,9 @@ public class YuewenUserDTO {
     private Integer chargeNum;
     private Integer isSubscribe;
     private LocalDateTime registTime;
+    private LocalDateTime vipEndTime;
+    private String channelName;
+    private String bookName;
     private String externalUserid;
     private LocalDateTime yuewenUpdateTime;
     private String productName;

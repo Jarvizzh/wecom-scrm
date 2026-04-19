@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import lombok.Data;
+import com.wecom.scrm.dto.TagDTO;
 
 @RestController
 @RequestMapping("/api/admin/tags")
@@ -63,37 +64,8 @@ public class TagController {
         return ResponseEntity.ok("Tags updated successfully");
     }
 
-    @Data
-    public static class BatchMarkTagsRequest {
-        private List<TagTarget> targets;
-        private List<String> addTagIds;
-        private List<String> removeTagIds;
-        
-        // Select all support
-        private boolean selectAll;
-        private String customerName;
-        private String unionid;
-        private String employeeName;
-        private String mpAppId;
-        private List<String> tagIds;
-        private Integer status;
-        private boolean onlyDuplicates;
-
-        // Yuewen filters
-        private String appFlag;
-        private String openid;
-        private Long minAmount;
-        private Long maxAmount;
-    }
-
-    @Data
-    public static class TagTarget {
-        private String userid;
-        private String externalUserid;
-    }
-
     @PostMapping("/batch-mark")
-    public ResponseEntity<String> batchMarkTags(@RequestBody BatchMarkTagsRequest request) {
+    public ResponseEntity<String> batchMarkTags(@RequestBody TagDTO.BatchMarkTagsRequest request) {
         tagService.batchMarkTags(request);
         return ResponseEntity.ok("Batch tagging task started in background");
     }

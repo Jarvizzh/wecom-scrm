@@ -78,7 +78,9 @@ public class WecomCallbackController {
                 
                 // 1. Save event to DB
                 WecomEventLog eventLog = wecomEventService.saveEvent(corpId, inMessage);
-                
+
+                //TODO:优化、异步处理
+
                 // 2. Process event (Synchronous attempt)
                 wecomEventService.processEvent(eventLog);
             }

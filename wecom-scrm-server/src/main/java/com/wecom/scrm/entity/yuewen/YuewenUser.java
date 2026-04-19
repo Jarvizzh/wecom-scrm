@@ -46,6 +46,15 @@ public class YuewenUser {
     @Column(name = "regist_time")
     private LocalDateTime registTime;
 
+    @Column(name = "vip_end_time")
+    private LocalDateTime vipEndTime;
+
+    @Column(name = "channel_name", length = 128)
+    private String channelName;
+
+    @Column(name = "book_name", length = 255)
+    private String bookName;
+
     @Column(name = "external_userid", length = 64)
     private String externalUserid;
 

@@ -30,4 +30,7 @@ public interface YuewenUserRepository extends JpaRepository<YuewenUser, Long> {
     List<String> findExternalUseridsByFilters(String appFlag, String openid, Long minAmount, Long maxAmount);
 
     List<YuewenUser> findByExternalUserid(String externalUserid);
+    
+    @Query("SELECT DISTINCT u.guid FROM YuewenUser u WHERE u.appFlag = :appFlag AND u.chargeNum > 0")
+    List<Long> findChargedGuidsByAppFlag(String appFlag);
 }

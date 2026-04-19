@@ -16,8 +16,10 @@ import me.chanjar.weixin.cp.bean.external.WxCpUserExternalTagGroupInfo;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.wecom.scrm.controller.TagController;
+import com.wecom.scrm.dto.TagDTO;
 import com.wecom.scrm.dto.CustomerTargetDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,12 +37,16 @@ public class TagService {
     private final WecomCustomerRelationRepository customerRelationRepository;
     private final YuewenUserRepository yuewenUserRepository;
 
-    public TagService(WxCpServiceManager wxCpServiceManager,
+    @Autowired
+    @Lazy
+    private TagService self;
+
+    public TagService(@Lazy WxCpServiceManager wxCpServiceManager,
             WecomTagGroupRepository tagGroupRepository,
             WecomTagRepository tagRepository,
             WecomCustomerTagRepository customerTagRepository,
             WecomCustomerRelationRepository customerRelationRepository,
-            com.wecom.scrm.repository.yuewen.YuewenUserRepository yuewenUserRepository) {
+            YuewenUserRepository yuewenUserRepository) {
         this.wxCpServiceManager = wxCpServiceManager;
         this.tagGroupRepository = tagGroupRepository;
         this.tagRepository = tagRepository;
@@ -150,11 +156,11 @@ public class TagService {
     }
 
     @Async("syncExecutor")
-    public void batchMarkTags(TagController.BatchMarkTagsRequest request) {
-        List<TagController.TagTarget> targets = request.getTargets();
+    public void batchMarkTags(TagDTO.BatchMarkTagsRequest request) {
+        List<TagDTO.TagTarget> targets = request.getTargets();
 
         if (request.isSelectAll()) {
-            log.info("Resolving targets for global select all tagging...");
+            log.info("Resolving targets for global select all tagging. targetType: {}", request.getTargetType());
             List<String> tagIds = request.getTagIds();
             List<String> cleanTagIds = (tagIds != null) ? tagIds.stream()
                     .filter(tid -> tid != null && !tid.trim().isEmpty())
@@ -164,7 +170,7 @@ public class TagService {
                 cleanTagIds = null;
             }
 
-            if (request.getAppFlag() != null && !request.getAppFlag().trim().isEmpty()) {
+            if ("yuewen".equalsIgnoreCase(request.getTargetType())) {
                 // Yuewen selection
                 log.info("Using Yuewen filters for global selection: appFlag={}, openid={}", 
                         request.getAppFlag(), request.getOpenid());
@@ -175,7 +181,7 @@ public class TagService {
                         request.getMaxAmount()
                 );
                 targets = externalUserids.stream().map(eid -> {
-                    TagController.TagTarget target = new TagController.TagTarget();
+                    TagDTO.TagTarget target = new TagDTO.TagTarget();
                     target.setExternalUserid(eid);
                     return target;
                 }).collect(Collectors.toList());
@@ -192,7 +198,7 @@ public class TagService {
                         request.isOnlyDuplicates()
                 );
                 targets = candidates.stream().map(dto -> {
-                    TagController.TagTarget target = new TagController.TagTarget();
+                    TagDTO.TagTarget target = new TagDTO.TagTarget();
                     target.setUserid(dto.getUserid());
                     target.setExternalUserid(dto.getExternalUserid());
                     return target;
@@ -209,7 +215,7 @@ public class TagService {
         int successCount = 0;
         int failCount = 0;
 
-        for (TagController.TagTarget target : targets) {
+        for (TagDTO.TagTarget target : targets) {
             String externalUserid = target.getExternalUserid();
             String userid = target.getUserid();
             
@@ -218,18 +224,18 @@ public class TagService {
                 List<WecomCustomerRelation> relations = customerRelationRepository.findByExternalUserid(externalUserid);
                 for (WecomCustomerRelation relation : relations) {
                     try {
-                        markTags(relation.getUserid(), externalUserid, 
+                        self.markTags(relation.getUserid(), externalUserid, 
                                  request.getAddTagIds(), request.getRemoveTagIds());
                         successCount++;
                     } catch (Exception e) {
                         log.error("Failed to mark tags for customer {} / user {}: {}", 
-                                externalUserid, relation.getUserid(), e.getMessage());
+                                 externalUserid, relation.getUserid(), e.getMessage());
                         failCount++;
                     }
                 }
             } else {
                 try {
-                    markTags(userid, externalUserid, 
+                    self.markTags(userid, externalUserid, 
                              request.getAddTagIds(), request.getRemoveTagIds());
                     successCount++;
                 } catch (Exception e) {

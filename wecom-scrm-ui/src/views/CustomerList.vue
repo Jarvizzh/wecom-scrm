@@ -689,6 +689,7 @@ const handleMarkTags = async () => {
         addTagIds, 
         removeTagIds,
         selectAll: isAllSelected.value,
+        targetType: 'customer',
         customerName: searchCustomer.value,
         unionid: searchUnionid.value,
         employeeName: searchEmployee.value,

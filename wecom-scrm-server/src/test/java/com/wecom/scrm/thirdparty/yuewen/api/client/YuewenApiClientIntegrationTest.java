@@ -63,7 +63,7 @@ public class YuewenApiClientIntegrationTest {
         YuewenResponse<YuewenUserInfoResponse> response = apiClient.getUserInfo(request);
 
         assertNotNull(response);
-        log.info("UserInfo response: code={}, msg={}", response.getCode(), response.getMsg());
+        log.info("UserInfo response: code={}, msg={} data={}", response.getCode(), response.getMsg(),response.getData());
 
         if (response.getCode() == 0) {
             assertNotNull(response.getData());

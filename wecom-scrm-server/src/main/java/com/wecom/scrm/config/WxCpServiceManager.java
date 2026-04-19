@@ -75,7 +75,7 @@ public class WxCpServiceManager {
         return wxCpMessageRouterMap.get(corpId);
     }
 
-    public void addEnterprise(String corpId, Integer agentId, String secret, String token, String aesKey) {
+    public void registerWxCpServices(String corpId, Integer agentId, String secret, String token, String aesKey) {
         WxCpDefaultConfigImpl config = new WxCpDefaultConfigImpl();
         config.setCorpId(corpId);
         config.setAgentId(agentId);

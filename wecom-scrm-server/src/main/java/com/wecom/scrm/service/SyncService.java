@@ -333,7 +333,6 @@ public class SyncService {
      * 
      * @param externalUserid The WeCom external_userid to sync
      */
-    @Transactional
     public void syncSingleCustomer(String externalUserid) {
         try {
             WxCpExternalContactInfo info = wxCpServiceManager.getWxCpService().getExternalContactService()
@@ -360,7 +359,7 @@ public class SyncService {
             // Find existing relations for these customers
             List<WecomCustomerRelation> relations = customerRelationRepository.findByExternalUseridIn(externalUserids);
             // Mark all filtered relations as status 1 (inactive) initially
-            relations.forEach(r -> r.setStatus(1));
+            // relations.forEach(r -> r.setStatus(1));
             Map<String, WecomCustomerRelation> relationMap = relations.stream()
                     .collect(Collectors.toMap(r -> r.getUserid() + ":" + r.getExternalUserid(), r -> r));
 
@@ -398,7 +397,9 @@ public class SyncService {
                             } catch (Exception ignored) {}
                         }
                         relation.setState(followedUser.getState());
-                        relation.setStatus(0); // Active
+                        if (relation.getStatus() == null) {
+                             relation.setStatus(0); // Active
+                        }
                         relationsToSave.add(relation);
 
                         if (followedUser.getTags() != null) {

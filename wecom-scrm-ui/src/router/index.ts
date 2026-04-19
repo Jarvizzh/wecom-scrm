@@ -157,6 +157,12 @@ const routes = [
         meta: { title: '阅文用户列表 / Yuewen Users' }
       },
       {
+        path: 'yuewen-consume',
+        name: 'YuewenConsume',
+        component: () => import('../views/yuewen/YuewenConsumeList.vue'),
+        meta: { title: '阅文消费记录 / Yuewen Consumption' }
+      },
+      {
         path: 'enterprises',
         name: 'Enterprises',
         component: () => import('../views/EnterpriseList.vue'),

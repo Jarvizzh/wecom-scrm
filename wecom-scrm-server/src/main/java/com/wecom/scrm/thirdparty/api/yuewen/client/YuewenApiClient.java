@@ -186,9 +186,7 @@ public class YuewenApiClient implements IYuewenAPIClient {
         params.forEach(builder::queryParam);
 
         String finalUrl = builder.toUriString();
-        if (log.isDebugEnabled()) {
-            log.debug("Calling Yuewen API: {}", finalUrl);
-        }
+        log.info("Calling Yuewen API: {}", finalUrl);
 
         try {
             ResponseEntity<YuewenResponse<T>> response = restTemplate.exchange(
