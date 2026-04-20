@@ -90,6 +90,35 @@ public class AsyncConfig implements AsyncConfigurer {
         return new TenantThrottlingExecutor(executor, 5);
     }
 
+    @Bean(name = "eventSaveExecutor")
+    public Executor eventSaveExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(50);
+        executor.setQueueCapacity(50000); // Large queue to buffer high-concurrency bursts
+        executor.setThreadNamePrefix("event-save-");
+        executor.setTaskDecorator(new MdcTaskDecorator());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        // Limit DB write concurrency per tenant to protect connection pool
+        return new TenantThrottlingExecutor(executor, 15);
+    }
+
+    @Bean(name = "eventProcessExecutor")
+    public Executor eventProcessExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(50);
+        executor.setQueueCapacity(50000); // Large queue to buffer high-concurrency bursts
+        executor.setThreadNamePrefix("event-process-");
+        executor.setTaskDecorator(new MdcTaskDecorator());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return new TenantThrottlingExecutor(executor, 15);
+    }
+
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return (throwable, method, params) -> {
