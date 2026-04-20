@@ -17,11 +17,13 @@ import org.springframework.data.domain.Sort;
 import com.wecom.scrm.dto.WecomEventLogDTO;
 import com.wecom.scrm.entity.WecomUser;
 import com.wecom.scrm.entity.WecomCustomer;
+import com.wecom.scrm.listener.event.WecomEvent;
 import com.wecom.scrm.repository.WecomUserRepository;
 import com.wecom.scrm.repository.WecomCustomerRepository;
 import com.wecom.scrm.repository.GroupChatRepository;
 import com.wecom.scrm.entity.WecomGroupChat;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -37,19 +39,22 @@ public class WecomEventService {
     private final GroupChatRepository groupChatRepository;
     private final WxCpServiceManager wxCpServiceManager;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public WecomEventService(WecomEventLogRepository eventLogRepository,
             WecomUserRepository userRepository,
             WecomCustomerRepository customerRepository,
             GroupChatRepository groupChatRepository,
             WxCpServiceManager wxCpServiceManager,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher eventPublisher) {
         this.eventLogRepository = eventLogRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.groupChatRepository = groupChatRepository;
         this.wxCpServiceManager = wxCpServiceManager;
         this.objectMapper = objectMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -71,13 +76,30 @@ public class WecomEventService {
             eventLog.setContent("{}");
         }
 
-        return eventLogRepository.save(eventLog);
+        WecomEventLog savedLog = eventLogRepository.save(eventLog);
+        
+        // Publish event for asynchronous processing
+        eventPublisher.publishEvent(new WecomEvent(this, savedLog));
+        
+        return savedLog;
     }
 
-    @Transactional
+    /**
+     * Processes a single event log.
+     * Note: Not @Transactional at this level to avoid long-running transactions 
+     * while calling external WeCom APIs.
+     */
     public void processEvent(WecomEventLog eventLog) {
+        // Atomic claim: try to set status to 3 (Processing) if current status is 0 or 2
+        int updated = eventLogRepository.claimEvent(eventLog.getId(), LocalDateTime.now());
+        if (updated == 0) {
+            log.debug("Event {} already being processed or completed by another thread, skipping.", eventLog.getId());
+            return;
+        }
+
         log.info("Processing WeCom event: {} for corpId: {}. Current DS: {}",
                 eventLog.getId(), eventLog.getCorpId(), DynamicDataSourceContextHolder.peek());
+        
         try {
             // Ensure context is set (important for multi-tenant background tasks)
             WxCpServiceManager.setCurrentCorpId(eventLog.getCorpId());
@@ -99,7 +121,8 @@ public class WecomEventService {
             eventLog.setRetryCount(eventLog.getRetryCount() + 1);
         } finally {
             eventLog.setUpdateTime(LocalDateTime.now());
-            eventLogRepository.save(eventLog);
+            // Use saveAndFlush to ensure state is committed and visible to other threads/tasks
+            eventLogRepository.saveAndFlush(eventLog);
         }
     }
 

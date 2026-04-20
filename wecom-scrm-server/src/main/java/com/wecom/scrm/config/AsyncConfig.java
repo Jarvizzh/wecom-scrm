@@ -11,7 +11,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Configuration
@@ -23,7 +25,7 @@ public class AsyncConfig implements AsyncConfigurer {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(20);
         executor.setMaxPoolSize(50);
-        executor.setQueueCapacity(1000);
+        executor.setQueueCapacity(5000);
         executor.setThreadNamePrefix("syncExecutor-");
         executor.setTaskDecorator(new MdcTaskDecorator());
         executor.setWaitForTasksToCompleteOnShutdown(true);
@@ -120,17 +122,21 @@ public class AsyncConfig implements AsyncConfigurer {
             // Get or create a semaphore for this tenant
             Semaphore semaphore = tenantSemaphores.computeIfAbsent(corpId, k -> new Semaphore(maxConcurrentPerTenant));
 
+            boolean acquired = false;
             try {
-                // Block the calling thread if the tenant has already reached its concurrency
-                // limit.
-                // This provides natural backpressure and ensures the thread pool threads are
-                // not
-                // wasted waiting for a semaphore.
-                semaphore.acquire();
+                // Try to acquire a permit without blocking indefinitely.
+                // 1 second timeout provides a grace period but prevents long hangs for callers like Web threads.
+                acquired = semaphore.tryAcquire(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Interrupted while waiting for tenant sync permit for corp: {}", corpId);
                 Thread.currentThread().interrupt();
-                throw new RuntimeException("Tenant sync execution interrupted", e);
+                throw new RejectedExecutionException("Tenant sync execution interrupted", e);
+            }
+
+            if (!acquired) {
+                log.warn("Tenant {} concurrency limit reached ({}), rejecting task. This prevents hanging the calling thread.", 
+                        corpId, maxConcurrentPerTenant);
+                throw new RejectedExecutionException("Tenant concurrency limit reached for: " + corpId);
             }
 
             try {
@@ -142,8 +148,7 @@ public class AsyncConfig implements AsyncConfigurer {
                     }
                 });
             } catch (Exception e) {
-                // If submission to the delegate fails (e.g., pool full), release the permit
-                // immediately
+                // If submission to the delegate fails (e.g., pool full), release the permit immediately
                 semaphore.release();
                 throw e;
             }

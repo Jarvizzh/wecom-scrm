@@ -72,25 +72,36 @@ public class WecomEventCompensationTask {
     }
 
     private void processTenantEvents(String corpId) {
-        // 1. Pick up pending events older than 5 minutes
-        LocalDateTime pendingThreshold = LocalDateTime.now().minusMinutes(5);
+        // 1. Pick up pending events older than 10 minutes (safety margin for async listener)
+        LocalDateTime pendingThreshold = LocalDateTime.now().minusMinutes(10);
         List<WecomEventLog> pendingEvents = eventLogRepository.findByStatusAndCreateTimeBefore(0, pendingThreshold);
         
         // 2. Pick up failed events with retry count < 3
         List<WecomEventLog> failedEvents = eventLogRepository.findByStatusAndRetryCountLessThan(2, 3);
+
+        // 3. Pick up "Processing" zombie tasks (stuck for more than 30 minutes)
+        LocalDateTime zombieThreshold = LocalDateTime.now().minusMinutes(30);
+        List<WecomEventLog> zombieEvents = eventLogRepository.findByStatusAndUpdateTimeBefore(3, zombieThreshold);
         
-        if (pendingEvents.isEmpty() && failedEvents.isEmpty()) {
+        if (pendingEvents.isEmpty() && failedEvents.isEmpty() && zombieEvents.isEmpty()) {
             return;
         }
 
-        log.info("[{}] Found {} pending and {} failed events to compensate", 
-                corpId, pendingEvents.size(), failedEvents.size());
+        log.info("[{}] Compensation needed: {} pending, {} failed, {} zombies", 
+                corpId, pendingEvents.size(), failedEvents.size(), zombieEvents.size());
 
+        // Process all identified events. 
+        // processEvent() now handles atomic status claiming internally.
         for (WecomEventLog event : pendingEvents) {
             eventService.processEvent(event);
         }
 
         for (WecomEventLog event : failedEvents) {
+            eventService.processEvent(event);
+        }
+
+        for (WecomEventLog event : zombieEvents) {
+            log.warn("[{}] Recovering zombie event: {}", corpId, event.getId());
             eventService.processEvent(event);
         }
     }
