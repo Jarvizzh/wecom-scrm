@@ -29,7 +29,7 @@ public class WecomEventListener {
      *                              is successfully committed to the database (AFTER_COMMIT).
      *                              This prevents "record not found" errors in the async thread.
      */
-    @Async("syncExecutor")
+    @Async("eventProcessExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleWecomEvent(WecomEvent event) {
         log.debug("Received WecomEvent for log ID: {}", event.getEventLog().getId());

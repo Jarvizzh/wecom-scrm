@@ -24,6 +24,8 @@ import com.wecom.scrm.repository.GroupChatRepository;
 import com.wecom.scrm.entity.WecomGroupChat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,6 +42,7 @@ public class WecomEventService {
     private final WxCpServiceManager wxCpServiceManager;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final WecomEventService self;
 
     public WecomEventService(WecomEventLogRepository eventLogRepository,
             WecomUserRepository userRepository,
@@ -47,7 +50,8 @@ public class WecomEventService {
             GroupChatRepository groupChatRepository,
             WxCpServiceManager wxCpServiceManager,
             ObjectMapper objectMapper,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            @Lazy WecomEventService self) {
         this.eventLogRepository = eventLogRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
@@ -55,6 +59,22 @@ public class WecomEventService {
         this.wxCpServiceManager = wxCpServiceManager;
         this.objectMapper = objectMapper;
         this.eventPublisher = eventPublisher;
+        this.self = self;
+    }
+
+    /**
+     * Entry point for asynchronous callback handling. 
+     * This moves the DB transaction out of the Web thread.
+     */
+    @Async("eventSaveExecutor")
+    public void asyncSaveEvent(String corpId, WxCpXmlMessage msg) {
+        log.debug("Async callback ingestion for corpId: {}", corpId);
+        try {
+            // Call the transactional method via proxy to ensure @Transactional works
+            self.saveEvent(corpId, msg);
+        } catch (Exception e) {
+            log.error("Failed to async save WeCom event for corpId: {}", corpId, e);
+        }
     }
 
     @Transactional

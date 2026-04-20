@@ -76,8 +76,8 @@ public class WecomCallbackController {
                 // Decrypt message
                 WxCpXmlMessage inMessage = WxCpXmlMessage.fromEncryptedXml(requestBody, wxCpService.getWxCpConfigStorage(), timestamp, nonce, signature);
                 
-                // 1. Save event to DB (This now also triggers asynchronous processing via WecomEvent)
-                wecomEventService.saveEvent(corpId, inMessage);
+                // 1. Ingest event asynchronously (This releases the Web thread immediately)
+                wecomEventService.asyncSaveEvent(corpId, inMessage);
             }
         } catch (Exception e) {
             logger.error("Failed to process WeCom Callback Event for corpId: {}", corpId, e);
