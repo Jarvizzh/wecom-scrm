@@ -3,8 +3,6 @@ package com.wecom.scrm.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * DTO for welcome message attachments stored in the database.
  */
