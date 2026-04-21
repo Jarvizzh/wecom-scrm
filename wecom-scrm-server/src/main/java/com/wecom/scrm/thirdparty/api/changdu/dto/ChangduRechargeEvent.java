@@ -53,7 +53,7 @@ public class ChangduRechargeEvent {
     private String externalId;
     
     @JsonProperty("order_type")
-    private Integer orderType;
+    private Integer orderType;  //订单类型 1 虚拟支付，2 非虚拟支付
     
     @JsonProperty("wx_video_id")
     private String wxVideoId;

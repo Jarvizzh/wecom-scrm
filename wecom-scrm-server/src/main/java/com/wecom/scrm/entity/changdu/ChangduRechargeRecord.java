@@ -35,13 +35,13 @@ public class ChangduRechargeRecord {
     private String externalId;
 
     @Column(name = "pay_way", length = 32)
-    private String payWay;
+    private String payWay; //支付方式：1 微信 2 支付宝 5 抖音支付 6 抖音钻石支付 200 未支付完成
 
     @Column(name = "pay_fee")
     private Long payFee;
 
     @Column(name = "status", length = 32)
-    private String status;
+    private String status; // 0 已支付 1 未支付
 
     @Column(name = "book_id")
     private Long bookId;
@@ -59,7 +59,10 @@ public class ChangduRechargeRecord {
     private String orderCreateTime;
 
     @Column(name = "recharge_type")
-    private Integer rechargeType;
+    private Integer rechargeType;  //0-单次充值 1-会员充值 2-整剧购买 3-连包付费
+
+    @Column(name = "order_type")
+    private Integer orderType; // 1-虚拟支付, 2-非虚拟支付
 
     @CreationTimestamp
     @Column(name = "create_time", updatable = false)

@@ -154,7 +154,7 @@ import {
   Refresh, Plus, Edit, Delete, CopyDocument,
 } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { getCustomerMessageList, deleteCustomerMessage, getCustomerMessageSendResult, getMemberSendResult } from '../api/customerMessage'
+import { getCustomerMessageList, deleteCustomerMessage, getCustomerMessageSendResult, getMemberSendResult } from '@/api/customerMessage'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()

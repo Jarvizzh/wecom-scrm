@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Refresh } from '@element-plus/icons-vue'
-import { getSyncLogs } from '../api/syncLog'
+import { getSyncLogs } from '@/api/syncLog'
 
 const tableData = ref([])
 const loading = ref(false)

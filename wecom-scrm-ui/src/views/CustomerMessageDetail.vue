@@ -288,14 +288,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getCustomerMessage, getCustomerMessageSendResult, getMemberSendResult } from '../api/customerMessage'
-import { getUsers } from '../api/user'
-import { getTagGroups, getTagsByGroup } from '../api/tag'
+import { getCustomerMessage, getCustomerMessageSendResult, getMemberSendResult } from '@/api/customerMessage'
+import { getUsers } from '@/api/user'
+import { getTagGroups, getTagsByGroup } from '@/api/tag'
 import { ElMessage } from 'element-plus'
 import { InfoFilled, UserFilled, Monitor, Warning, Document, Picture, CircleCheckFilled, Refresh, Avatar } from '@element-plus/icons-vue'
 import MobilePreview from './MobilePreview.vue'
-import { getImageUrl } from '../api/media'
-import { useResponsive } from '../hooks/useResponsive'
+import { getImageUrl } from '@/api/media'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { isMobile } = useResponsive()
 

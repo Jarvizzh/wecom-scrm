@@ -11,6 +11,9 @@ import java.util.List;
 public class ChangduUserDetail {
     @JsonProperty("encrypted_device_id")
     private String encryptedDeviceId;
+
+    @JsonProperty("open_id")
+    private String openId;
     
     @JsonProperty("device_brand")
     private String deviceBrand;

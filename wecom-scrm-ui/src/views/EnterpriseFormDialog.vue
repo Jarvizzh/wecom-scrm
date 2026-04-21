@@ -52,8 +52,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import request from '../api/request'
-import { useResponsive } from '../hooks/useResponsive'
+import request from '@/api/request'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { isMobile } = useResponsive()
 

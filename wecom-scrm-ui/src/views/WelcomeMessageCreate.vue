@@ -208,9 +208,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getWelcomeMsg, saveWelcomeMsg } from '../api/welcomeMsg'
-import { getUsers, getDepartments } from '../api/user'
-import { uploadImg, uploadTempMedia } from '../api/media'
+import { getWelcomeMsg, saveWelcomeMsg } from '@/api/welcomeMsg'
+import { getUsers, getDepartments } from '@/api/user'
+import { uploadImg, uploadTempMedia } from '@/api/media'
 import { ElMessage } from 'element-plus'
 import { Plus, EditPen, Picture, Link, Compass, Close, Monitor, InfoFilled, ChatLineRound, Filter, UserFilled, Folder } from '@element-plus/icons-vue'
 import MobilePreview from './MobilePreview.vue'

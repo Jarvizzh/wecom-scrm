@@ -57,17 +57,14 @@ public class ChangduUser {
     @Column(name = "external_id", length = 64)
     private String externalId;
 
-    @Column(name = "optimizer_account", length = 128)
-    private String optimizerAccount;
-
-    @Column(name = "project_id", length = 64)
-    private String projectId;
-
-    @Column(name = "ad_id_v2", length = 64)
-    private String adIdV2;
-
     @Column(name = "open_id", length = 64)
     private String openId;
+
+    @Column(length = 128)
+    private String nickname;
+
+    @Column(length = 255)
+    private String avatar;
 
     @CreationTimestamp
     @Column(name = "create_time", updatable = false)

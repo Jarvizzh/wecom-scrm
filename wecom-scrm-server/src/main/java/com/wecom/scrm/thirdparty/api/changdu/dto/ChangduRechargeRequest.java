@@ -20,7 +20,7 @@ public class ChangduRechargeRequest {
     private String optimizerAccount;
     private String openId;
     private String externalId;
-    private Integer orderType;
+    private Integer orderType; //1 虚拟支付，2 非虚拟支付
     private Boolean isAutoRenewOrder;
     private Long promotionId;
 }

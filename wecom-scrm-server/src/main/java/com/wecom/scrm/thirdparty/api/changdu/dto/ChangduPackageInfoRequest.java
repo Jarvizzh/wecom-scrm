@@ -13,6 +13,11 @@ public class ChangduPackageInfoRequest {
      * 分销ID (必填)
      */
     private Long distributorId;
+
+    /**
+     * 应用类型
+     */
+    private Integer appType;
     
     /**
      * 分页大小 (可选)

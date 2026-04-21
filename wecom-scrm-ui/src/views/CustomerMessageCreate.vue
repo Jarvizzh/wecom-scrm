@@ -315,16 +315,16 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { createCustomerMessage, getCustomerMessage, updateCustomerMessage } from '../api/customerMessage'
-import { getTagGroups, getTagsByGroup } from '../api/tag'
-import { getUsers, getDepartments } from '../api/user'
-import { uploadImg, uploadTempMedia } from '../api/media'
+import { createCustomerMessage, getCustomerMessage, updateCustomerMessage } from '@/api/customerMessage'
+import { getTagGroups, getTagsByGroup } from '@/api/tag'
+import { getUsers, getDepartments } from '@/api/user'
+import { uploadImg, uploadTempMedia } from '@/api/media'
 import { ElMessage } from 'element-plus'
 import { Plus, EditPen, InfoFilled, Filter, ChatLineRound, Picture, Link, Compass, Close, Monitor, Folder, UserFilled, CopyDocument, Warning } from '@element-plus/icons-vue'
 import { onMounted, computed, ref, reactive } from 'vue'
 import MobilePreview from './MobilePreview.vue'
-import { getImageUrl } from '../api/media'
-import { useResponsive } from '../hooks/useResponsive'
+import { getImageUrl } from '@/api/media'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { isMobile } = useResponsive()
 const router = useRouter()

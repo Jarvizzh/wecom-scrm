@@ -103,7 +103,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { getImageUrl } from '../api/media'
+import { getImageUrl } from '@/api/media'
 import {
   Link, Compass, ArrowLeft, MoreFilled, UserFilled, Microphone, ChatLineRound, CirclePlus,
   Connection, Opportunity, Cpu, Warning

@@ -3,7 +3,7 @@
     <el-aside v-if="!isMobile" :width="isCollapse ? '64px' : '200px'" class="aside" :class="{ 'is-collapsed': isCollapse }">
       <div class="logo">
         <div class="logo-main" v-show="!isCollapse">
-          <img src="../assets/logo.png" class="logo-img" alt="logo" />
+          <img src="@/assets/logo.png" class="logo-img" alt="logo" />
           <h2 class="logo-text">私域管理平台</h2>
         </div>
         <div class="sidebar-toggle-top" @click="toggleCollapse">
@@ -104,6 +104,24 @@
                 <span>消费记录</span>
               </el-menu-item>
             </el-sub-menu>
+            <el-sub-menu index="changdu">
+              <template #title>
+                <el-icon><Notebook /></el-icon>
+                <span>常读小说</span>
+              </template>
+              <el-menu-item index="/changdu-products">
+                <el-icon><Tickets /></el-icon>
+                <span>产品管理</span>
+              </el-menu-item>
+              <el-menu-item index="/changdu-users">
+                <el-icon><User /></el-icon>
+                <span>用户列表</span>
+              </el-menu-item>
+              <el-menu-item index="/changdu-recharge">
+                <el-icon><Tickets /></el-icon>
+                <span>充值记录</span>
+              </el-menu-item>
+            </el-sub-menu>
           </el-sub-menu>
           <el-menu-item index="/sync-logs">
             <el-icon><Fold /></el-icon>
@@ -133,7 +151,7 @@
       <div class="aside is-mobile-aside">
         <div class="logo">
           <div class="logo-main">
-            <img src="../assets/logo.png" class="logo-img" alt="logo" />
+            <img src="@/assets/logo.png" class="logo-img" alt="logo" />
             <h2 class="logo-text">私域管理平台</h2>
           </div>
         </div>
@@ -225,6 +243,23 @@
                 <el-menu-item index="/yuewen-consume">
                   <el-icon><Tickets /></el-icon>
                   <span>消费记录</span>
+                </el-menu-item>
+              </el-sub-menu>
+              <el-sub-menu index="changdu">
+                <template #title>
+                  <span>常读</span>
+                </template>
+                <el-menu-item index="/changdu-products">
+                  <el-icon><Tickets /></el-icon>
+                  <span>产品管理</span>
+                </el-menu-item>
+                <el-menu-item index="/changdu-users">
+                  <el-icon><User /></el-icon>
+                  <span>用户列表</span>
+                </el-menu-item>
+                <el-menu-item index="/changdu-recharge">
+                  <el-icon><Tickets /></el-icon>
+                  <span>充值记录</span>
                 </el-menu-item>
               </el-sub-menu>
             </el-sub-menu>
@@ -347,13 +382,13 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import request from '../api/request'
+import request from '@/api/request'
 import { 
   Setting, CaretBottom, ArrowDown, Plus, Select, 
   Expand, Fold, Notification, Menu, Tickets, Connection
 } from '@element-plus/icons-vue'
-import EnterpriseFormDialog from '../views/EnterpriseFormDialog.vue'
-import { useResponsive } from '../hooks/useResponsive'
+import EnterpriseFormDialog from '@/views/EnterpriseFormDialog.vue'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { isMobile } = useResponsive()
 const drawerVisible = ref(false)
@@ -512,6 +547,24 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Custom scrollbar for navigation menu */
+.el-menu-vertical::-webkit-scrollbar {
+  width: 6px;
+}
+
+.el-menu-vertical::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.el-menu-vertical::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.el-menu-vertical::-webkit-scrollbar-track {
+  background: #304156;
 }
 
 .header {

@@ -40,13 +40,13 @@ public class YuewenUserService {
         }).collect(Collectors.toList());
     }
 
-    public Page<YuewenUserDTO> listUsers(String appFlag, String openid, Long minAmount, Long maxAmount, String sortField, String sortOrder, int page, int size) {
+    public Page<YuewenUserDTO> listUsers(String appFlag, String openid, String nickname, Long minAmount, Long maxAmount, String sortField, String sortOrder, int page, int size) {
         Sort sort = Sort.by(Sort.Direction.DESC, "registTime");
         if (StringUtils.hasText(sortField)) {
             Sort.Direction direction = "ascending".equalsIgnoreCase(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
             sort = Sort.by(direction, sortField);
         }
-        Page<YuewenUser> userPage = userRepository.findByFilters(appFlag, openid, minAmount, maxAmount, PageRequest.of(page - 1, size, sort));
+        Page<YuewenUser> userPage = userRepository.findByFilters(appFlag, openid, nickname, minAmount, maxAmount, PageRequest.of(page - 1, size, sort));
         List<YuewenUserDTO> dtoList = convertToDtoList(userPage.getContent());
         return new PageImpl<>(dtoList, userPage.getPageable(), userPage.getTotalElements());
     }

@@ -3,6 +3,9 @@ package com.wecom.scrm.service.changdu;
 import com.wecom.scrm.entity.changdu.ChangduProduct;
 import com.wecom.scrm.entity.changdu.ChangduRechargeRecord;
 import com.wecom.scrm.entity.changdu.ChangduUser;
+import com.wecom.scrm.repository.WecomCustomerRepository;
+import com.wecom.scrm.repository.WecomMpAccountRepository;
+import com.wecom.scrm.repository.WecomMpUserRepository;
 import com.wecom.scrm.repository.changdu.ChangduProductRepository;
 import com.wecom.scrm.repository.changdu.ChangduRechargeRecordRepository;
 import com.wecom.scrm.repository.changdu.ChangduUserRepository;
@@ -29,6 +32,9 @@ public class ChangduSyncService {
     private final ChangduProductRepository productRepository;
     private final ChangduUserRepository userRepository;
     private final ChangduRechargeRecordRepository rechargeRecordRepository;
+    private final WecomMpAccountRepository mpAccountRepository;
+    private final WecomMpUserRepository mpUserRepository;
+    private final WecomCustomerRepository customerRepository;
 
     /**
      * Sync all products (distributors) under the main account.
@@ -38,12 +44,19 @@ public class ChangduSyncService {
             log.warn("Changdu distributorId not configured, skipping product sync.");
             return;
         }
+        if (!StringUtils.hasText(config.getAppType())) {
+            log.warn("Changdu appType not configured, skipping product sync.");
+            return;
+        }
 
         Long mainId = Long.valueOf(config.getDistributorId());
         log.info("Starting Changdu product sync for mainId: {}", mainId);
 
         ChangduPackageInfoRequest request = ChangduPackageInfoRequest.builder()
                 .distributorId(mainId)
+                .appType(Integer.valueOf(config.getAppType()))
+                .pageIndex(0)
+                .pageSize(100)
                 .build();
 
         ChangduResponse<List<ChangduPackageInfo>> response = apiClient.getPackageInfo(request);
@@ -57,6 +70,16 @@ public class ChangduSyncService {
                     product.setProductName(info.getAppName());
                     product.setAppId(info.getAppId());
                     product.setAppType(info.getAppType());
+                    if (product.getStatus() == null) {
+                        product.setStatus(0);
+                    }
+
+                    // Automate wxAppId population based on product name (MP name)
+                    if (StringUtils.hasText(info.getAppName())) {
+                        mpAccountRepository.findByName(info.getAppName())
+                                .ifPresent(account -> product.setWxAppId(account.getAppId()));
+                    }
+
                     productRepository.save(product);
                 }
                 log.info("Successfully synced {} Changdu products.", packages.size());
@@ -71,13 +94,19 @@ public class ChangduSyncService {
      */
     public void syncUsers(Long distributorId, Long start, Long end) {
         log.info("Syncing Changdu users for distributorId: {}, from {} to {}", distributorId, start, end);
+
+        String wxAppId = productRepository.findByDistributorId(distributorId)
+                .map(ChangduProduct::getWxAppId)
+                .orElse(null);
+
         int pageIndex = 0;
-        int pageSize = 100;
+        int pageSize = 1000;
         boolean hasMore = true;
 
         while (hasMore) {
             ChangduUserListRequest request = ChangduUserListRequest.builder()
                     .distributorId(distributorId)
+                    .showNotRecharge(true)
                     .pageIndex((long) pageIndex)
                     .pageSize((long) pageSize)
                     .beginTime(start)
@@ -88,7 +117,7 @@ public class ChangduSyncService {
             if (response != null && response.isSuccess()) {
                 List<ChangduUserDetail> users = response.getData();
                 if (users != null && !users.isEmpty()) {
-                    saveOrUpdateUsers(users, distributorId);
+                    saveOrUpdateUsers(users, distributorId, wxAppId);
                     pageIndex++;
                     if (users.size() < pageSize) {
                         hasMore = false;
@@ -103,7 +132,7 @@ public class ChangduSyncService {
         }
     }
 
-    private void saveOrUpdateUsers(List<ChangduUserDetail> items, Long distributorId) {
+    private void saveOrUpdateUsers(List<ChangduUserDetail> items, Long distributorId, String wxAppId) {
         for (ChangduUserDetail item : items) {
             ChangduUser user = userRepository.findByDistributorIdAndEncryptedDeviceId(distributorId, item.getEncryptedDeviceId())
                     .orElse(new ChangduUser());
@@ -121,11 +150,24 @@ public class ChangduSyncService {
             user.setPromotionName(item.getPromotionName());
             user.setBookName(item.getBookName());
             user.setExternalId(item.getExternalId());
-            user.setOptimizerAccount(item.getOptimizerAccount());
-            user.setProjectId(item.getProjectId());
-            user.setAdIdV2(item.getAdIdV2());
-            // Note: open_id is not in UserDetailOpen according to current formatting but added to DTO for safety
-            
+            user.setOpenId(item.getOpenId()); // Using open_id from DTO
+
+            // User Linking Logic (similar to Yuewen)
+            if (StringUtils.hasText(wxAppId) && StringUtils.hasText(user.getOpenId())) {
+                mpUserRepository.findByMpAppIdAndOpenid(wxAppId, user.getOpenId())
+                        .ifPresent(mpUser -> {
+                            String unionid = mpUser.getUnionid();
+                            if (StringUtils.hasText(unionid)) {
+                                customerRepository.findFirstByUnionid(unionid)
+                                        .ifPresent(customer -> {
+                                            user.setExternalId(customer.getExternalUserid());
+                                            user.setNickname(customer.getName());
+                                            user.setAvatar(customer.getAvatar());
+                                        });
+                            }
+                        });
+            }
+
             userRepository.save(user);
         }
     }
@@ -136,7 +178,7 @@ public class ChangduSyncService {
     public void syncRecharge(Long distributorId, Long start, Long end) {
         log.info("Syncing Changdu recharge records for distributorId: {}, from {} to {}", distributorId, start, end);
         int offset = 0;
-        int limit = 50;
+        int limit = 1000;
         boolean hasMore = true;
 
         while (hasMore) {
@@ -155,17 +197,14 @@ public class ChangduSyncService {
                 if (events != null && !events.isEmpty()) {
                     saveOrUpdateRechargeRecords(events, distributorId);
                     offset += events.size();
-                    
-                    // Documentation says if has_more is true, continue. 
-                    // Let's use both result size and hasMore flag if available.
+
                     Boolean apiHasMore = response.getHasMore();
                     if (apiHasMore != null) {
                         hasMore = apiHasMore;
                     } else {
                         hasMore = events.size() >= limit;
                     }
-                    
-                    // Safety break for deep paging as mentioned in docs
+
                     if (offset > 10000) {
                         log.warn("Deep paging threshold reached (>10000) for distributorId: {}", distributorId);
                         hasMore = false;
@@ -202,16 +241,15 @@ public class ChangduSyncService {
             record.setPayTime(item.getPayTime());
             record.setOrderCreateTime(item.getCreateTime());
             record.setRechargeType(item.getRechargeType());
+            record.setOrderType(item.getOrderType());
 
             rechargeRecordRepository.save(record);
         }
     }
 
     @Async("thirdPartySyncExecutor")
-    public void syncAllEnabledProducts(LocalDateTime start, LocalDateTime end) {
+    public void syncAllEnabledProductUsers(LocalDateTime start, LocalDateTime end) {
         log.info("Starting global Changdu sync from {} to {}", start, end);
-        syncProducts(); // Refresh product list first
-
         List<ChangduProduct> products = productRepository.findAll();
         long startTs = start.toEpochSecond(ZoneOffset.ofHours(8));
         long endTs = end.toEpochSecond(ZoneOffset.ofHours(8));

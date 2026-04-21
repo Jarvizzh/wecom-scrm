@@ -37,15 +37,39 @@ public class YuewenSyncService {
 
     @Async("thirdPartySyncExecutor")
     public void manualSync(String appFlag, LocalDateTime start, LocalDateTime end) {
-        if (start == null || end == null) {
-            throw new RuntimeException("Start time and end time are required");
+        if (start == null) {
+            start = LocalDateTime.now().minusDays(365);
         }
-        if (Duration.between(start, end).toDays() > 7) {
-            throw new RuntimeException("Sync interval cannot exceed 7 days");
+        if (end == null) {
+            end = LocalDateTime.now();
         }
 
         log.info("Starting manual sync for appFlag: {}, from {} to {}", appFlag, start, end);
-        syncUsers(appFlag, start.toEpochSecond(ZoneOffset.ofHours(8)), end.toEpochSecond(ZoneOffset.ofHours(8)));
+        
+        LocalDateTime currentEnd = end;
+        while (currentEnd.isAfter(start)) {
+            LocalDateTime currentStart = currentEnd.minusDays(7);
+            if (currentStart.isBefore(start)) {
+                currentStart = start;
+            }
+
+            log.info("Syncing manual batch range: {} to {}", currentStart, currentEnd);
+            try {
+                syncUsers(appFlag, currentStart.toEpochSecond(ZoneOffset.ofHours(8)),
+                        currentEnd.toEpochSecond(ZoneOffset.ofHours(8)));
+            } catch (Exception e) {
+                log.error("Error during manual batch sync for appFlag: {}, range: {} to {}", appFlag, currentStart,
+                        currentEnd, e);
+            }
+
+            currentEnd = currentStart;
+            // Small delay between batches
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
+        }
+        log.info("Finished manual user sync for appFlag: {}", appFlag);
     }
 
     public void syncUsers(String appFlag, Long startTimestamp, Long endTimestamp) {

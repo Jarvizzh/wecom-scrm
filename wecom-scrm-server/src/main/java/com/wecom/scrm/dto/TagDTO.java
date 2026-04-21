@@ -25,8 +25,12 @@ public class TagDTO {
         // Yuewen filters
         private String appFlag;
         private String openid;
+        private String nickname;
         private Long minAmount;
         private Long maxAmount;
+
+        // Changdu filters
+        private Long distributorId;
     }
 
     @Data

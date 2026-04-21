@@ -23,7 +23,7 @@ public class ChangduSyncTask {
     /**
      * Every 30 minutes, sync Changdu data (users and recharge) from the last hour.
      */
-    @Scheduled(cron = "0 15/30 * * * ?") // Offset by 15 mins from Yuewen to spread load
+    @Scheduled(cron = "0 15/30 * * * ?") // Offset by 15 mins from Changdu to spread load
     public void runAutoSync() {
         log.info("Starting automated Changdu data sync task...");
 
@@ -39,7 +39,7 @@ public class ChangduSyncTask {
                 log.info("[{}] Syncing Changdu data for {} to {}", corpId, startTime, now);
                 
                 // This will sync products, then users and recharge for all enabled products in this tenant
-                syncService.syncAllEnabledProducts(startTime, now);
+                syncService.syncAllEnabledProductUsers(startTime, now);
 
             } catch (Exception e) {
                 log.error("Error in Changdu sync task for tenant: {}", corpId, e);

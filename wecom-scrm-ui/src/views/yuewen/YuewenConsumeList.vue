@@ -154,7 +154,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getConsumeRecords, syncConsumeRecords, getProducts, type YuewenConsumeRecord, type YuewenProduct } from '../../api/yuewen'
+import { getConsumeRecords, syncConsumeRecords, getProducts, type YuewenConsumeRecord, type YuewenProduct } from '@/api/yuewen'
 import { Search, Refresh, Tickets } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 

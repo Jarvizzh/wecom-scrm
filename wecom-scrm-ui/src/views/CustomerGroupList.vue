@@ -202,8 +202,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Refresh, Search, User, Calendar, ChatLineRound } from '@element-plus/icons-vue'
-import { getGroupChatList, syncGroupChats, getGroupMembers } from '../api/groupChat'
-import { getUsers } from '../api/user'
+import { getGroupChatList, syncGroupChats, getGroupMembers } from '@/api/groupChat'
+import { getUsers } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const tableData = ref([])

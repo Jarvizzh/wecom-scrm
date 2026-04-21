@@ -304,7 +304,7 @@
                 plain
                 class="action-icon-btn"
                 :icon="Tickets" 
-                @click="openYuewenDialog(scope.row)" 
+                @click="openThirdPartyDialog(scope.row)" 
               />
             </el-tooltip>
           </template>
@@ -396,9 +396,9 @@
       </template>
     </el-dialog>
 
-    <!-- Yuewen Platform Data Dialog -->
+    <!-- Third-party Platform Data Dialog -->
     <el-dialog 
-      v-model="yuewenDialogVisible" 
+      v-model="platformDialogVisible" 
       width="850px"
       align-center
       class="yuewen-data-dialog"
@@ -415,7 +415,7 @@
         </div>
       </template>
 
-      <div v-loading="yuewenLoading" class="yuewen-dialog-content">
+      <div v-loading="platformLoading" class="yuewen-dialog-content">
         <div v-if="currentCustomer" class="customer-overview-card">
           <el-descriptions :column="2" border>
             <el-descriptions-item label="客户名称">
@@ -427,15 +427,16 @@
             <el-descriptions-item label="外部UserID">
               <span class="monospace-id no-bg">{{ currentCustomer.externalUserid }}</span>
             </el-descriptions-item>
-            <el-descriptions-item label="总消费账号">
-              <span class="overview-value">{{ yuewenUsers.length }}</span>
+            <el-descriptions-item label="总账号数">
+              <span class="overview-value">{{ yuewenUsers.length + changduUsers.length }}</span>
             </el-descriptions-item>
           </el-descriptions>
         </div>
 
-        <div class="yuewen-table-section">
+        <!-- Yuewen Platform Section -->
+        <div v-if="yuewenUsers.length > 0" class="yuewen-table-section">
           <div class="section-title">
-            <el-icon><List /></el-icon> 阅文平台账号消费明细
+            <el-icon><List /></el-icon> 阅文平台账号明细
           </div>
           <el-table :data="yuewenUsers" class="modern-table yuewen-inner-table">
             <el-table-column label="产品信息" width="130">
@@ -470,9 +471,47 @@
             </el-table-column>
           </el-table>
         </div>
+
+        <!-- Changdu Platform Section -->
+        <div v-if="changduUsers.length > 0" class="yuewen-table-section">
+          <div class="section-title">
+            <el-icon><List /></el-icon> 常读平台账号明细
+          </div>
+          <el-table :data="changduUsers" class="modern-table yuewen-inner-table">
+            <el-table-column label="分销商ID" width="130">
+              <template #default="scope">
+                <div class="product-info-cell">
+                  <div class="product-name">{{ scope.row.distributorId }}</div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="平台用户信息" min-width="270">
+              <template #default="scope">
+                <div class="product-info-cell">
+                  <div class="product-name">{{ scope.row.nickname || '-' }}</div>
+                  <div class="appflag-text">{{ scope.row.openId }}</div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="累计充值" width="100">
+              <template #default="scope">
+                <div class="amount-cell">
+                  <span class="currency">￥</span>
+                  <span class="value">{{ ((scope.row.rechargeAmount || 0) / 100).toFixed(2) }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="rechargeTimes" label="充值次数" width="90" align="center" />
+            <el-table-column prop="registerTime" label="注册时间" width="160">
+              <template #default="scope">
+                <span class="time-text">{{ scope.row.registerTime }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
         
-        <div v-if="yuewenUsers.length === 0 && !yuewenLoading" class="empty-state-container">
-          <el-empty description="暂未发现该客户在阅文平台的消费数据" :image-size="100" />
+        <div v-if="yuewenUsers.length === 0 && changduUsers.length === 0 && !platformLoading" class="empty-state-container">
+          <el-empty description="暂无关联平台数据" :image-size="100" />
         </div>
       </div>
     </el-dialog>
@@ -481,11 +520,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getCustomers, syncCustomers } from '../api/customer'
-import { getTagGroups, getTagsByGroup, markCustomerTags, batchMarkCustomerTags } from '../api/tag'
-import { getUsers } from '../api/user'
-import { getMpAccounts } from '../api/mp'
-import { getYuewenByCustomer } from '../api/yuewen'
+import { getCustomers, syncCustomers } from '@/api/customer'
+import { getTagGroups, getTagsByGroup, markCustomerTags, batchMarkCustomerTags } from '@/api/tag'
+import { getUsers } from '@/api/user'
+import { getMpAccounts } from '@/api/mp'
+import { getYuewenByCustomer } from '@/api/yuewen'
+import { getChangduByCustomer } from '@/api/changdu'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Minus, CollectionTag, InfoFilled, User, Cellphone, Connection, Tickets, List } from '@element-plus/icons-vue'
 
@@ -516,25 +556,32 @@ const currentCustomer = ref<any>(null)
 const multipleSelection = ref<any[]>([])
 const isBatch = ref(false)
 const batchTagMode = ref<'add' | 'remove'>('add')
-const yuewenDialogVisible = ref(false)
-const yuewenLoading = ref(false)
+const platformDialogVisible = ref(false)
+const platformLoading = ref(false)
 const yuewenUsers = ref<any[]>([])
+const changduUsers = ref<any[]>([])
 
-const openYuewenDialog = async (row: any) => {
+const openThirdPartyDialog = async (row: any) => {
   if (!row.externalUserid) {
     ElMessage.warning('该客户尚未关联外部联系人ID')
     return
   }
   currentCustomer.value = row
-  yuewenDialogVisible.value = true
-  yuewenLoading.value = true
+  platformDialogVisible.value = true
+  platformLoading.value = true
+  yuewenUsers.value = []
+  changduUsers.value = []
   try {
-    const res = await getYuewenByCustomer(row.externalUserid)
-    yuewenUsers.value = res || []
+    const [yuewenRes, changduRes] = await Promise.all([
+      getYuewenByCustomer(row.externalUserid),
+      getChangduByCustomer(row.externalUserid)
+    ])
+    yuewenUsers.value = yuewenRes || []
+    changduUsers.value = changduRes || []
   } catch (error) {
-    ElMessage.error('获取阅文平台数据失败')
+    ElMessage.error('获取第三方平台数据失败')
   } finally {
-    yuewenLoading.value = false
+    platformLoading.value = false
   }
 }
 

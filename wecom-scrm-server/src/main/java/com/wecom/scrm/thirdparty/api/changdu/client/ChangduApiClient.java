@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +40,11 @@ public class ChangduApiClient implements IChangduApiClient {
      */
     @Override
     public ChangduResponse<List<ChangduPackageInfo>> getPackageInfo(ChangduPackageInfoRequest request) {
-        String url = config.getBaseUrl() + "/novelsale/openapi/package_info/v1/";
+        String url = config.getBaseUrl() + "/novelsale/openapi/wx/get_package_list/v2/";
 
         Map<String, Object> params = new HashMap<>();
         params.put("distributor_id", request.getDistributorId());
+        params.put("app_type", request.getAppType());
         if (request.getPageSize() != null) {
             params.put("page_size", request.getPageSize());
         }
@@ -52,8 +52,9 @@ public class ChangduApiClient implements IChangduApiClient {
             params.put("page_index", request.getPageIndex());
         }
 
-        return executeGet(url, String.valueOf(request.getDistributorId()), params, 
-                new ParameterizedTypeReference<ChangduResponse<List<ChangduPackageInfo>>>() {});
+        return executeGet(url, String.valueOf(request.getDistributorId()), params,
+                new ParameterizedTypeReference<ChangduPackageResponse>() {
+                });
     }
 
     /**
@@ -71,19 +72,30 @@ public class ChangduApiClient implements IChangduApiClient {
         params.put("page_index", request.getPageIndex());
         params.put("page_size", request.getPageSize());
 
-        if (request.getDeviceId() != null) params.put("device_id", request.getDeviceId());
-        if (request.getMediaSource() != null) params.put("media_source", request.getMediaSource());
-        if (request.getBookSource() != null) params.put("book_source", request.getBookSource());
-        if (request.getPromotionId() != null) params.put("promotion_id", request.getPromotionId());
-        if (request.getShowNotRecharge() != null) params.put("show_not_recharge", request.getShowNotRecharge());
-        if (request.getOptimizerAccount() != null) params.put("optimizer_account", request.getOptimizerAccount());
-        if (request.getBeginTime() != null) params.put("begin_time", request.getBeginTime());
-        if (request.getEndTime() != null) params.put("end_time", request.getEndTime());
-        if (request.getOpenId() != null) params.put("open_id", request.getOpenId());
-        if (request.getExternalId() != null) params.put("external_id", request.getExternalId());
+        if (request.getDeviceId() != null)
+            params.put("device_id", request.getDeviceId());
+        if (request.getMediaSource() != null)
+            params.put("media_source", request.getMediaSource());
+        if (request.getBookSource() != null)
+            params.put("book_source", request.getBookSource());
+        if (request.getPromotionId() != null)
+            params.put("promotion_id", request.getPromotionId());
+        if (request.getShowNotRecharge() != null)
+            params.put("show_not_recharge", request.getShowNotRecharge());
+        if (request.getOptimizerAccount() != null)
+            params.put("optimizer_account", request.getOptimizerAccount());
+        if (request.getBeginTime() != null)
+            params.put("begin_time", request.getBeginTime());
+        if (request.getEndTime() != null)
+            params.put("end_time", request.getEndTime());
+        if (request.getOpenId() != null)
+            params.put("open_id", request.getOpenId());
+        if (request.getExternalId() != null)
+            params.put("external_id", request.getExternalId());
 
-        return executeGet(url, String.valueOf(request.getDistributorId()), params, 
-                new ParameterizedTypeReference<ChangduResponse<List<ChangduUserDetail>>>() {});
+        return executeGet(url, String.valueOf(request.getDistributorId()), params,
+                new ParameterizedTypeReference<ChangduResponse<List<ChangduUserDetail>>>() {
+                });
     }
 
     /**
@@ -95,22 +107,36 @@ public class ChangduApiClient implements IChangduApiClient {
 
         Map<String, Object> params = new HashMap<>();
         params.put("distributor_id", request.getDistributorId());
-        if (request.getBegin() != null) params.put("begin", request.getBegin());
-        if (request.getEnd() != null) params.put("end", request.getEnd());
-        if (request.getOffset() != null) params.put("offset", request.getOffset());
-        if (request.getLimit() != null) params.put("limit", request.getLimit());
-        if (request.getDeviceId() != null) params.put("device_id", request.getDeviceId());
-        if (request.getOutsideTradeNo() != null) params.put("outside_trade_no", request.getOutsideTradeNo());
-        if (request.getPaid() != null) params.put("paid", request.getPaid());
-        if (request.getOptimizerAccount() != null) params.put("optimizer_account", request.getOptimizerAccount());
-        if (request.getOpenId() != null) params.put("open_id", request.getOpenId());
-        if (request.getExternalId() != null) params.put("external_id", request.getExternalId());
-        if (request.getOrderType() != null) params.put("order_type", request.getOrderType());
-        if (request.getIsAutoRenewOrder() != null) params.put("is_auto_renew_order", request.getIsAutoRenewOrder());
-        if (request.getPromotionId() != null) params.put("promotion_id", request.getPromotionId());
+        if (request.getBegin() != null)
+            params.put("begin", request.getBegin());
+        if (request.getEnd() != null)
+            params.put("end", request.getEnd());
+        if (request.getOffset() != null)
+            params.put("offset", request.getOffset());
+        if (request.getLimit() != null)
+            params.put("limit", request.getLimit());
+        if (request.getDeviceId() != null)
+            params.put("device_id", request.getDeviceId());
+        if (request.getOutsideTradeNo() != null)
+            params.put("outside_trade_no", request.getOutsideTradeNo());
+        if (request.getPaid() != null)
+            params.put("paid", request.getPaid());
+        if (request.getOptimizerAccount() != null)
+            params.put("optimizer_account", request.getOptimizerAccount());
+        if (request.getOpenId() != null)
+            params.put("open_id", request.getOpenId());
+        if (request.getExternalId() != null)
+            params.put("external_id", request.getExternalId());
+        if (request.getOrderType() != null)
+            params.put("order_type", request.getOrderType());
+        if (request.getIsAutoRenewOrder() != null)
+            params.put("is_auto_renew_order", request.getIsAutoRenewOrder());
+        if (request.getPromotionId() != null)
+            params.put("promotion_id", request.getPromotionId());
 
-        return executeGet(url, String.valueOf(request.getDistributorId()), params, 
-                new ParameterizedTypeReference<ChangduResponse<List<ChangduRechargeEvent>>>() {});
+        return executeGet(url, String.valueOf(request.getDistributorId()), params,
+                new ParameterizedTypeReference<ChangduResponse<List<ChangduRechargeEvent>>>() {
+                });
     }
 
     /**
@@ -122,18 +148,28 @@ public class ChangduApiClient implements IChangduApiClient {
 
         Map<String, Object> params = new HashMap<>();
         params.put("distributor_id", request.getDistributorId());
-        if (request.getBegin() != null) params.put("begin", request.getBegin());
-        if (request.getEnd() != null) params.put("end", request.getEnd());
-        if (request.getOffset() != null) params.put("offset", request.getOffset());
-        if (request.getLimit() != null) params.put("limit", request.getLimit());
-        if (request.getDeviceId() != null) params.put("device_id", request.getDeviceId());
-        if (request.getOutsideTradeNo() != null) params.put("outside_trade_no", request.getOutsideTradeNo());
-        if (request.getPaid() != null) params.put("paid", request.getPaid());
-        if (request.getOpenId() != null) params.put("open_id", request.getOpenId());
-        if (request.getExternalId() != null) params.put("external_id", request.getExternalId());
+        if (request.getBegin() != null)
+            params.put("begin", request.getBegin());
+        if (request.getEnd() != null)
+            params.put("end", request.getEnd());
+        if (request.getOffset() != null)
+            params.put("offset", request.getOffset());
+        if (request.getLimit() != null)
+            params.put("limit", request.getLimit());
+        if (request.getDeviceId() != null)
+            params.put("device_id", request.getDeviceId());
+        if (request.getOutsideTradeNo() != null)
+            params.put("outside_trade_no", request.getOutsideTradeNo());
+        if (request.getPaid() != null)
+            params.put("paid", request.getPaid());
+        if (request.getOpenId() != null)
+            params.put("open_id", request.getOpenId());
+        if (request.getExternalId() != null)
+            params.put("external_id", request.getExternalId());
 
-        return executeGet(url, String.valueOf(request.getDistributorId()), params, 
-                new ParameterizedTypeReference<ChangduResponse<List<ChangduPurchaseRecord>>>() {});
+        return executeGet(url, String.valueOf(request.getDistributorId()), params,
+                new ParameterizedTypeReference<ChangduResponse<List<ChangduPurchaseRecord>>>() {
+                });
     }
 
     /**
@@ -149,17 +185,23 @@ public class ChangduApiClient implements IChangduApiClient {
         params.put("page_index", request.getPageIndex());
         params.put("page_size", request.getPageSize());
 
-        if (request.getBeginTime() != null) params.put("begin_time", request.getBeginTime());
-        if (request.getEndTime() != null) params.put("end_time", request.getEndTime());
-        if (request.getOpenId() != null) params.put("open_id", request.getOpenId());
+        if (request.getBeginTime() != null)
+            params.put("begin_time", request.getBeginTime());
+        if (request.getEndTime() != null)
+            params.put("end_time", request.getEndTime());
+        if (request.getOpenId() != null)
+            params.put("open_id", request.getOpenId());
 
-        return executeGet(url, String.valueOf(request.getDistributorId()), params, 
-                new ParameterizedTypeReference<ChangduResponse<List<ChangduReadRecord>>>() {});
+        return executeGet(url, String.valueOf(request.getDistributorId()), params,
+                new ParameterizedTypeReference<ChangduResponse<List<ChangduReadRecord>>>() {
+                });
     }
 
-    private <T> T executeGet(String url, String distributorId, Map<String, Object> params, ParameterizedTypeReference<T> responseType) {
-        long ts = Instant.now().getEpochSecond();
+    private <T> T executeGet(String url, String distributorId, Map<String, Object> params,
+            ParameterizedTypeReference<T> responseType) {
+        long ts = System.currentTimeMillis() / 1000;
         String sign = ChangduSignUtils.generateGetSign(distributorId, config.getSecretKey(), ts, params);
+        log.info("ts: {} sign:{}", ts, sign);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("header-ts", String.valueOf(ts));
@@ -176,8 +218,7 @@ public class ChangduApiClient implements IChangduApiClient {
                     builder.build().toUri(),
                     HttpMethod.GET,
                     new HttpEntity<>(headers),
-                    responseType
-            );
+                    responseType);
             return response.getBody();
         } catch (Exception e) {
             log.error("Failed to call Changdu API: {}", url, e);

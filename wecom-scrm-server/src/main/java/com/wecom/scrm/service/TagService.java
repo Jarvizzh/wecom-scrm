@@ -9,6 +9,7 @@ import com.wecom.scrm.repository.WecomTagGroupRepository;
 import com.wecom.scrm.repository.WecomTagRepository;
 import com.wecom.scrm.repository.WecomCustomerRelationRepository;
 import com.wecom.scrm.repository.yuewen.YuewenUserRepository;
+import com.wecom.scrm.repository.changdu.ChangduUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import com.wecom.scrm.config.WxCpServiceManager;
 import me.chanjar.weixin.cp.bean.WxCpBaseResp;
@@ -36,6 +37,7 @@ public class TagService {
     private final WecomCustomerTagRepository customerTagRepository;
     private final WecomCustomerRelationRepository customerRelationRepository;
     private final YuewenUserRepository yuewenUserRepository;
+    private final ChangduUserRepository changduUserRepository;
 
     @Autowired
     @Lazy
@@ -46,13 +48,15 @@ public class TagService {
             WecomTagRepository tagRepository,
             WecomCustomerTagRepository customerTagRepository,
             WecomCustomerRelationRepository customerRelationRepository,
-            YuewenUserRepository yuewenUserRepository) {
+            YuewenUserRepository yuewenUserRepository,
+            ChangduUserRepository changduUserRepository) {
         this.wxCpServiceManager = wxCpServiceManager;
         this.tagGroupRepository = tagGroupRepository;
         this.tagRepository = tagRepository;
         this.customerTagRepository = customerTagRepository;
         this.customerRelationRepository = customerRelationRepository;
         this.yuewenUserRepository = yuewenUserRepository;
+        this.changduUserRepository = changduUserRepository;
     }
 
     public List<WecomTagGroup> getAllTagGroups() {
@@ -172,13 +176,28 @@ public class TagService {
 
             if ("yuewen".equalsIgnoreCase(request.getTargetType())) {
                 // Yuewen selection
-                log.info("Using Yuewen filters for global selection: appFlag={}, openid={}", 
-                        request.getAppFlag(), request.getOpenid());
+                log.info("Using Yuewen filters for global selection: appFlag={}, openid={}, nickname={}", 
+                        request.getAppFlag(), request.getOpenid(), request.getNickname());
                 List<String> externalUserids = yuewenUserRepository.findExternalUseridsByFilters(
                         request.getAppFlag(),
                         request.getOpenid(),
+                        request.getNickname(),
                         request.getMinAmount(),
                         request.getMaxAmount()
+                );
+                targets = externalUserids.stream().map(eid -> {
+                    TagDTO.TagTarget target = new TagDTO.TagTarget();
+                    target.setExternalUserid(eid);
+                    return target;
+                }).collect(Collectors.toList());
+            } else if ("changdu".equalsIgnoreCase(request.getTargetType())) {
+                // Changdu selection
+                log.info("Using Changdu filters for global selection: distributorId={}, openId={}, nickname={}", 
+                        request.getDistributorId(), request.getOpenid(), request.getNickname());
+                List<String> externalUserids = changduUserRepository.findExternalUseridsByFilters(
+                        request.getDistributorId(),
+                        request.getOpenid(),
+                        request.getNickname()
                 );
                 targets = externalUserids.stream().map(eid -> {
                     TagDTO.TagTarget target = new TagDTO.TagTarget();

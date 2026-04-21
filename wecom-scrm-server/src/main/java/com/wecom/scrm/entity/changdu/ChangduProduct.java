@@ -28,8 +28,11 @@ public class ChangduProduct {
     @Column(name = "app_type")
     private Integer appType; // 1-快应用；3-微信
 
+    @Column(name = "wx_app_id", length = 64)
+    private String wxAppId;
+
     @Column(nullable = false)
-    private Integer status = 1; // 1=启用, 0=禁用
+    private Integer status; // 1=启用, 0=禁用
 
     @CreationTimestamp
     @Column(name = "create_time", updatable = false)

@@ -47,7 +47,7 @@ public class ChangduUserListRequest {
     /**
      * 传True获取所有用户，false/不传只展示充值用户 (可选)
      */
-    private Boolean showNotRecharge;
+    private Boolean showNotRecharge = Boolean.TRUE;
     
     /**
      * 投手账号 (可选)

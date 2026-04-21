@@ -28,12 +28,17 @@ public class ChangduApiClientIntegrationTest {
 
     @Value("${changdu.api.distributor-id}")
     private String distributorIdStr;
+    @Value("${changdu.api.app-type}")
+    private String appType;
 
     @Test
     void getPackageInfo_RealRequest() {
         Long distributorId = Long.valueOf(distributorIdStr);
         ChangduPackageInfoRequest request = ChangduPackageInfoRequest.builder()
+                .appType(Integer.valueOf(appType))
                 .distributorId(distributorId)
+                .pageIndex(0)
+                .pageSize(50)
                 .build();
 
         ChangduResponse<List<ChangduPackageInfo>> response = apiClient.getPackageInfo(request);

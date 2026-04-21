@@ -25,4 +25,6 @@ public class ChangduConfig {
      * Secret key for signing.
      */
     private String secretKey;
+
+    private String appType;
 }

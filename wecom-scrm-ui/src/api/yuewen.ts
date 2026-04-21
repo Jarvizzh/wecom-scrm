@@ -59,9 +59,17 @@ export function deleteProduct(id: number) {
   })
 }
 
-export function syncUsers(data: { appFlag: string, startTime: string, endTime: string }) {
+export function syncUsers(data: { appFlag: string, startTime?: string, endTime?: string }) {
   return request({
     url: '/admin/yuewen/product/sync',
+    method: 'post',
+    data
+  })
+}
+
+export function syncUsersFromList(data: { appFlag: string, startTime?: string, endTime?: string }) {
+  return request({
+    url: '/admin/yuewen/user/sync',
     method: 'post',
     data
   })

@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <img src="../assets/logo.png" alt="logo" class="login-logo" />
+        <img src="@/assets/logo.png" alt="logo" class="login-logo" />
         <h1 class="login-title">私域管理平台</h1>
         <p class="login-subtitle">WeCom Management Platform</p>
       </div>
@@ -55,7 +55,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import request from '../api/request'
+import request from '@/api/request'
 
 const router = useRouter()
 const loginFormRef = ref()
