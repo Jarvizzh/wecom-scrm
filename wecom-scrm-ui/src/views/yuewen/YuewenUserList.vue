@@ -306,6 +306,7 @@ const dateShortcuts = [
 const queryForm = reactive({
   appFlag: '',
   openid: '',
+  nickname: '',
   minAmount: undefined as number | undefined,
   maxAmount: undefined as number | undefined
 })

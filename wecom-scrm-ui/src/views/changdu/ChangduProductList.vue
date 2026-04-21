@@ -150,7 +150,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Reading, Tickets, Refresh, ArrowDown } from '@element-plus/icons-vue'
+import { Reading, Tickets, Refresh, ArrowDown } from '@element-plus/icons-vue'
 import { 
   getChangduProducts, 
   saveChangduProduct, 
@@ -238,11 +238,11 @@ const handleBatchStatus = async (status: number) => {
 const handleBatchDelete = () => {
   ElMessageBox.confirm(
     `确定要批量删除选中的 ${selectedIds.value.length} 个产品吗？此操作不可撤销。`,
-    '确认删除',
+    '提示',
     {
       confirmButtonText: '确定删除',
       cancelButtonText: '取消',
-      type: 'danger'
+      type: 'warning'
     }
   ).then(async () => {
     try {

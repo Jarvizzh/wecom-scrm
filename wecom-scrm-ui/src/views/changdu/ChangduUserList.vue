@@ -470,12 +470,6 @@ const resetSyncForm = () => {
   if (syncFormRef.value) syncFormRef.value.resetFields()
 }
 
-const formatTime = (timeStr: string) => {
-  if (!timeStr) return ''
-  const date = new Date(timeStr)
-  return date.toLocaleString()
-}
-
 onMounted(() => {
   fetchProducts()
   fetchData()

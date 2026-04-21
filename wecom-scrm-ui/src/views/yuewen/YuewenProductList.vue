@@ -107,7 +107,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getProducts, saveProduct, deleteProduct, syncUsers, type YuewenProduct } from '@/api/yuewen'
+import { getProducts, saveProduct, deleteProduct, type YuewenProduct } from '@/api/yuewen'
 import { ElMessage } from 'element-plus'
 import { Plus, Reading } from '@element-plus/icons-vue'
 
