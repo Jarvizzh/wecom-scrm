@@ -12,6 +12,8 @@ public interface WecomMpAccountRepository extends JpaRepository<WecomMpAccount, 
 
     Optional<WecomMpAccount> findByAppId(String appId);
 
+    Optional<WecomMpAccount> findByName(String name);
+
     List<WecomMpAccount> findByStatus(Integer status);
 
 }

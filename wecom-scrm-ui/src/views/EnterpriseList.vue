@@ -51,7 +51,7 @@
 import { ref, onMounted } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import request from '../api/request'
+import request from '@/api/request'
 import EnterpriseFormDialog from './EnterpriseFormDialog.vue'
 
 const currentCorpId = ref(localStorage.getItem('currentCorpId') || '')

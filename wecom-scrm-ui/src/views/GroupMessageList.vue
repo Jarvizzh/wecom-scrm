@@ -105,7 +105,7 @@
 import { ref, onMounted } from 'vue'
 import { Refresh, Plus } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { getGroupMessageList, deleteGroupMessage, getGroupMessageSendResult } from '../api/groupMessage'
+import { getGroupMessageList, deleteGroupMessage, getGroupMessageSendResult } from '@/api/groupMessage'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()

@@ -16,6 +16,7 @@
             >
               批量打标签 {{ multipleSelection.length > 0 ? `(${multipleSelection.length})` : '' }}
             </el-button>
+            <el-button type="primary" plain :icon="Refresh" @click="handleSync">同步用户</el-button>
           </div>
         </div>
       </template>
@@ -24,7 +25,13 @@
       <div class="search-bar">
         <el-form :inline="true" :model="queryForm" class="filter-form">
           <el-form-item label="产品">
-            <el-select v-model="queryForm.appFlag" placeholder="选择产品" clearable style="width: 200px">
+            <el-select 
+              v-model="queryForm.appFlag" 
+              placeholder="选择产品" 
+              clearable 
+              style="width: 200px"
+              @change="handleSearch"
+            >
               <el-option
                 v-for="item in activeProducts"
                 :key="item.appFlag"
@@ -33,11 +40,21 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="搜索">
+          <el-form-item label="OpenID">
             <el-input
               v-model="queryForm.openid"
               placeholder="搜索微信 OpenID"
-              style="width: 260px"
+              style="width: 200px"
+              clearable
+              @keyup.enter="handleSearch"
+              @clear="handleSearch"
+            />
+          </el-form-item>
+          <el-form-item label="用户名">
+            <el-input
+              v-model="queryForm.nickname"
+              placeholder="搜索用户名"
+              style="width: 180px"
               clearable
               @keyup.enter="handleSearch"
               @clear="handleSearch"
@@ -121,34 +138,32 @@
         </el-table-column>
         <el-table-column label="所属产品" width="150">
           <template #default="scope">
-            <el-tag size="small" effect="plain">{{ scope.row.productName || scope.row.appFlag }}</el-tag>
+            <el-tag 
+              size="small" 
+              :style="getProductTagStyle(scope.row.appFlag)"
+            >
+              {{ scope.row.productName || scope.row.appFlag }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="chargeAmount" label="累计充值(元)" width="150" sortable="custom">
           <template #default="scope">
-            {{ (scope.row.chargeAmount / 100).toFixed(2) }}
+            <span style="font-weight: 600; color: #f56c6c">¥ {{ (scope.row.chargeAmount / 100).toFixed(2) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="chargeNum" label="充值次数" width="110" sortable="custom" />
-        <el-table-column prop="isSubscribe" label="是否关注" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.isSubscribe === 1 ? 'success' : 'info'">
-              {{ scope.row.isSubscribe === 1 ? '是' : '否' }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column prop="registTime" label="注册时间" width="180">
           <template #default="scope">
             {{ formatTime(scope.row.registTime) }}
           </template>
         </el-table-column>
+        <el-table-column prop="channelName" label="渠道" width="150" show-overflow-tooltip />
+        <el-table-column prop="bookName" label="书籍" width="150" show-overflow-tooltip />
         <el-table-column prop="vipEndTime" label="会员到期" width="180">
           <template #default="scope">
             {{ formatTime(scope.row.vipEndTime) }}
           </template>
         </el-table-column>
-        <el-table-column prop="channelName" label="渠道" width="150" show-overflow-tooltip />
-        <el-table-column prop="bookName" label="书籍" width="200" show-overflow-tooltip />
         <el-table-column prop="yuewenUpdateTime" label="更新时间" width="180">
           <template #default="scope">
             {{ formatTime(scope.row.yuewenUpdateTime) }}
@@ -223,14 +238,55 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- Sync Dialog -->
+    <el-dialog
+      v-model="syncDialogVisible"
+      title="同步用户"
+      width="550px"
+      @closed="resetSyncForm"
+    >
+      <el-form :model="syncForm" :rules="syncRules" ref="syncFormRef" label-width="100px">
+        <el-form-item label="选择产品" prop="appFlag">
+          <el-select v-model="syncForm.appFlag" placeholder="请选择要同步的产品" style="width: 100%">
+            <el-option
+              v-for="item in activeProducts"
+              :key="item.appFlag"
+              :label="item.productName"
+              :value="item.appFlag"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="时间范围" prop="timeRange">
+          <el-date-picker
+            v-model="syncForm.timeRange"
+            type="datetimerange"
+            :shortcuts="dateShortcuts"
+            range-separator="至"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+            clearable
+          />
+          <div class="tip">若不指定时间，默认同步最近1年的用户</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="syncDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSyncSubmit" :loading="syncing">开始同步</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getUsers, getProducts, type YuewenUser, type YuewenProduct } from '../../api/yuewen'
-import { getTagGroups, getTagsByGroup, batchMarkCustomerTags } from '../../api/tag'
-import { User, UserFilled, Search, CollectionTag } from '@element-plus/icons-vue'
+import { getUsers, getProducts, syncUsersFromList, type YuewenUser, type YuewenProduct } from '@/api/yuewen'
+import { getTagGroups, getTagsByGroup, batchMarkCustomerTags } from '@/api/tag'
+import { User, UserFilled, Search, CollectionTag, Refresh } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
@@ -249,9 +305,29 @@ const marking = ref(false)
 const allTagGroups = ref<any[]>([])
 const selectedTagIds = ref<string[]>([])
 
+const syncDialogVisible = ref(false)
+const syncing = ref(false)
+const syncFormRef = ref()
+const syncForm = reactive({
+  appFlag: '',
+  timeRange: [] as string[]
+})
+
+const syncRules = {
+  appFlag: [{ required: true, message: '请选择产品', trigger: 'change' }]
+}
+
+const dateShortcuts = [
+  { text: '最近1小时', value: () => [new Date(Date.now() - 3600 * 1000), new Date()] },
+  { text: '最近1天', value: () => [new Date(Date.now() - 3600 * 1000 * 24), new Date()] },
+  { text: '最近7天', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 7), new Date()] },
+  { text: '最近30天', value: () => [new Date(Date.now() - 3600 * 1000 * 24 * 30), new Date()] }
+]
+
 const queryForm = reactive({
   appFlag: '',
   openid: '',
+  nickname: '',
   minAmount: undefined as number | undefined,
   maxAmount: undefined as number | undefined
 })
@@ -288,6 +364,29 @@ const fetchActiveProducts = async () => {
   }
 }
 
+const getProductTagStyle = (id: any) => {
+  const colors = [
+    { color: '#409eff', border: '#d9ecff', bg: '#ecf5ff' }, // blue
+    { color: '#67c23a', border: '#e1f3d8', bg: '#f0f9eb' }, // green
+    { color: '#e6a23c', border: '#faecd8', bg: '#fdf6ec' }, // orange
+    { color: '#f56c6c', border: '#fde2e2', bg: '#fef0f0' }, // red
+    { color: '#909399', border: '#e9e9eb', bg: '#f4f4f5' }, // gray
+    { color: '#8e44ad', border: '#ebdcf5', bg: '#f5f0fa' }, // purple
+    { color: '#e91e63', border: '#fcd2e1', bg: '#fff0f5' }, // pink
+    { color: '#11a1ad', border: '#d2f1f3', bg: '#e6f9fa' }, // cyan
+    { color: '#ff9800', border: '#ffe8cc', bg: '#fff8e1' }, // gold
+    { color: '#009688', border: '#d2e9e7', bg: '#e0f2f1' }, // teal
+  ];
+  const hash = typeof id === 'number' ? id : String(id).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const index = Math.abs(hash) % 10;
+  const color = colors[index];
+  return {
+    color: color.color,
+    borderColor: color.border,
+    backgroundColor: color.bg
+  };
+}
+
 const handleSearch = () => {
   page.value = 1
   fetchData()
@@ -296,9 +395,48 @@ const handleSearch = () => {
 const resetQuery = () => {
   queryForm.appFlag = ''
   queryForm.openid = ''
+  queryForm.nickname = ''
   queryForm.minAmount = undefined
   queryForm.maxAmount = undefined
+  isAllSelected.value = false
   handleSearch()
+}
+
+const handleSync = () => {
+  syncDialogVisible.value = true
+}
+
+const handleSyncSubmit = async () => {
+  if (!syncFormRef.value) return
+  await syncFormRef.value.validate(async (valid: boolean) => {
+    if (valid) {
+      syncing.value = true
+      try {
+        const data: any = {
+          appFlag: syncForm.appFlag
+        }
+        if (syncForm.timeRange && syncForm.timeRange.length === 2) {
+          data.startTime = syncForm.timeRange[0].replace(' ', 'T')
+          data.endTime = syncForm.timeRange[1].replace(' ', 'T')
+        }
+        
+        await syncUsersFromList(data)
+        ElMessage.success('同步任务已启动')
+        syncDialogVisible.value = false
+        setTimeout(fetchData, 1500)
+      } catch (error) {
+        console.error('Sync failed', error)
+      } finally {
+        syncing.value = false
+      }
+    }
+  })
+}
+
+const resetSyncForm = () => {
+  syncForm.appFlag = ''
+  syncForm.timeRange = []
+  if (syncFormRef.value) syncFormRef.value.resetFields()
 }
 
 const handleSortChange = ({ prop, order }: { prop: string, order: string }) => {
@@ -383,10 +521,15 @@ const confirmBatchTag = async () => {
     }
 
     if (isAllSelected.value) {
-      params.appFlag = queryForm.appFlag
-      params.openid = queryForm.openid
-      params.minAmount = queryForm.minAmount ? Math.round(queryForm.minAmount * 100) : undefined
-      params.maxAmount = queryForm.maxAmount ? Math.round(queryForm.maxAmount * 100) : undefined
+      if (queryForm.appFlag) params.appFlag = queryForm.appFlag
+      if (queryForm.openid) params.openid = queryForm.openid
+      if (queryForm.nickname) params.nickname = queryForm.nickname
+      if (queryForm.minAmount != null) {
+        params.minAmount = Math.round(queryForm.minAmount * 100)
+      }
+      if (queryForm.maxAmount != null) {
+        params.maxAmount = Math.round(queryForm.maxAmount * 100)
+      }
     }
 
     await batchMarkCustomerTags(params)

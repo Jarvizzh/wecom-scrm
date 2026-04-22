@@ -59,9 +59,17 @@ export function deleteProduct(id: number) {
   })
 }
 
-export function syncUsers(data: { appFlag: string, startTime: string, endTime: string }) {
+export function syncUsers(data: { appFlag: string, startTime?: string, endTime?: string }) {
   return request({
     url: '/admin/yuewen/product/sync',
+    method: 'post',
+    data
+  })
+}
+
+export function syncUsersFromList(data: { appFlag: string, startTime?: string, endTime?: string }) {
+  return request({
+    url: '/admin/yuewen/user/sync',
     method: 'post',
     data
   })
@@ -99,6 +107,33 @@ export interface YuewenConsumeRecord {
   productName?: string
 }
 
+export interface YuewenRechargeRecord {
+  id: number | null
+  appFlag: string
+  appName: string
+  amount: string
+  ywOrderId: string
+  orderId: string
+  orderTime: string
+  payTime: string
+  orderStatus: number
+  orderType: number
+  openid: string
+  guid: number
+  nickname: string
+  sex: number
+  regTime: string
+  subTime: string
+  channelId: number
+  channelName: string
+  bookId: number
+  bookName: string
+  wxAppId: string
+  itemName: string
+  orderChannel: number
+  productName?: string
+}
+
 export function getConsumeRecords(params: any): Promise<PageResponse<YuewenConsumeRecord>> {
   return request({
     url: '/admin/yuewen/user/consume',
@@ -112,5 +147,21 @@ export function syncConsumeRecords(data: { appFlag: string, startTime: string, e
     url: '/admin/yuewen/user/sync/consume',
     method: 'post',
     data
+  })
+}
+
+export function getRechargeRecords(params: any): Promise<PageResponse<YuewenRechargeRecord>> {
+  return request({
+    url: '/admin/yuewen/recharge',
+    method: 'get',
+    params
+  })
+}
+
+export function syncRechargeRecords(data: { appFlag: string, startTime?: string, endTime?: string }) {
+  return request({
+    url: '/admin/yuewen/recharge/sync',
+    method: 'post',
+    params: data
   })
 }

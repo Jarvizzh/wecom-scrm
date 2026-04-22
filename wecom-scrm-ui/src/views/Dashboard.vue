@@ -89,7 +89,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import * as echarts from 'echarts';
-import { getStats } from '../api/dashboard';
+import { getStats } from '@/api/dashboard';
 import { User, ChatDotRound, Collection, Connection } from '@element-plus/icons-vue';
 
 const router = useRouter();

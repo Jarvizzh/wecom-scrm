@@ -88,7 +88,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, User, UserFilled, Male, Female } from '@element-plus/icons-vue'
-import { getMpUsers, syncMpUsers, getMpAccounts } from '../../api/mp'
+import { getMpUsers, syncMpUsers, getMpAccounts } from '@/api/mp'
 
 const loading = ref(false)
 const syncing = ref(false)

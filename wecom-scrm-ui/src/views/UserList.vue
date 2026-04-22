@@ -162,7 +162,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { ElMessage, ElTree } from 'element-plus'
 import { Search, Refresh, Folder, UserFilled, Management } from '@element-plus/icons-vue'
-import { getUsers, getDepartments, updateUserStatus, syncUsers } from '../api/user'
+import { getUsers, getDepartments, updateUserStatus, syncUsers } from '@/api/user'
 
 const tableData = ref([])
 const loading = ref(false)

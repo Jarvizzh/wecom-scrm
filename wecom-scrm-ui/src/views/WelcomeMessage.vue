@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getWelcomeMsgs, deleteWelcomeMsg } from '../api/welcomeMsg'
+import { getWelcomeMsgs, deleteWelcomeMsg } from '@/api/welcomeMsg'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 

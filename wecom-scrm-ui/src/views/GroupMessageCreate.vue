@@ -282,15 +282,15 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { createGroupMessage, getGroupMessage, updateGroupMessage } from '../api/groupMessage'
-import { uploadImg, uploadTempMedia } from '../api/media'
-import { getUsers, getDepartments } from '../api/user'
+import { createGroupMessage, getGroupMessage, updateGroupMessage } from '@/api/groupMessage'
+import { uploadImg, uploadTempMedia } from '@/api/media'
+import { getUsers, getDepartments } from '@/api/user'
 import { ElMessage } from 'element-plus'
 import { Plus, EditPen, InfoFilled, Filter, ChatLineRound, Picture, Link, Compass, Close, Monitor, Folder, UserFilled, CopyDocument, Warning } from '@element-plus/icons-vue'
 import { onMounted, computed, ref, reactive, nextTick } from 'vue'
 import MobilePreview from './MobilePreview.vue'
-import { getImageUrl } from '../api/media'
-import { useResponsive } from '../hooks/useResponsive'
+import { getImageUrl } from '@/api/media'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { isMobile } = useResponsive()
 

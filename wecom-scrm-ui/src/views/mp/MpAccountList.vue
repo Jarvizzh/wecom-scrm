@@ -128,8 +128,8 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Monitor, ChatLineRound, DocumentCopy } from '@element-plus/icons-vue'
-import { getMpAccounts, saveMpAccount, deleteMpAccount, copyMpAccount } from '../../api/mp'
-import { getEnterprises } from '../../api/enterprise'
+import { getMpAccounts, saveMpAccount, deleteMpAccount, copyMpAccount } from '@/api/mp'
+import { getEnterprises } from '@/api/enterprise'
 
 const loading = ref(false)
 const submitting = ref(false)

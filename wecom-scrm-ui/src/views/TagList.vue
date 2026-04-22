@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
 import { Refresh, Plus, CollectionTag, Search, PriceTag } from '@element-plus/icons-vue'
-import { getTagGroups, getTagsByGroup, addCorpTag, deleteCorpTag, syncTags } from '../api/tag'
+import { getTagGroups, getTagsByGroup, addCorpTag, deleteCorpTag, syncTags } from '@/api/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)

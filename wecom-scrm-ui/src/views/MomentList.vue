@@ -310,13 +310,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getMoments, createMoment, syncMomentStatuses } from '../api/moment'
-import { uploadMedia } from '../api/media'
-import { getUsers, getDepartments } from '../api/user'
-import { getTagGroups, getTagsByGroup } from '../api/tag'
+import { getMoments, createMoment, syncMomentStatuses } from '@/api/moment'
+import { uploadMedia } from '@/api/media'
+import { getUsers, getDepartments } from '@/api/user'
+import { getTagGroups, getTagsByGroup } from '@/api/tag'
 import { ElMessage } from 'element-plus'
 import { Plus, Refresh, Folder, UserFilled, Collection, PriceTag } from '@element-plus/icons-vue'
-import { useResponsive } from '../hooks/useResponsive'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { isMobile } = useResponsive()
 

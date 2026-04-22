@@ -204,8 +204,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Refresh, Notification, View, UserFilled } from '@element-plus/icons-vue'
-import { getWecomEvents } from '../api/wecomEvent'
-import { useResponsive } from '../hooks/useResponsive'
+import { getWecomEvents } from '@/api/wecomEvent'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { isMobile } = useResponsive()
 

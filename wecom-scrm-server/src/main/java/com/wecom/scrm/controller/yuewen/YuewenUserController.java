@@ -26,13 +26,14 @@ public class YuewenUserController {
     public Page<YuewenUserDTO> list(
             @RequestParam(required = false) String appFlag,
             @RequestParam(required = false) String openid,
+            @RequestParam(required = false) String nickname,
             @RequestParam(required = false) Long minAmount,
             @RequestParam(required = false) Long maxAmount,
             @RequestParam(required = false) String sortField,
             @RequestParam(required = false) String sortOrder,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return userService.listUsers(appFlag, openid, minAmount, maxAmount, sortField, sortOrder, page, size);
+        return userService.listUsers(appFlag, openid, nickname, minAmount, maxAmount, sortField, sortOrder, page, size);
     }
 
     @GetMapping("/customer/{externalUserid}")
@@ -57,5 +58,11 @@ public class YuewenUserController {
     public ResponseEntity<String> syncConsume(@RequestBody YuewenSyncRequest request) {
         syncService.manualSyncConsume(request.getAppFlag(), request.getStartTime(), request.getEndTime());
         return ResponseEntity.ok("Sync task started successfully");
+    }
+
+    @PostMapping("/sync")
+    public ResponseEntity<String> syncUsers(@RequestBody YuewenSyncRequest request) {
+        syncService.manualSync(request.getAppFlag(), request.getStartTime(), request.getEndTime());
+        return ResponseEntity.ok("User sync task started successfully");
     }
 }
