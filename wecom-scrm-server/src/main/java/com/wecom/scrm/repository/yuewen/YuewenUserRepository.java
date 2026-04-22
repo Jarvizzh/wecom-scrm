@@ -17,7 +17,7 @@ public interface YuewenUserRepository extends JpaRepository<YuewenUser, Long> {
 
     @Query("SELECT u FROM YuewenUser u WHERE (:appFlag IS NULL OR u.appFlag = :appFlag OR :appFlag = '') " +
             "AND (:openid IS NULL OR u.openid LIKE %:openid% OR :openid = '') " +
-            "AND (:nickname IS NULL OR u.nickname LIKE %:nickname% OR :nickname = '') " +
+            "AND (:nickname IS NULL OR u.nickname LIKE %:nickname%) " +
             "AND (:minAmount IS NULL OR u.chargeAmount >= :minAmount) " +
             "AND (:maxAmount IS NULL OR u.chargeAmount <= :maxAmount)")
     Page<YuewenUser> findByFilters(String appFlag, String openid, String nickname, Long minAmount, Long maxAmount, Pageable pageable);
@@ -25,7 +25,7 @@ public interface YuewenUserRepository extends JpaRepository<YuewenUser, Long> {
 
     @Query("SELECT DISTINCT u.externalUserid FROM YuewenUser u WHERE (:appFlag IS NULL OR u.appFlag = :appFlag OR :appFlag = '') " +
             "AND (:openid IS NULL OR u.openid LIKE %:openid% OR :openid = '') " +
-            "AND (:nickname IS NULL OR u.nickname LIKE %:nickname% OR :nickname = '') " +
+            "AND (:nickname IS NULL OR u.nickname LIKE %:nickname%) " +
             "AND (:minAmount IS NULL OR u.chargeAmount >= :minAmount) " +
             "AND (:maxAmount IS NULL OR u.chargeAmount <= :maxAmount) " +
             "AND (u.externalUserid IS NOT NULL AND u.externalUserid != '')")

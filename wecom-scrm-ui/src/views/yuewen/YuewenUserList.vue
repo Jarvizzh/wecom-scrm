@@ -16,7 +16,7 @@
             >
               批量打标签 {{ multipleSelection.length > 0 ? `(${multipleSelection.length})` : '' }}
             </el-button>
-            <el-button type="primary" :icon="Refresh" @click="handleSync">同步用户</el-button>
+            <el-button type="primary" plain :icon="Refresh" @click="handleSync">同步用户</el-button>
           </div>
         </div>
       </template>
@@ -25,7 +25,13 @@
       <div class="search-bar">
         <el-form :inline="true" :model="queryForm" class="filter-form">
           <el-form-item label="产品">
-            <el-select v-model="queryForm.appFlag" placeholder="选择产品" clearable style="width: 200px">
+            <el-select 
+              v-model="queryForm.appFlag" 
+              placeholder="选择产品" 
+              clearable 
+              style="width: 200px"
+              @change="handleSearch"
+            >
               <el-option
                 v-for="item in activeProducts"
                 :key="item.appFlag"
@@ -34,11 +40,21 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="搜索">
+          <el-form-item label="OpenID">
             <el-input
               v-model="queryForm.openid"
               placeholder="搜索微信 OpenID"
-              style="width: 260px"
+              style="width: 200px"
+              clearable
+              @keyup.enter="handleSearch"
+              @clear="handleSearch"
+            />
+          </el-form-item>
+          <el-form-item label="用户名">
+            <el-input
+              v-model="queryForm.nickname"
+              placeholder="搜索用户名"
+              style="width: 180px"
               clearable
               @keyup.enter="handleSearch"
               @clear="handleSearch"
@@ -122,7 +138,12 @@
         </el-table-column>
         <el-table-column label="所属产品" width="150">
           <template #default="scope">
-            <el-tag size="small" effect="plain">{{ scope.row.productName || scope.row.appFlag }}</el-tag>
+            <el-tag 
+              size="small" 
+              :style="getProductTagStyle(scope.row.appFlag)"
+            >
+              {{ scope.row.productName || scope.row.appFlag }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="chargeAmount" label="累计充值(元)" width="150" sortable="custom">
@@ -343,6 +364,29 @@ const fetchActiveProducts = async () => {
   }
 }
 
+const getProductTagStyle = (id: any) => {
+  const colors = [
+    { color: '#409eff', border: '#d9ecff', bg: '#ecf5ff' }, // blue
+    { color: '#67c23a', border: '#e1f3d8', bg: '#f0f9eb' }, // green
+    { color: '#e6a23c', border: '#faecd8', bg: '#fdf6ec' }, // orange
+    { color: '#f56c6c', border: '#fde2e2', bg: '#fef0f0' }, // red
+    { color: '#909399', border: '#e9e9eb', bg: '#f4f4f5' }, // gray
+    { color: '#8e44ad', border: '#ebdcf5', bg: '#f5f0fa' }, // purple
+    { color: '#e91e63', border: '#fcd2e1', bg: '#fff0f5' }, // pink
+    { color: '#11a1ad', border: '#d2f1f3', bg: '#e6f9fa' }, // cyan
+    { color: '#ff9800', border: '#ffe8cc', bg: '#fff8e1' }, // gold
+    { color: '#009688', border: '#d2e9e7', bg: '#e0f2f1' }, // teal
+  ];
+  const hash = typeof id === 'number' ? id : String(id).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const index = Math.abs(hash) % 10;
+  const color = colors[index];
+  return {
+    color: color.color,
+    borderColor: color.border,
+    backgroundColor: color.bg
+  };
+}
+
 const handleSearch = () => {
   page.value = 1
   fetchData()
@@ -477,11 +521,15 @@ const confirmBatchTag = async () => {
     }
 
     if (isAllSelected.value) {
-      params.appFlag = queryForm.appFlag
-      params.openid = queryForm.openid
-      params.nickname = queryForm.nickname
-      params.minAmount = queryForm.minAmount ? Math.round(queryForm.minAmount * 100) : undefined
-      params.maxAmount = queryForm.maxAmount ? Math.round(queryForm.maxAmount * 100) : undefined
+      if (queryForm.appFlag) params.appFlag = queryForm.appFlag
+      if (queryForm.openid) params.openid = queryForm.openid
+      if (queryForm.nickname) params.nickname = queryForm.nickname
+      if (queryForm.minAmount != null) {
+        params.minAmount = Math.round(queryForm.minAmount * 100)
+      }
+      if (queryForm.maxAmount != null) {
+        params.maxAmount = Math.round(queryForm.maxAmount * 100)
+      }
     }
 
     await batchMarkCustomerTags(params)

@@ -1,6 +1,7 @@
 package com.wecom.scrm.service.yuewen;
 
 import com.wecom.scrm.entity.yuewen.YuewenConsumeRecord;
+import com.wecom.scrm.entity.yuewen.YuewenRechargeRecord;
 import com.wecom.scrm.thirdparty.api.yuewen.client.IYuewenAPIClient;
 import com.wecom.scrm.thirdparty.api.yuewen.dto.*;
 import com.wecom.scrm.entity.yuewen.YuewenProduct;
@@ -9,6 +10,7 @@ import com.wecom.scrm.repository.WecomCustomerRepository;
 import com.wecom.scrm.repository.WecomMpUserRepository;
 import com.wecom.scrm.repository.yuewen.YuewenConsumeRecordRepository;
 import com.wecom.scrm.repository.yuewen.YuewenProductRepository;
+import com.wecom.scrm.repository.yuewen.YuewenRechargeRecordRepository;
 import com.wecom.scrm.repository.yuewen.YuewenUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +35,24 @@ public class YuewenSyncService {
     private final WecomMpUserRepository mpUserRepository;
     private final WecomCustomerRepository customerRepository;
     private final YuewenConsumeRecordRepository consumeRepository;
+    private final YuewenRechargeRecordRepository rechargeRepository;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    @Async("thirdPartySyncExecutor")
+    public void syncAllActiveProduct(List<YuewenProduct> products, long startTime, long endTime) {
+        log.info("Starting global yuewen sync from {} to {}", startTime, endTime);
+        for (YuewenProduct product : products) {
+            try {
+                syncUsers(product.getAppFlag(), startTime, endTime);
+                syncRechargeRecords(product.getAppFlag(), startTime, endTime);
+            } catch (Exception e) {
+                log.error("Error syncing data for appFlag: {}", product.getAppFlag(), e);
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {}
+        }
+    }
 
     @Async("thirdPartySyncExecutor")
     public void manualSync(String appFlag, LocalDateTime start, LocalDateTime end) {
@@ -70,6 +89,113 @@ public class YuewenSyncService {
             }
         }
         log.info("Finished manual user sync for appFlag: {}", appFlag);
+    }
+
+    @Async("thirdPartySyncExecutor")
+    public void manualSyncRecharge(String appFlag, LocalDateTime start, LocalDateTime end) {
+        if (start == null || end == null) {
+            throw new RuntimeException("Start time and end time are required");
+        }
+        log.info("Starting manual recharge sync for appFlag: {}, from {} to {}", appFlag, start, end);
+
+        LocalDateTime currentStart = start;
+        while (currentStart.isBefore(end)) {
+            LocalDateTime currentEnd = currentStart.plusDays(1);
+            if (currentEnd.isAfter(end)) {
+                currentEnd = end;
+            }
+
+            log.info("Syncing recharge records for batch: {} to {}", currentStart, currentEnd);
+            try {
+                syncRechargeRecords(appFlag, currentStart.toEpochSecond(ZoneOffset.ofHours(8)),
+                        currentEnd.toEpochSecond(ZoneOffset.ofHours(8)));
+            } catch (Exception e) {
+                log.error("Error syncing recharge records for batch: {} to {}", currentStart, currentEnd, e);
+            }
+
+            currentStart = currentEnd;
+            // Small delay to avoid rate limiting
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
+        }
+        log.info("Finished manual recharge sync for appFlag: {}", appFlag);
+    }
+
+    public void syncRechargeRecords(String appFlag, Long startTimestamp, Long endTimestamp) {
+        int page = 1;
+        int pageSize = 100;
+        boolean hasMore = true;
+
+        while (hasMore) {
+            YuewenRechargeLogRequest request = new YuewenRechargeLogRequest();
+            request.setAppflag(appFlag);
+            request.setStartTime(startTimestamp);
+            request.setEndTime(endTimestamp);
+            request.setPage(page);
+            request.setPageSize(pageSize);
+            request.setOrderStatus(2); //default Paid.
+
+            YuewenResponse<YuewenRechargeLogResponse> response = apiClient.getRechargeLog(request);
+            if (response == null || response.getCode() != 0 || response.getData() == null) {
+                log.error("Failed to fetch recharge logs from Yuewen: {}",
+                        response != null ? response.getMsg() : "Empty response");
+                break;
+            }
+
+            YuewenRechargeLogResponse data = response.getData();
+            List<YuewenRechargeItem> items = data.getList();
+            if (items != null && !items.isEmpty()) {
+                saveOrUpdateRechargeRecords(items, appFlag);
+            }
+
+            if (items != null && items.size() >= pageSize) {
+                page++;
+            } else {
+                hasMore = false;
+            }
+        }
+    }
+
+    private void saveOrUpdateRechargeRecords(List<YuewenRechargeItem> items, String appFlag) {
+        for (YuewenRechargeItem item : items) {
+            YuewenRechargeRecord record = rechargeRepository.findByYwOrderId(item.getYwOrderId())
+                    .orElse(new YuewenRechargeRecord());
+
+            record.setAppFlag(appFlag);
+            record.setAppName(item.getAppName());
+            record.setAmount(item.getAmount());
+            record.setYwOrderId(item.getYwOrderId());
+            record.setOrderId(item.getOrderId());
+            record.setOrderStatus(item.getOrderStatus());
+            record.setOrderType(item.getOrderType());
+            record.setOpenid(item.getOpenid());
+            record.setGuid(item.getGuid());
+            record.setSex(item.getSex());
+            record.setChannelId(item.getChannelId());
+            record.setChannelName(item.getChannelName());
+            record.setBookId(item.getBookId());
+            record.setBookName(item.getBookName());
+            record.setWxAppId(item.getWxAppid());
+            record.setItemName(item.getItemName());
+            record.setOrderChannel(item.getOrderChannel());
+
+            if (StringUtils.hasText(item.getOrderTime())) {
+                record.setOrderTime(LocalDateTime.parse(item.getOrderTime(), FORMATTER));
+            }
+            if (StringUtils.hasText(item.getPayTime())) {
+                record.setPayTime(LocalDateTime.parse(item.getPayTime(), FORMATTER));
+            }
+            if (StringUtils.hasText(item.getRegTime())) {
+                record.setRegTime(LocalDateTime.parse(item.getRegTime(), FORMATTER));
+            }
+            if (StringUtils.hasText(item.getSubTime())) {
+                record.setSubTime(LocalDateTime.parse(item.getSubTime(), FORMATTER));
+            }
+
+            rechargeRepository.save(record);
+        }
     }
 
     public void syncUsers(String appFlag, Long startTimestamp, Long endTimestamp) {
@@ -192,6 +318,8 @@ public class YuewenSyncService {
         }
     }
 
+
+
     @Async("thirdPartySyncExecutor")
     public void manualSyncConsume(String appFlag, LocalDateTime start, LocalDateTime end) {
         if (start == null || end == null) {
@@ -302,4 +430,6 @@ public class YuewenSyncService {
             consumeRepository.save(record);
         }
     }
+
+
 }

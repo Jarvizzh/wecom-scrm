@@ -25,10 +25,10 @@ public class YuewenUserSyncTask {
     private final YuewenSyncService syncService;
 
     /**
-     * Every 30 minutes, sync users from the last hour.
-     * E.g., at 00:30, sync 23:30-00:30. At 01:00, sync 00:00-01:00.
+     * Every 35 minutes, sync users from the last hour.
+     * E.g., at 00:01, sync 23:01-00:01. At 00:16, sync 23:16-00:16.
      */
-    @Scheduled(cron = "0 0/30 * * * ?")
+    @Scheduled(cron = "0 1/15 * * * ?")
     public void runAutoSync() {
         log.info("Starting automated Yuewen user sync task...");
 
@@ -37,7 +37,7 @@ public class YuewenUserSyncTask {
             String corpId = enterprise.getCorpId();
             try {
                 DynamicDataSourceContextHolder.push(corpId);
-                
+
                 List<YuewenProduct> activeProducts = productService.getActiveProducts();
                 if (activeProducts.isEmpty()) {
                     continue;
@@ -49,16 +49,11 @@ public class YuewenUserSyncTask {
                 long startTime = oneHourAgo.toEpochSecond(ZoneOffset.ofHours(8));
                 long endTime = now.toEpochSecond(ZoneOffset.ofHours(8));
 
-                log.info("[{}] Found {} active Yuewen products to sync users for {} to {}", 
+                log.info("[{}] Found {} active Yuewen products to sync users for {} to {}",
                         corpId, activeProducts.size(), oneHourAgo, now);
 
-                for (YuewenProduct product : activeProducts) {
-                    try {
-                        syncService.syncUsers(product.getAppFlag(), startTime, endTime);
-                    } catch (Exception e) {
-                        log.error("[{}] Error syncing users for appFlag: {}", corpId, product.getAppFlag(), e);
-                    }
-                }
+                // This will sync users and recharge for all active products in this tenant
+                syncService.syncAllActiveProduct(activeProducts, startTime, endTime);
 
             } catch (Exception e) {
                 log.error("Error in Yuewen sync task for tenant: {}", corpId, e);

@@ -46,6 +46,9 @@ public class YuewenUserService {
             Sort.Direction direction = "ascending".equalsIgnoreCase(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
             sort = Sort.by(direction, sortField);
         }
+        appFlag = StringUtils.hasText(appFlag) ? appFlag : null;
+        openid = StringUtils.hasText(openid) ? openid : null;
+        nickname = StringUtils.hasText(nickname) ? nickname : null;
         Page<YuewenUser> userPage = userRepository.findByFilters(appFlag, openid, nickname, minAmount, maxAmount, PageRequest.of(page - 1, size, sort));
         List<YuewenUserDTO> dtoList = convertToDtoList(userPage.getContent());
         return new PageImpl<>(dtoList, userPage.getPageable(), userPage.getTotalElements());

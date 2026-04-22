@@ -7,7 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -27,9 +29,15 @@ public class ChangduUserService {
             sort = Sort.by(direction, sortField);
         }
         Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        // 处理空值，将空字符串转换为 null
+        openId = StringUtils.hasText(openId) ? openId : null;
+        nickname = StringUtils.hasText(nickname) ? nickname : null;
+
         return userRepository.findUsers(distributorId, openId, nickname, pageable);
     }
 
+    @Async("thirdPartySyncExecutor")
     public void syncUsers(Long distributorId, LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null) {
             startTime = LocalDateTime.now().minusYears(1);

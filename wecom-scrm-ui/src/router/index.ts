@@ -163,6 +163,12 @@ const routes = [
         meta: { title: '阅文消费记录 / Yuewen Consumption' }
       },
       {
+        path: 'yuewen-recharge',
+        name: 'YuewenRecharge',
+        component: () => import('@/views/yuewen/YuewenRechargeList.vue'),
+        meta: { title: '阅文充值记录 / Yuewen Recharge' }
+      },
+      {
         path: 'changdu-products',
         name: 'ChangduProducts',
         component: () => import('@/views/changdu/ChangduProductList.vue'),

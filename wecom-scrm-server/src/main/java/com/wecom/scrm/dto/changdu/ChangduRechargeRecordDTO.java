@@ -1,12 +1,16 @@
 package com.wecom.scrm.dto.changdu;
 
 import com.wecom.scrm.entity.changdu.ChangduRechargeRecord;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChangduRechargeRecordDTO {
     private Long id;
     private Long distributorId;
@@ -25,10 +29,6 @@ public class ChangduRechargeRecordDTO {
     private String orderCreateTime;
     private Integer rechargeType;
     private Integer orderType;
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
-
-    // Additional User Info
     private String nickname;
     private String avatar;
 

@@ -99,8 +99,12 @@
                 <el-icon><User /></el-icon>
                 <span>用户列表</span>
               </el-menu-item>
-              <el-menu-item index="/yuewen-consume">
-                <el-icon><Tickets /></el-icon>
+              <el-menu-item index="/yuewen-recharge">
+                <el-icon><Wallet /></el-icon>
+                <span>充值记录</span>
+              </el-menu-item>
+               <el-menu-item index="/yuewen-consume">
+                <el-icon><Wallet /></el-icon>
                 <span>消费记录</span>
               </el-menu-item>
             </el-sub-menu>
@@ -118,7 +122,7 @@
                 <span>用户列表</span>
               </el-menu-item>
               <el-menu-item index="/changdu-recharge">
-                <el-icon><Tickets /></el-icon>
+                <el-icon><Wallet /></el-icon>
                 <span>充值记录</span>
               </el-menu-item>
             </el-sub-menu>
@@ -241,8 +245,12 @@
                   <span>用户列表</span>
                 </el-menu-item>
                 <el-menu-item index="/yuewen-consume">
-                  <el-icon><Tickets /></el-icon>
+                  <el-icon><Wallet /></el-icon>
                   <span>消费记录</span>
+                </el-menu-item>
+                <el-menu-item index="/yuewen-recharge">
+                  <el-icon><Wallet /></el-icon>
+                  <span>充值记录</span>
                 </el-menu-item>
               </el-sub-menu>
               <el-sub-menu index="changdu">
@@ -258,7 +266,7 @@
                   <span>用户列表</span>
                 </el-menu-item>
                 <el-menu-item index="/changdu-recharge">
-                  <el-icon><Tickets /></el-icon>
+                  <el-icon><Wallet /></el-icon>
                   <span>充值记录</span>
                 </el-menu-item>
               </el-sub-menu>
@@ -384,7 +392,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import request from '@/api/request'
 import { 
-  Setting, CaretBottom, ArrowDown, Plus, Select, 
+  Setting, CaretBottom, ArrowDown, Plus, Select, Wallet,
   Expand, Fold, Notification, Menu, Tickets, Connection
 } from '@element-plus/icons-vue'
 import EnterpriseFormDialog from '@/views/EnterpriseFormDialog.vue'

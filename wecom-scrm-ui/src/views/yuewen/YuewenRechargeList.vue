@@ -5,7 +5,7 @@
         <div class="card-header">
           <div class="left">
             <el-icon><Wallet /></el-icon>
-            <span class="title">常读充值记录</span>
+            <span class="title">阅文充值记录</span>
           </div>
           <div class="right">
             <el-button type="primary" plain :icon="Refresh" @click="handleSync">同步充值记录</el-button>
@@ -18,7 +18,7 @@
         <el-form :inline="true" :model="queryForm" class="filter-form">
           <el-form-item label="产品">
             <el-select 
-              v-model="queryForm.distributorId" 
+              v-model="queryForm.appFlag" 
               placeholder="选择产品" 
               clearable 
               style="width: 200px"
@@ -26,15 +26,15 @@
             >
               <el-option
                 v-for="item in productOptions"
-                :key="item.distributorId"
+                :key="item.appFlag"
                 :label="item.productName"
-                :value="item.distributorId"
+                :value="item.appFlag"
               />
             </el-select>
           </el-form-item>
           <el-form-item label="OpenID">
             <el-input
-              v-model="queryForm.openId"
+              v-model="queryForm.openid"
               placeholder="搜索微信 OpenID"
               style="width: 240px"
               clearable
@@ -43,8 +43,8 @@
           </el-form-item>
           <el-form-item label="订单ID">
             <el-input
-              v-model="queryForm.tradeNo"
-              placeholder="常读订单ID"
+              v-model="queryForm.orderId"
+              placeholder="搜索订单ID"
               style="width: 180px"
               clearable
               @keyup.enter="handleSearch"
@@ -72,66 +72,67 @@
           <template #default="scope">
             <el-tag 
               size="small" 
-              :style="getProductTagStyle(scope.row.distributorId)"
+              :style="getProductTagStyle(scope.row.appFlag)"
             >
-              {{ getProductName(scope.row.distributorId) }}
+              {{ scope.row.appName || getProductName(scope.row.appFlag) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="订单ID" min-width="180">
+        <el-table-column label="阅文订单ID" min-width="220">
           <template #default="scope">
-            <span class="monospace-id">{{ scope.row.tradeNo }}</span>
+            <span class="monospace-id">{{ scope.row.ywOrderId }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="用户信息" min-width="150">
+        <el-table-column label="用户信息" min-width="180">
           <template #default="scope">
-            <div style="display: flex; align-items: center; gap: 8px" v-if="scope.row.nickname || scope.row.avatar">
-              <el-avatar :size="32" :src="scope.row.avatar">{{ scope.row.nickname?.charAt(0) }}</el-avatar>
-              <span>{{ scope.row.nickname }}</span>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-avatar :size="32" :src="scope.row.avatar">{{ scope.row.nickname?.charAt(0) || 'U' }}</el-avatar>
+              <div style="display: flex; flex-direction: column; line-height: 1.2">
+                <div style="display: flex; align-items: center; gap: 4px">
+                  <span style="font-weight: 500">{{ scope.row.nickname || '-' }}</span>
+                  <el-tag v-if="scope.row.sex === 1" size="small" type="primary" effect="plain" style="padding: 0 4px; height: 16px; line-height: 14px">男</el-tag>
+                  <el-tag v-else-if="scope.row.sex === 2" size="small" type="danger" effect="plain" style="padding: 0 4px; height: 16px; line-height: 14px">女</el-tag>
+                </div>
+              </div>
             </div>
-            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column label="微信OpenID" min-width="250">
           <template #default="scope">
-            <span class="monospace-id">{{ scope.row.openId || '-' }}</span>
+            <span class="monospace-id">{{ scope.row.openid || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="payFee" label="支付金额" width="120">
+        <el-table-column prop="amount" label="支付金额" width="120">
           <template #default="scope">
-            <span style="font-weight: 600; color: #f56c6c">¥ {{ (scope.row.payFee / 100).toFixed(2) }}</span>
+            <span style="font-weight: 600; color: #f56c6c">¥ {{ scope.row.amount }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="orderType" label="订单类型" width="120">
+        <el-table-column prop="orderStatus" label="状态" width="100">
           <template #default="scope">
-            <el-tag v-if="scope.row.orderType === 1" type="info" size="small">虚拟支付</el-tag>
-            <el-tag v-else-if="scope.row.orderType === 2" type="success" size="small">非虚拟支付</el-tag>
-            <el-tag v-else type="info" size="small">未知</el-tag>
+            <el-tag v-if="scope.row.orderStatus === 2" type="success" size="small">已支付</el-tag>
+            <el-tag v-else-if="scope.row.orderStatus === 1" type="warning" size="small">待支付</el-tag>
+            <el-tag v-else type="info" size="small">未知({{ scope.row.orderStatus }})</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="payWay" label="支付方式" width="100">
+        <el-table-column prop="orderType" label="类型" width="120">
           <template #default="scope">
-            <span v-if="scope.row.payWay === '1'">微信</span>
-            <span v-else-if="scope.row.payWay === '2'">支付宝</span>
-            <span v-else>{{ scope.row.payWay }}</span>
+            <span v-if="scope.row.orderType === 1">充值</span>
+            <span v-else-if="scope.row.orderType === 2">年费</span>
+            <span v-else-if="scope.row.orderType === 3">道具</span>
+            <span v-else>未知({{ scope.row.orderType }})</span>
           </template>
         </el-table-column>
-        <el-table-column prop="rechargeType" label="充值类型" width="120">
+        <el-table-column label="来源信息" min-width="180">
           <template #default="scope">
-            <span v-if="scope.row.rechargeType === 0">单次充值</span>
-            <span v-else-if="scope.row.rechargeType === 1">会员充值</span>
-            <span v-else-if="scope.row.rechargeType === 2">整剧购买</span>
-            <span v-else-if="scope.row.rechargeType === 3">连包付费</span>
-            <span v-else>{{ scope.row.rechargeType }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="书籍/推广" min-width="180">
-          <template #default="scope">
+            <div class="sub-text" v-if="scope.row.channelName">渠道: {{ scope.row.channelName }}</div>
             <div class="sub-text" v-if="scope.row.bookName">书籍: {{ scope.row.bookName }}</div>
-            <div class="sub-text" v-if="scope.row.promotionId">推广ID: {{ scope.row.promotionId }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="payTime" label="支付时间" width="180" />
+        <el-table-column prop="payTime" label="支付时间" width="180">
+          <template #default="scope">
+            {{ formatTime(scope.row.payTime) }}
+          </template>
+        </el-table-column>
       </el-table>
 
       <div class="pagination-container pagination-block">
@@ -156,13 +157,13 @@
       @closed="resetSyncForm"
     >
       <el-form :model="syncForm" :rules="syncRules" ref="syncFormRef" label-width="100px">
-        <el-form-item label="选择产品" prop="distributorId">
-          <el-select v-model="syncForm.distributorId" placeholder="请选择要同步的产品" style="width: 100%">
+        <el-form-item label="选择产品" prop="appFlag">
+          <el-select v-model="syncForm.appFlag" placeholder="请选择要同步的产品" style="width: 100%">
             <el-option
               v-for="item in productOptions"
-              :key="item.distributorId"
+              :key="item.appFlag"
               :label="item.productName"
-              :value="item.distributorId"
+              :value="item.appFlag"
             />
           </el-select>
         </el-form-item>
@@ -178,7 +179,7 @@
             style="width: 100%"
             clearable
           />
-          <div class="tip">若不指定时间，默认同步最近1年的充值记录</div>
+          <div class="tip">若不指定时间，默认同步最近1个月的充值记录</div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -193,7 +194,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getChangduRechargeRecords, syncChangduRechargeRecords, getChangduProducts } from '@/api/changdu'
+import { getRechargeRecords, syncRechargeRecords, getProducts } from '@/api/yuewen'
 import { Wallet, Search, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -205,22 +206,22 @@ const size = ref(10)
 const productOptions = ref<any[]>([])
 
 const queryForm = reactive({
-  distributorId: undefined as number | undefined,
-  openId: '',
+  appFlag: '',
+  openid: '',
   nickname: '',
-  tradeNo: undefined as number | undefined
+  orderId: ''
 })
 
 const syncDialogVisible = ref(false)
 const syncing = ref(false)
 const syncFormRef = ref()
 const syncForm = reactive({
-  distributorId: undefined as number | undefined,
+  appFlag: '',
   timeRange: [] as string[]
 })
 
 const syncRules = {
-  distributorId: [{ required: true, message: '请选择产品', trigger: 'change' }]
+  appFlag: [{ required: true, message: '请选择产品', trigger: 'change' }]
 }
 
 const dateShortcuts = [
@@ -236,16 +237,16 @@ const fetchData = async () => {
     const params: any = {
       page: page.value,
       size: size.value,
-      distributorId: queryForm.distributorId,
-      tradeNo: queryForm.tradeNo
+      appFlag: queryForm.appFlag || undefined,
+      orderId: queryForm.orderId || undefined
     }
-    if (queryForm.openId && queryForm.openId.trim()) {
-      params.openId = queryForm.openId.trim()
+    if (queryForm.openid && queryForm.openid.trim()) {
+      params.openid = queryForm.openid.trim()
     }
     if (queryForm.nickname && queryForm.nickname.trim()) {
       params.nickname = queryForm.nickname.trim()
     }
-    const res: any = await getChangduRechargeRecords(params)
+    const res: any = await getRechargeRecords(params)
     records.value = res.content
     total.value = res.totalElements
   } catch (error) {
@@ -257,16 +258,16 @@ const fetchData = async () => {
 
 const fetchProducts = async () => {
   try {
-    const res: any = await getChangduProducts({ page: 1, size: 1000 })
+    const res: any = await getProducts({ page: 1, size: 1000 })
     productOptions.value = res.content
   } catch (error) {
     console.error('Failed to fetch products', error)
   }
 }
 
-const getProductName = (distributorId: number) => {
-  const product = productOptions.value.find(p => p.distributorId === distributorId)
-  return product ? product.productName : distributorId
+const getProductName = (appFlag: string) => {
+  const product = productOptions.value.find(p => p.appFlag === appFlag)
+  return product ? product.productName : appFlag
 }
 
 const getProductTagStyle = (id: any) => {
@@ -298,10 +299,10 @@ const handleSearch = () => {
 }
 
 const resetQuery = () => {
-  queryForm.distributorId = undefined
-  queryForm.openId = ''
+  queryForm.appFlag = ''
+  queryForm.openid = ''
   queryForm.nickname = ''
-  queryForm.tradeNo = undefined
+  queryForm.orderId = ''
   handleSearch()
 }
 
@@ -315,15 +316,15 @@ const handleSyncSubmit = async () => {
     if (valid) {
       syncing.value = true
       try {
-        const params: any = {
-          distributorId: syncForm.distributorId!
+        const data: any = {
+          appFlag: syncForm.appFlag
         }
         if (syncForm.timeRange && syncForm.timeRange.length === 2) {
-          params.startTime = syncForm.timeRange[0].replace(' ', 'T')
-          params.endTime = syncForm.timeRange[1].replace(' ', 'T')
+          data.startTime = syncForm.timeRange[0].replace(' ', 'T')
+          data.endTime = syncForm.timeRange[1].replace(' ', 'T')
         }
         
-        await syncChangduRechargeRecords(params)
+        await syncRechargeRecords(data)
         ElMessage.success('同步任务已启动')
         syncDialogVisible.value = false
         setTimeout(fetchData, 1000)
@@ -337,9 +338,15 @@ const handleSyncSubmit = async () => {
 }
 
 const resetSyncForm = () => {
-  syncForm.distributorId = undefined
+  syncForm.appFlag = ''
   syncForm.timeRange = []
   if (syncFormRef.value) syncFormRef.value.resetFields()
+}
+
+const formatTime = (timeStr: string) => {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  return date.toLocaleString()
 }
 
 onMounted(() => {

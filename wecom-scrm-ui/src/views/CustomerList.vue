@@ -614,12 +614,12 @@ const fetchCustomers = async () => {
     const res = (await getCustomers({
       page: currentPage.value,
       size: pageSize.value,
-      customerName: searchCustomer.value,
-      unionid: searchUnionid.value,
-      employeeName: searchEmployee.value,
-      mpAppId: searchMpAppId.value,
-      tagIds: searchTags.value,
-      status: searchStatus.value,
+      customerName: searchCustomer.value ? searchCustomer.value : undefined,
+      unionid: searchUnionid.value ? searchUnionid.value : undefined,
+      employeeName: searchEmployee.value ? searchEmployee.value : undefined,
+      mpAppId: searchMpAppId.value ? searchMpAppId.value : undefined,
+      tagIds: searchTags.value ? searchTags.value : undefined,
+      status: searchStatus.value ? searchStatus.value : undefined,
       onlyDuplicates: onlyDuplicates.value
     })) as any
     tableData.value = res.content
@@ -737,12 +737,12 @@ const handleMarkTags = async () => {
         removeTagIds,
         selectAll: isAllSelected.value,
         targetType: 'customer',
-        customerName: searchCustomer.value,
-        unionid: searchUnionid.value,
-        employeeName: searchEmployee.value,
-        mpAppId: searchMpAppId.value,
-        tagIds: searchTags.value,
-        status: searchStatus.value,
+        customerName: searchCustomer.value ? searchCustomer.value : undefined,
+        unionid: searchUnionid.value ? searchUnionid.value : undefined,
+        employeeName: searchEmployee.value ? searchEmployee.value : undefined,
+        mpAppId: searchMpAppId.value ? searchMpAppId.value : undefined,
+        tagIds: searchTags.value ? searchTags.value : undefined,
+        status: searchStatus.value ? searchStatus.value : undefined,
         onlyDuplicates: onlyDuplicates.value
       })
       ElMessage.success('批量同步任务处理中...')

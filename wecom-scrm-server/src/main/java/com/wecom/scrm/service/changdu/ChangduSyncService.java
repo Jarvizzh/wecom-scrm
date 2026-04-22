@@ -129,6 +129,11 @@ public class ChangduSyncService {
                 log.error("Failed to fetch Changdu users: {}", response != null ? response.getMessage() : "Empty response");
                 hasMore = false;
             }
+            try {
+                Thread.sleep(200);
+            } catch (Exception e) {
+                //ignore
+            }
         }
     }
 
@@ -216,6 +221,11 @@ public class ChangduSyncService {
                 log.error("Failed to fetch Changdu recharge records: {}", response != null ? response.getMessage() : "Empty response");
                 hasMore = false;
             }
+            try {
+                Thread.sleep(200);
+            } catch (Exception e) {
+                //ignore
+            }
         }
     }
 
@@ -248,7 +258,7 @@ public class ChangduSyncService {
     }
 
     @Async("thirdPartySyncExecutor")
-    public void syncAllEnabledProductUsers(LocalDateTime start, LocalDateTime end) {
+    public void syncAllEnabledProduct(LocalDateTime start, LocalDateTime end) {
         log.info("Starting global Changdu sync from {} to {}", start, end);
         List<ChangduProduct> products = productRepository.findAll();
         long startTs = start.toEpochSecond(ZoneOffset.ofHours(8));
@@ -262,6 +272,11 @@ public class ChangduSyncService {
                 } catch (Exception e) {
                     log.error("Error syncing data for Changdu product: {}", product.getProductName(), e);
                 }
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                //ignore
             }
         }
         log.info("Global Changdu sync finished.");

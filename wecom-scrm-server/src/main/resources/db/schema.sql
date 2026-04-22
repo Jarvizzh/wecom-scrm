@@ -349,7 +349,38 @@ CREATE TABLE IF NOT EXISTS `wecom_yuewen_consume_record` (
     KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阅文消费记录表';
 
--- 24. 常读产品配置表
+-- 24. 阅文充值记录表
+CREATE TABLE IF NOT EXISTS `wecom_yuewen_recharge_record` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `app_flag` VARCHAR(64) NOT NULL COMMENT '所属产品标识',
+    `app_name` VARCHAR(128) DEFAULT NULL COMMENT '产品名称',
+    `amount` VARCHAR(32) DEFAULT NULL COMMENT '充值金额(元)',
+    `yw_order_id` VARCHAR(128) NOT NULL UNIQUE COMMENT '阅文订单ID',
+    `order_id` VARCHAR(128) DEFAULT NULL COMMENT '微信支付订单ID',
+    `order_time` DATETIME DEFAULT NULL COMMENT '订单创建时间',
+    `pay_time` DATETIME DEFAULT NULL COMMENT '支付时间',
+    `order_status` TINYINT DEFAULT NULL COMMENT '状态: 1=待支付, 2=已支付',
+    `order_type` TINYINT DEFAULT NULL COMMENT '类型: 1=充值, 2=年费, 3=道具',
+    `openid` VARCHAR(64) NOT NULL COMMENT '微信OpenId',
+    `guid` BIGINT DEFAULT NULL COMMENT '阅文用户ID',
+    `sex` TINYINT DEFAULT NULL COMMENT '性别: 1=男, 2=女, 0=未知',
+    `reg_time` DATETIME DEFAULT NULL COMMENT '注册时间',
+    `sub_time` DATETIME DEFAULT NULL COMMENT '关注时间',
+    `channel_id` BIGINT DEFAULT NULL COMMENT '渠道ID',
+    `channel_name` VARCHAR(128) DEFAULT NULL COMMENT '渠道名称',
+    `book_id` BIGINT DEFAULT NULL COMMENT '书籍ID',
+    `book_name` VARCHAR(255) DEFAULT NULL COMMENT '书籍名称',
+    `wx_appid` VARCHAR(64) DEFAULT NULL COMMENT '微信AppId',
+    `item_name` VARCHAR(128) DEFAULT NULL COMMENT '商品名称',
+    `order_channel` TINYINT DEFAULT NULL COMMENT '支付通道: 1=支付宝, 2=微信, 28=抖音',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_app_openid` (`app_flag`, `openid`),
+    KEY `idx_yw_order_id` (`yw_order_id`),
+    KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='阅文充值记录表';
+
+-- 25. 常读产品配置表
 CREATE TABLE IF NOT EXISTS `wecom_changdu_product` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
     `product_name` VARCHAR(128) NOT NULL COMMENT '产品名称',
@@ -362,7 +393,7 @@ CREATE TABLE IF NOT EXISTS `wecom_changdu_product` (
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='常读产品管理配置表';
 
--- 25. 常读用户表
+-- 26. 常读用户表
 CREATE TABLE IF NOT EXISTS `wecom_changdu_user` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
     `distributor_id` BIGINT NOT NULL COMMENT '分销ID',
@@ -387,7 +418,7 @@ CREATE TABLE IF NOT EXISTS `wecom_changdu_user` (
     KEY `idx_external_id` (`external_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='常读同步用户表';
 
--- 26. 常读充值记录表
+-- 27. 常读充值记录表
 CREATE TABLE IF NOT EXISTS `wecom_changdu_recharge_record` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
     `distributor_id` BIGINT NOT NULL COMMENT '分销ID',

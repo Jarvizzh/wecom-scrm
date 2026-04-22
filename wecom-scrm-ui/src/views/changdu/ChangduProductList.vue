@@ -8,7 +8,7 @@
             <span class="title">常读产品管理</span>
           </div>
           <div class="header-actions">
-            <el-button type="primary" :icon="Refresh" :loading="syncing" @click="handleSync">同步产品</el-button>
+            <el-button type="primary" plain :icon="Refresh" :loading="syncing" @click="handleSync">同步产品</el-button>
             <el-dropdown v-if="selectedIds.length > 0" @command="handleBatchCommand" style="margin-left: 12px">
               <el-button type="primary">
                 批量操作 ({{ selectedIds.length }})<el-icon class="el-icon--right"><arrow-down /></el-icon>

@@ -10,6 +10,7 @@
           <div class="right">
             <el-button 
               type="primary" 
+              plain
               :icon="Refresh" 
               @click="syncDialogVisible = true"
             >
@@ -23,7 +24,13 @@
       <div class="search-bar">
         <el-form :inline="true" :model="queryForm" class="filter-form">
           <el-form-item label="产品">
-            <el-select v-model="queryForm.appFlag" placeholder="选择产品" clearable style="width: 180px">
+            <el-select 
+              v-model="queryForm.appFlag" 
+              placeholder="选择产品" 
+              clearable 
+              style="width: 180px"
+              @change="handleSearch"
+            >
               <el-option
                 v-for="item in activeProducts"
                 :key="item.appFlag"
@@ -71,7 +78,12 @@
         </el-table-column>
         <el-table-column label="所属产品" width="140">
           <template #default="scope">
-            <el-tag size="small" effect="plain">{{ scope.row.productName || scope.row.appFlag }}</el-tag>
+            <el-tag 
+              size="small" 
+              :style="getProductTagStyle(scope.row.appFlag)"
+            >
+              {{ scope.row.productName || scope.row.appFlag }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="消费内容" min-width="250">
@@ -263,6 +275,29 @@ const fetchActiveProducts = async () => {
   } catch (error) {
     console.error('Failed to fetch products', error)
   }
+}
+
+const getProductTagStyle = (id: any) => {
+  const colors = [
+    { color: '#409eff', border: '#d9ecff', bg: '#ecf5ff' }, // blue
+    { color: '#67c23a', border: '#e1f3d8', bg: '#f0f9eb' }, // green
+    { color: '#e6a23c', border: '#faecd8', bg: '#fdf6ec' }, // orange
+    { color: '#f56c6c', border: '#fde2e2', bg: '#fef0f0' }, // red
+    { color: '#909399', border: '#e9e9eb', bg: '#f4f4f5' }, // gray
+    { color: '#8e44ad', border: '#ebdcf5', bg: '#f5f0fa' }, // purple
+    { color: '#e91e63', border: '#fcd2e1', bg: '#fff0f5' }, // pink
+    { color: '#11a1ad', border: '#d2f1f3', bg: '#e6f9fa' }, // cyan
+    { color: '#ff9800', border: '#ffe8cc', bg: '#fff8e1' }, // gold
+    { color: '#009688', border: '#d2e9e7', bg: '#e0f2f1' }, // teal
+  ];
+  const hash = typeof id === 'number' ? id : String(id).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const index = Math.abs(hash) % 10;
+  const color = colors[index];
+  return {
+    color: color.color,
+    borderColor: color.border,
+    backgroundColor: color.bg
+  };
 }
 
 const handleSearch = () => {
