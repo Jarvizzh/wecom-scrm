@@ -60,6 +60,10 @@ public class YuewenUserSyncTask {
             } finally {
                 DynamicDataSourceContextHolder.poll();
             }
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException ignore) {
+            }
         }
     }
 }
