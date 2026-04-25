@@ -44,6 +44,6 @@ public interface YuewenRechargeRecordRepository extends JpaRepository<YuewenRech
     @Query(value = "SELECT app_name as name, COALESCE(SUM(CAST(amount AS DECIMAL(10,2))), 0) as amount, COUNT(DISTINCT openid) as userCount FROM wecom_yuewen_recharge_record WHERE order_status = 2 AND pay_time >= :startTime AND pay_time < :endTime GROUP BY app_name", nativeQuery = true)
     List<Map<String, Object>> sumAmountByTimeRangeGroupByName(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
-    @Query(value = "SELECT DATE(pay_time) as date, COALESCE(SUM(CAST(amount AS DECIMAL(10,2))), 0) as amount FROM wecom_yuewen_recharge_record WHERE order_status = 2 AND pay_time >= :startTime GROUP BY DATE(pay_time)", nativeQuery = true)
-    List<Map<String, Object>> sumTrendByTimeAfter(@Param("startTime") LocalDateTime startTime);
+    @Query(value = "SELECT app_name as name, DATE(pay_time) as date, COALESCE(SUM(CAST(amount AS DECIMAL(10,2))), 0) as amount, COUNT(DISTINCT openid) as userCount FROM wecom_yuewen_recharge_record WHERE order_status = 2 AND pay_time >= :startTime GROUP BY app_name, DATE(pay_time)", nativeQuery = true)
+    List<Map<String, Object>> sumAmountByDateAndName(@Param("startTime") LocalDateTime startTime);
 }
