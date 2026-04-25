@@ -39,7 +39,7 @@
           <el-tabs v-model="activeProductTab" class="custom-tabs">
             <el-tab-pane label="阅文" name="yuewen">
               <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                <el-table-column prop="productName" label="产品名称" min-width="150" fixed show-overflow-tooltip />
+                <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
                 <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
                   <template #default="{ row }">
                     <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
@@ -62,7 +62,7 @@
             </el-tab-pane>
             <el-tab-pane label="常读" name="changdu">
               <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                <el-table-column prop="productName" label="产品名称" min-width="150" fixed show-overflow-tooltip />
+                <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
                 <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
                   <template #default="{ row }">
                     <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
