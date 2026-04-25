@@ -43,6 +43,6 @@ public interface ChangduRechargeRecordRepository extends JpaRepository<ChangduRe
     @Query(value = "SELECT p.product_name as name, COALESCE(SUM(r.pay_fee), 0) as amount, COUNT(DISTINCT r.device_id) as userCount FROM wecom_changdu_recharge_record r LEFT JOIN wecom_changdu_product p ON r.distributor_id = p.distributor_id WHERE r.status = '0' AND r.pay_time >= :startTime AND r.pay_time < :endTime GROUP BY p.product_name", nativeQuery = true)
     List<Map<String, Object>> sumPayFeeByTimeRangeGroupByName(@Param("startTime") String startTime, @Param("endTime") String endTime);
 
-    @Query(value = "SELECT SUBSTRING(pay_time, 1, 10) as date, COALESCE(SUM(pay_fee), 0) as amount FROM wecom_changdu_recharge_record WHERE status = '0' AND pay_time >= :startTime GROUP BY SUBSTRING(pay_time, 1, 10)", nativeQuery = true)
-    List<Map<String, Object>> sumTrendByTimeAfter(@Param("startTime") String startTime);
+    @Query(value = "SELECT p.product_name as name, SUBSTRING(r.pay_time, 1, 10) as date, COALESCE(SUM(r.pay_fee), 0) as amount, COUNT(DISTINCT r.device_id) as userCount FROM wecom_changdu_recharge_record r LEFT JOIN wecom_changdu_product p ON r.distributor_id = p.distributor_id WHERE r.status = '0' AND r.pay_time >= :startTime GROUP BY p.product_name, SUBSTRING(r.pay_time, 1, 10)", nativeQuery = true)
+    List<Map<String, Object>> sumPayFeeByDateAndName(@Param("startTime") String startTime);
 }

@@ -44,12 +44,12 @@ public class DashboardService {
         LocalDateTime tomorrowStart = todayStart.plusDays(1);
         LocalDateTime monthStart = LocalDateTime.of(LocalDate.now().withDayOfMonth(1), LocalTime.MIN);
         LocalDateTime nextMonthStart = monthStart.plusMonths(1);
-        LocalDateTime sevenDaysAgo = todayStart.minusDays(6); // Include today, so go back 6 days
+        LocalDateTime tenDaysAgo = todayStart.minusDays(9); // Include today, so go back 9 days
 
         vo.setTodayNewCustomerCount(wecomCustomerRelationRepository.countByCreateTimeAfter(todayStart));
 
-        // Trend for last 7 days (Customers)
-        List<TrendStatDTO> trendRaw = wecomCustomerRelationRepository.countTrendByCreateTimeAfter(sevenDaysAgo);
+        // Trend for last 10 days (Customers)
+        List<TrendStatDTO> trendRaw = wecomCustomerRelationRepository.countTrendByCreateTimeAfter(tenDaysAgo);
         vo.setCustomerGrowthTrend(trendRaw.stream().map(dto -> {
             Map<String, Object> map = new HashMap<>();
             map.put("date", dto.getDateString());
@@ -75,10 +75,12 @@ public class DashboardService {
 
         List<Map<String, Object>> ywTodayProducts = yuewenRechargeRecordRepository.sumAmountByTimeRangeGroupByName(todayStart, tomorrowStart);
         List<Map<String, Object>> ywMonthProducts = yuewenRechargeRecordRepository.sumAmountByTimeRangeGroupByName(monthStart, nextMonthStart);
+        List<Map<String, Object>> ywDailyProducts = yuewenRechargeRecordRepository.sumAmountByDateAndName(tenDaysAgo);
 
         Map<String, ProductRechargeVO> ywProductMap = new HashMap<>();
-        mergeProductStats(ywProductMap, ywTodayProducts, true);
-        mergeProductStats(ywProductMap, ywMonthProducts, false);
+        mergeProductStats(ywProductMap, ywTodayProducts, "today", false);
+        mergeProductStats(ywProductMap, ywMonthProducts, "month", false);
+        mergeProductDailyStats(ywProductMap, ywDailyProducts, tenDaysAgo, false);
         yuewenRecharge.setProductStats(new ArrayList<>(ywProductMap.values()));
         vo.setYuewenRecharge(yuewenRecharge);
 
@@ -95,45 +97,46 @@ public class DashboardService {
                 todayStart.format(dtFormatter), tomorrowStart.format(dtFormatter));
         List<Map<String, Object>> cdMonthProducts = changduRechargeRecordRepository.sumPayFeeByTimeRangeGroupByName(
                 monthStart.format(dtFormatter), nextMonthStart.format(dtFormatter));
+        List<Map<String, Object>> cdDailyProducts = changduRechargeRecordRepository.sumPayFeeByDateAndName(tenDaysAgo.format(dtFormatter));
 
         Map<String, ProductRechargeVO> cdProductMap = new HashMap<>();
-        mergeProductStatsFen(cdProductMap, cdTodayProducts, true);
-        mergeProductStatsFen(cdProductMap, cdMonthProducts, false);
+        mergeProductStats(cdProductMap, cdTodayProducts, "today", true);
+        mergeProductStats(cdProductMap, cdMonthProducts, "month", true);
+        mergeProductDailyStats(cdProductMap, cdDailyProducts, tenDaysAgo, true);
         changduRecharge.setProductStats(new ArrayList<>(cdProductMap.values()));
         vo.setChangduRecharge(changduRecharge);
 
-        // --- Recharge Trend (Last 7 Days) ---
-        List<Map<String, Object>> ywTrend = yuewenRechargeRecordRepository.sumTrendByTimeAfter(sevenDaysAgo);
-        List<Map<String, Object>> cdTrend = changduRechargeRecordRepository.sumTrendByTimeAfter(sevenDaysAgo.format(dtFormatter));
+        // --- Recharge Trend (Last 10 Days) ---
+        List<Map<String, Object>> ywTrend = new ArrayList<>();
+        List<Map<String, Object>> cdTrend = new ArrayList<>();
+        
+        // Aggregate trend from daily products
+        Map<String, BigDecimal> ywDateSum = new HashMap<>();
+        Map<String, BigDecimal> cdDateSum = new HashMap<>();
+        
+        for (Map<String, Object> row : ywDailyProducts) {
+            String date = row.get("date") != null ? row.get("date").toString() : "";
+            BigDecimal amt = row.get("amount") != null ? new BigDecimal(row.get("amount").toString()) : BigDecimal.ZERO;
+            ywDateSum.put(date, ywDateSum.getOrDefault(date, BigDecimal.ZERO).add(amt));
+        }
+        for (Map<String, Object> row : cdDailyProducts) {
+            String date = row.get("date") != null ? row.get("date").toString() : "";
+            BigDecimal amt = row.get("amount") != null ? convertFenToYuan(((Number) row.get("amount")).longValue()) : BigDecimal.ZERO;
+            cdDateSum.put(date, cdDateSum.getOrDefault(date, BigDecimal.ZERO).add(amt));
+        }
 
         Map<String, Map<String, Object>> trendMap = new TreeMap<>();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        for (int i = 0; i < 7; i++) {
-            String dateStr = sevenDaysAgo.plusDays(i).format(dateFormatter);
+        for (int i = 0; i < 10; i++) {
+            String dateStr = tenDaysAgo.plusDays(i).format(dateFormatter);
             Map<String, Object> dayMap = new HashMap<>();
             dayMap.put("date", dateStr);
-            dayMap.put("yuewen", BigDecimal.ZERO);
-            dayMap.put("changdu", BigDecimal.ZERO);
-            dayMap.put("total", BigDecimal.ZERO);
+            BigDecimal ywAmt = ywDateSum.getOrDefault(dateStr, BigDecimal.ZERO);
+            BigDecimal cdAmt = cdDateSum.getOrDefault(dateStr, BigDecimal.ZERO);
+            dayMap.put("yuewen", ywAmt);
+            dayMap.put("changdu", cdAmt);
+            dayMap.put("total", ywAmt.add(cdAmt));
             trendMap.put(dateStr, dayMap);
-        }
-
-        for (Map<String, Object> t : ywTrend) {
-            String date = t.get("date") != null ? t.get("date").toString() : "";
-            if (trendMap.containsKey(date)) {
-                BigDecimal amt = t.get("amount") != null ? new BigDecimal(t.get("amount").toString()) : BigDecimal.ZERO;
-                trendMap.get(date).put("yuewen", amt);
-                trendMap.get(date).put("total", ((BigDecimal) trendMap.get(date).get("total")).add(amt));
-            }
-        }
-
-        for (Map<String, Object> t : cdTrend) {
-            String date = t.get("date") != null ? t.get("date").toString() : "";
-            if (trendMap.containsKey(date)) {
-                BigDecimal amt = t.get("amount") != null ? convertFenToYuan(((Number) t.get("amount")).longValue()) : BigDecimal.ZERO;
-                trendMap.get(date).put("changdu", amt);
-                trendMap.get(date).put("total", ((BigDecimal) trendMap.get(date).get("total")).add(amt));
-            }
         }
 
         vo.setRechargeTrend(new ArrayList<>(trendMap.values()));
@@ -141,11 +144,15 @@ public class DashboardService {
         return vo;
     }
 
-    private void mergeProductStats(Map<String, ProductRechargeVO> map, List<Map<String, Object>> data, boolean isToday) {
+    private void mergeProductStats(Map<String, ProductRechargeVO> map, List<Map<String, Object>> data, String type, boolean isFen) {
         for (Map<String, Object> row : data) {
             String name = row.get("name") != null ? row.get("name").toString() : "未知";
             BigDecimal amount = row.get("amount") != null ? new BigDecimal(row.get("amount").toString()) : BigDecimal.ZERO;
+            if (isFen) {
+                amount = convertFenToYuan(((Number) row.get("amount")).longValue());
+            }
             Long userCount = row.get("userCount") != null ? Long.valueOf(row.get("userCount").toString()) : 0L;
+
             ProductRechargeVO pvo = map.computeIfAbsent(name, k -> {
                 ProductRechargeVO vo = new ProductRechargeVO();
                 vo.setProductName(k);
@@ -153,41 +160,92 @@ public class DashboardService {
                 vo.setMonthAmount(BigDecimal.ZERO);
                 vo.setTodayUserCount(0L);
                 vo.setMonthUserCount(0L);
+                vo.setDailyStats(new ArrayList<>());
                 return vo;
             });
-            if (isToday) {
+
+            if ("today".equals(type)) {
                 pvo.setTodayAmount(amount);
                 pvo.setTodayUserCount(userCount);
-            } else {
+            } else if ("month".equals(type)) {
                 pvo.setMonthAmount(amount);
                 pvo.setMonthUserCount(userCount);
             }
         }
     }
 
-    private void mergeProductStatsFen(Map<String, ProductRechargeVO> map, List<Map<String, Object>> data, boolean isToday) {
+    private void mergeProductDailyStats(Map<String, ProductRechargeVO> map, List<Map<String, Object>> data, LocalDateTime startTime, boolean isFen) {
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Map<String, Map<String, Map<String, Object>>> productDateStats = new HashMap<>();
+
         for (Map<String, Object> row : data) {
             String name = row.get("name") != null ? row.get("name").toString() : "未知";
-            BigDecimal amount = row.get("amount") != null ? convertFenToYuan(((Number) row.get("amount")).longValue()) : BigDecimal.ZERO;
+            String date = row.get("date") != null ? row.get("date").toString() : "";
+            BigDecimal amount = row.get("amount") != null ? new BigDecimal(row.get("amount").toString()) : BigDecimal.ZERO;
+            if (isFen) {
+                amount = convertFenToYuan(((Number) row.get("amount")).longValue());
+            }
             Long userCount = row.get("userCount") != null ? Long.valueOf(row.get("userCount").toString()) : 0L;
-            ProductRechargeVO pvo = map.computeIfAbsent(name, k -> {
-                ProductRechargeVO vo = new ProductRechargeVO();
-                vo.setProductName(k);
-                vo.setTodayAmount(BigDecimal.ZERO);
-                vo.setMonthAmount(BigDecimal.ZERO);
-                vo.setTodayUserCount(0L);
-                vo.setMonthUserCount(0L);
-                return vo;
-            });
-            if (isToday) {
-                pvo.setTodayAmount(amount);
-                pvo.setTodayUserCount(userCount);
-            } else {
-                pvo.setMonthAmount(amount);
-                pvo.setMonthUserCount(userCount);
+
+            Map<String, Object> statsMap = new HashMap<>();
+            statsMap.put("amount", amount);
+            statsMap.put("userCount", userCount);
+            productDateStats.computeIfAbsent(name, k -> new HashMap<>()).put(date, statsMap);
+        }
+
+        // Ensure all products in the map (even those from today/month stats) have 10 days daily stats
+        for (String name : map.keySet()) {
+            ProductRechargeVO pvo = map.get(name);
+            List<Map<String, Object>> dailyList = new ArrayList<>();
+            Map<String, Map<String, Object>> dateStats = productDateStats.getOrDefault(name, Collections.emptyMap());
+
+            for (int i = 0; i < 10; i++) {
+                String dateStr = startTime.plusDays(i).format(dateFormatter);
+                Map<String, Object> dayData = new HashMap<>();
+                dayData.put("date", dateStr);
+                if (dateStats.containsKey(dateStr)) {
+                    dayData.put("amount", dateStats.get(dateStr).get("amount"));
+                    dayData.put("userCount", dateStats.get(dateStr).get("userCount"));
+                } else {
+                    dayData.put("amount", BigDecimal.ZERO);
+                    dayData.put("userCount", 0L);
+                }
+                dailyList.add(dayData);
+            }
+            pvo.setDailyStats(dailyList);
+        }
+
+        // Also add products that only had activity in the last 10 days (not today/month)
+        for (String name : productDateStats.keySet()) {
+            if (!map.containsKey(name)) {
+                ProductRechargeVO pvo = new ProductRechargeVO();
+                pvo.setProductName(name);
+                pvo.setTodayAmount(BigDecimal.ZERO);
+                pvo.setMonthAmount(BigDecimal.ZERO);
+                pvo.setTodayUserCount(0L);
+                pvo.setMonthUserCount(0L);
+                
+                List<Map<String, Object>> dailyList = new ArrayList<>();
+                Map<String, Map<String, Object>> dateStats = productDateStats.get(name);
+                for (int i = 0; i < 10; i++) {
+                    String dateStr = startTime.plusDays(i).format(dateFormatter);
+                    Map<String, Object> dayData = new HashMap<>();
+                    dayData.put("date", dateStr);
+                    if (dateStats.containsKey(dateStr)) {
+                        dayData.put("amount", dateStats.get(dateStr).get("amount"));
+                        dayData.put("userCount", dateStats.get(dateStr).get("userCount"));
+                    } else {
+                        dayData.put("amount", BigDecimal.ZERO);
+                        dayData.put("userCount", 0L);
+                    }
+                    dailyList.add(dayData);
+                }
+                pvo.setDailyStats(dailyList);
+                map.put(name, pvo);
             }
         }
     }
+
 
     private BigDecimal convertFenToYuan(Long fen) {
         if (fen == null) return BigDecimal.ZERO;
