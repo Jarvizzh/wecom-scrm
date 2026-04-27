@@ -167,6 +167,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { getConsumeRecords, syncConsumeRecords, getProducts, type YuewenConsumeRecord, type YuewenProduct } from '@/api/yuewen'
+import { getProductTagStyle } from '@/utils/color'
 import { Search, Refresh, Tickets } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -275,29 +276,6 @@ const fetchActiveProducts = async () => {
   } catch (error) {
     console.error('Failed to fetch products', error)
   }
-}
-
-const getProductTagStyle = (id: any) => {
-  const colors = [
-    { color: '#409eff', border: '#d9ecff', bg: '#ecf5ff' }, // blue
-    { color: '#67c23a', border: '#e1f3d8', bg: '#f0f9eb' }, // green
-    { color: '#e6a23c', border: '#faecd8', bg: '#fdf6ec' }, // orange
-    { color: '#f56c6c', border: '#fde2e2', bg: '#fef0f0' }, // red
-    { color: '#909399', border: '#e9e9eb', bg: '#f4f4f5' }, // gray
-    { color: '#8e44ad', border: '#ebdcf5', bg: '#f5f0fa' }, // purple
-    { color: '#e91e63', border: '#fcd2e1', bg: '#fff0f5' }, // pink
-    { color: '#11a1ad', border: '#d2f1f3', bg: '#e6f9fa' }, // cyan
-    { color: '#ff9800', border: '#ffe8cc', bg: '#fff8e1' }, // gold
-    { color: '#009688', border: '#d2e9e7', bg: '#e0f2f1' }, // teal
-  ];
-  const hash = typeof id === 'number' ? id : String(id).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-  const index = Math.abs(hash) % 10;
-  const color = colors[index];
-  return {
-    color: color.color,
-    borderColor: color.border,
-    backgroundColor: color.bg
-  };
 }
 
 const handleSearch = () => {
