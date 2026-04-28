@@ -71,14 +71,14 @@ public class WecomEventService {
         log.debug("Async callback ingestion for corpId: {}", corpId);
         try {
             // Call the transactional method via proxy to ensure @Transactional works
-            self.saveEvent(corpId, msg);
+            self.saveEventAndPubilsh(corpId, msg);
         } catch (Exception e) {
             log.error("Failed to async save WeCom event for corpId: {}", corpId, e);
         }
     }
 
     @Transactional
-    public WecomEventLog saveEvent(String corpId, WxCpXmlMessage msg) {
+    public WecomEventLog saveEventAndPubilsh(String corpId, WxCpXmlMessage msg) {
         WecomEventLog eventLog = new WecomEventLog();
         eventLog.setCorpId(corpId);
         eventLog.setMsgType(msg.getMsgType());
@@ -97,10 +97,10 @@ public class WecomEventService {
         }
 
         WecomEventLog savedLog = eventLogRepository.save(eventLog);
-        
+
         // Publish event for asynchronous processing
         eventPublisher.publishEvent(new WecomEvent(this, savedLog));
-        
+
         return savedLog;
     }
 

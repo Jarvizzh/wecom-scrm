@@ -262,6 +262,7 @@ const getStatusText = (status: number) => {
     case 0: return '待处理'
     case 1: return '成功'
     case 2: return '失败'
+    case 3: return '处理中'
     default: return '未知'
   }
 }
