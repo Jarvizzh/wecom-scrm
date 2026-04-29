@@ -34,6 +34,7 @@
                   show-checkbox
                   filterable
                   node-key="id"
+                  :default-expanded-keys="expandedUserKeys"
                   placeholder="请选择员工 (可按部门勾选)"
                   style="width: 100%"
                   :props="{ label: 'label', children: 'children' }"
@@ -51,9 +52,35 @@
               </div>
             </el-form-item>
 
-            <el-form-item label="全局默认">
-              <el-switch v-model="form.isDefault" :active-value="1" :inactive-value="0" />
-              <div style="font-size: 12px; color: #909399; margin-left: 10px;">默认欢迎语将发送给未被其他规则覆盖的客户</div>
+            <div class="section-title">
+              <el-icon><PriceTag /></el-icon>
+              <span>策略设置 / Strategy</span>
+            </div>
+
+            <el-form-item label="自动打标签">
+              <el-tree-select
+                v-model="selectedTreeTagIds"
+                :data="tagTree"
+                multiple
+                show-checkbox
+                filterable
+                node-key="id"
+                :default-expanded-keys="expandedTagKeys"
+                placeholder="请选择标签 (客户添加后自动打标)"
+                style="width: 100%"
+                :props="{ label: 'label', children: 'children' }"
+              >
+                <template #default="{ data }">
+                  <div class="tree-node-content" :class="data.isGroup ? 'group-node' : 'tag-node'">
+                    <el-icon class="node-icon">
+                      <Collection v-if="data.isGroup" />
+                      <PriceTag v-else />
+                    </el-icon>
+                    <span class="node-label">{{ data.label }}</span>
+                  </div>
+                </template>
+              </el-tree-select>
+              <div style="font-size: 12px; color: #909399; margin-top: 5px;">新客户添加员工后，系统将自动为客户打上选中的企业标签</div>
             </el-form-item>
 
             <div class="section-title">
@@ -210,9 +237,10 @@ import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWelcomeMsg, saveWelcomeMsg } from '@/api/welcomeMsg'
 import { getUsers, getDepartments } from '@/api/user'
+import { getTagGroups, getTagsByGroup } from '@/api/tag'
 import { uploadImg, uploadTempMedia } from '@/api/media'
 import { ElMessage } from 'element-plus'
-import { Plus, EditPen, Picture, Link, Compass, Close, Monitor, InfoFilled, ChatLineRound, Filter, UserFilled, Folder } from '@element-plus/icons-vue'
+import { Plus, EditPen, Picture, Link, Compass, Close, Monitor, InfoFilled, ChatLineRound, Filter, UserFilled, Folder, PriceTag, Collection } from '@element-plus/icons-vue'
 import MobilePreview from './MobilePreview.vue'
 
 const route = useRoute()
@@ -225,8 +253,12 @@ const activeTab = ref('image')
 const users = ref<any[]>([])
 const departments = ref<any[]>([])
 const departmentUserTree = ref<any[]>([])
+const tagTree = ref<any[]>([])
 const isAllRange = ref(true)
 const selectedTreeUserIds = ref<string[]>([])
+const selectedTreeTagIds = ref<string[]>([])
+const expandedUserKeys = ref<string[]>([])
+const expandedTagKeys = ref<string[]>([])
 
 const formRef = ref()
 const form = reactive({
@@ -234,8 +266,9 @@ const form = reactive({
   name: '',
   text: '',
   attachments: [] as any[],
-  userIds: '',
-  departmentIds: '',
+  tagIds: [] as string[],
+  userIds: '[]',
+  departmentIds: '[]',
   isDefault: 0
 })
 
@@ -332,7 +365,7 @@ const buildDepartmentUserTree = (departments: any[], users: any[]) => {
 }
 
 onMounted(async () => {
-  await loadTargetingData()
+  await Promise.all([loadTargetingData(), loadTagGroups()])
   
   if (isEdit.value) {
     const id = Number(route.params.id)
@@ -343,6 +376,30 @@ onMounted(async () => {
         if (typeof row.attachments === 'string') {
           form.attachments = JSON.parse(row.attachments)
         }
+
+        if (row.tagIds) {
+          try {
+            const rawTagIds = typeof row.tagIds === 'string' ? JSON.parse(row.tagIds) : row.tagIds
+            form.tagIds = rawTagIds
+            // Map raw tagIds to tree node IDs
+            const mappedTagKeys = rawTagIds.map((tid: string) => `tag_${tid}`)
+            selectedTreeTagIds.value = mappedTagKeys
+            
+            // Expand groups that contain selected tags
+            const tagGroupKeys = new Set<string>()
+            mappedTagKeys.forEach((key: string) => {
+              const groupNode = tagTree.value.find(g => g.children?.some((t: any) => t.id === key))
+              if (groupNode) tagGroupKeys.add(groupNode.id)
+            })
+            expandedTagKeys.value = Array.from(tagGroupKeys)
+          } catch (e) {
+            form.tagIds = []
+            selectedTreeTagIds.value = []
+          }
+        } else {
+          form.tagIds = []
+          selectedTreeTagIds.value = []
+        }
         
         // Handle range selection matching in tree
         const uids = form.userIds ? JSON.parse(form.userIds) : []
@@ -350,7 +407,8 @@ onMounted(async () => {
         uids.forEach((uid: string) => {
           const findInTree = (nodes: any[]) => {
             nodes.forEach(n => {
-              if (n.id && n.id.endsWith(`_${uid}`)) {
+              // Match user nodes that end with the userid
+              if (n.isUser && n.id && n.id.endsWith(`_${uid}`)) {
                 initialKeys.push(n.id)
               }
               if (n.children) findInTree(n.children)
@@ -359,14 +417,64 @@ onMounted(async () => {
           findInTree(departmentUserTree.value)
         })
         
-        selectedTreeUserIds.value = uids
-        isAllRange.value = initialKeys.length === 0
+        selectedTreeUserIds.value = initialKeys
+        isAllRange.value = uids.length === 0
+        
+        // Expand departments that contain selected users
+        const deptKeys = new Set<string>()
+        initialKeys.forEach((key: string) => {
+          if (key.startsWith('user_')) {
+            const parts = key.split('_')
+            if (parts.length >= 2) {
+              deptKeys.add(`dept_${parts[1]}`)
+            }
+          }
+        })
+        expandedUserKeys.value = Array.from(deptKeys)
         // Wait for next tick to ensure v-model sets correctly
       }
     } catch (e) {
       ElMessage.error('加载详情失败，请重试')
     }
   }
+})
+
+const loadTagGroups = async () => {
+  try {
+    const groups = (await getTagGroups()) as any
+    const groupsWithTags = await Promise.all(
+      groups.map(async (g: any) => {
+        try {
+          const tags = (await getTagsByGroup(g.groupId)) as any
+          return { ...g, tags }
+        } catch (e) {
+          return { ...g, tags: [] }
+        }
+      })
+    )
+    
+    // Build Tag Tree structure
+    tagTree.value = groupsWithTags.map(g => ({
+      id: `group_${g.groupId}`,
+      label: g.groupName,
+      isGroup: true,
+      children: (g.tags || []).map((t: any) => ({
+        id: `tag_${t.tagId}`,
+        tagId: t.tagId,
+        label: t.name,
+        isGroup: false
+      }))
+    }))
+  } catch (e) {
+    console.error('加载标签组失败', e)
+  }
+}
+
+watch(selectedTreeTagIds, (keys) => {
+  const finalTags = keys
+    .filter(key => key.startsWith('tag_'))
+    .map(key => key.replace('tag_', ''))
+  form.tagIds = finalTags
 })
 
 const loadTargetingData = async () => {
@@ -483,15 +591,16 @@ const submitForm = async () => {
 
     // Clear range if "All" is selected
     if (isAllRange.value) {
-      form.userIds = ''
-      form.departmentIds = ''
+      form.userIds = '[]'
+      form.departmentIds = '[]'
     }
 
     submitting.value = true
     try {
       const data = {
         ...form,
-        attachments: JSON.stringify(form.attachments)
+        attachments: JSON.stringify(form.attachments),
+        tagIds: JSON.stringify(form.tagIds)
       }
       await saveWelcomeMsg(data)
       ElMessage.success('保存成功')

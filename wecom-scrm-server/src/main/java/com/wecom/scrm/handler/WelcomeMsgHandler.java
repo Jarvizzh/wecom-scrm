@@ -25,17 +25,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.wecom.scrm.service.TagService;
+
 @Component
 public class WelcomeMsgHandler implements WxCpMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(WelcomeMsgHandler.class);
 
     private final WecomWelcomeMsgRepository welcomeMsgRepository;
+    private final TagService tagService;
     private final ObjectMapper objectMapper;
 
     public WelcomeMsgHandler(WecomWelcomeMsgRepository welcomeMsgRepository, 
+                             TagService tagService,
                              ObjectMapper objectMapper) {
         this.welcomeMsgRepository = welcomeMsgRepository;
+        this.tagService = tagService;
         this.objectMapper = objectMapper;
     }
 
@@ -178,6 +183,23 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
             } catch (Exception e) {
                 logger.error("Unexpected error sending welcome message for welcomeCode: " + welcomeCode, e);
                 break;
+            }
+        }
+
+        // --- NEW: Auto-tagging logic (Asynchronous) ---
+        if (sent && config.getTagIds() != null && !config.getTagIds().isEmpty()) {
+            try {
+                List<String> addTagIds = objectMapper.readValue(config.getTagIds(), new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+                if (!addTagIds.isEmpty()) {
+                    String externalUserId = wxMessage.getExternalUserId();
+                    logger.info("Scheduling async auto-tagging for customer {} for user {} with tags: {}", 
+                            externalUserId, currentUserId, addTagIds);
+                    
+                    // Delegate to TagService for asynchronous execution
+                    tagService.asyncMarkTags(currentUserId, externalUserId, addTagIds, null);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to schedule auto-tagging for customer {} after welcome message", wxMessage.getExternalUserId(), e);
             }
         }
 

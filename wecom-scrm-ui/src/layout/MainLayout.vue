@@ -3,8 +3,8 @@
     <el-aside v-if="!isMobile" :width="isCollapse ? '64px' : '200px'" class="aside" :class="{ 'is-collapsed': isCollapse }">
       <div class="logo">
         <div class="logo-main" v-show="!isCollapse">
-          <img src="@/assets/logo.png" class="logo-img" alt="logo" />
-          <h2 class="logo-text">私域管理平台</h2>
+          <img src="@/assets/logo.svg" class="logo-img" alt="logo" />
+          <h2 class="logo-text">Venus</h2>
         </div>
         <div class="sidebar-toggle-top" @click="toggleCollapse">
           <el-icon v-if="isCollapse"><Expand /></el-icon>
@@ -155,8 +155,8 @@
       <div class="aside is-mobile-aside">
         <div class="logo">
           <div class="logo-main">
-            <img src="@/assets/logo.png" class="logo-img" alt="logo" />
-            <h2 class="logo-text">私域管理平台</h2>
+            <img src="@/assets/logo.svg" class="logo-img" alt="logo" />
+            <h2 class="logo-text">Venus</h2>
           </div>
         </div>
         <el-menu

@@ -2,9 +2,9 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <img src="@/assets/logo.png" alt="logo" class="login-logo" />
-        <h1 class="login-title">私域管理平台</h1>
-        <p class="login-subtitle">WeCom Management Platform</p>
+        <img src="@/assets/logo.svg" alt="logo" class="login-logo" />
+        <h1 class="login-title">VENUS</h1>
+        <p class="login-subtitle">让每一次触达，都充满吸引力</p>
       </div>
       
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef" class="login-form">
@@ -45,7 +45,7 @@
       </el-form>
     </div>
     <div class="login-footer">
-      <p>&copy; 2026 WeCom Management System. All rights reserved.</p>
+      <p>&copy; 2026 Venus. All rights reserved.</p>
     </div>
   </div>
 </template>

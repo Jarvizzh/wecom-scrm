@@ -29,6 +29,9 @@ public class WecomWelcomeMsg {
     @Column(columnDefinition = "JSON")
     private String attachments;
 
+    @Column(name = "tag_ids", columnDefinition = "JSON")
+    private String tagIds;
+
     @Column(name = "user_ids", columnDefinition = "JSON")
     private String userIds;
 

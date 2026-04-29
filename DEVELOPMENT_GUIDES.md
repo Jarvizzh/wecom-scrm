@@ -1,6 +1,6 @@
-# Project Development Guidelines
+# Venus Development Guidelines
 
-To ensure the maintainability and type safety of the WeCom SCRM platform, all developers must adhere to the following standards.
+To ensure the maintainability and type safety of the Venus platform, all developers must adhere to the following standards.
 
 ## 1. Database Query Specifications
 

@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS `wecom_welcome_msg` (
     `name` VARCHAR(255) NOT NULL COMMENT '欢迎语名称',
     `text` TEXT DEFAULT NULL COMMENT '欢迎语文字内容',
     `attachments` JSON DEFAULT NULL COMMENT '附件内容(JSON格式)',
+    `tag_ids` JSON DEFAULT NULL COMMENT '自动打标签ID列表(JSON格式)',
     `user_ids` JSON DEFAULT NULL COMMENT '适用员工ID列表(JSON格式)',
     `department_ids` JSON DEFAULT NULL COMMENT '适用部门ID列表(JSON格式)',
     `is_default` TINYINT DEFAULT 0 COMMENT '是否为默认欢迎语: 0=否, 1=是',

@@ -139,6 +139,7 @@ public class WecomEventService {
         try {
             // Ensure context is set (important for multi-tenant background tasks)
             WxCpServiceManager.setCurrentCorpId(eventLog.getCorpId());
+            DynamicDataSourceContextHolder.push(eventLog.getCorpId());
 
             WxCpMessageRouter router = wxCpServiceManager.getWxCpMessageRouter(eventLog.getCorpId());
             if (router == null) {
@@ -159,6 +160,10 @@ public class WecomEventService {
             eventLog.setUpdateTime(LocalDateTime.now());
             // Use saveAndFlush to ensure state is committed and visible to other threads/tasks
             eventLogRepository.saveAndFlush(eventLog);
+            
+            // Cleanup context to avoid thread pollution
+            WxCpServiceManager.clearCurrentCorpId();
+            DynamicDataSourceContextHolder.poll();
         }
     }
 

@@ -1,6 +1,8 @@
-# WeCom SCRM Server
+# Venus Server
 
-基于 Spring Boot 2.7 构建的企业微信私域运营管理系统后端服务。
+**让每一次触达，都充满吸引力**
+
+Venus 是基于 Spring Boot 2.7 构建的高性能企业微信私域运营管理系统。
 
 ## 1. 架构与功能实现介绍
 

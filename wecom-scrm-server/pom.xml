@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.wecom.scrm</groupId>
-    <artifactId>server</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <name>wecom-scrm-server</name>
-    <description>Wecom SCRM Backend</description>
+    <artifactId>venus-server</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>venus-server</name>
+    <description>Venus SCRM Backend</description>
     <properties>
         <java.version>8</java.version>
         <skipTests>true</skipTests>

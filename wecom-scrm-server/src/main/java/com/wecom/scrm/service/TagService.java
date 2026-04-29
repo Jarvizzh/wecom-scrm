@@ -123,6 +123,16 @@ public class TagService {
         }
     }
 
+    @Async("syncExecutor")
+    public void asyncMarkTags(String userid, String externalUserid, List<String> addTagIds, List<String> removeTagIds) {
+        try {
+            self.markTags(userid, externalUserid, addTagIds, removeTagIds);
+            log.info("Async tagging completed for customer {} / user {}", externalUserid, userid);
+        } catch (Exception e) {
+            log.error("Async tagging failed for customer {} / user {}: {}", externalUserid, userid, e.getMessage());
+        }
+    }
+
     @Transactional
     public void markTags(String userid, String externalUserid, List<String> addTagIds, List<String> removeTagIds)
             throws Exception {
