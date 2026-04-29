@@ -88,7 +88,7 @@ public class MpService {
         return mpUserRepository.findByKeyword(appId, kw, pageable);
     }
 
-    @Async("mpSyncExecutor")
+    @Async("bizAsyncExecutor")
     @Transactional
     public void syncUsers(String appId, String corpId) {
         try {

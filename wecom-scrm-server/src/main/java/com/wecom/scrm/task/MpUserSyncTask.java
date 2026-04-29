@@ -48,7 +48,7 @@ public class MpUserSyncTask {
                 log.info("[{}] Found {} MP accounts to sync", corpId, accounts.size());
 
                 for (WecomMpAccount account : accounts) {
-                    // Trigger async sync (uses mpSyncExecutor)
+                    // Trigger async sync (uses bizAsyncExecutor)
                     mpService.syncUsers(account.getAppId(), corpId);
                 }
 

@@ -65,7 +65,7 @@ public class SyncServiceTest {
     @Mock
     private GroupChatMemberRepository memberRepository;
     @Mock
-    private java.util.concurrent.Executor syncExecutor;
+    private java.util.concurrent.Executor bizAsyncExecutor;
     @Mock
     private java.util.concurrent.Executor syncCustomersExecutor;
     @Mock
@@ -89,7 +89,7 @@ public class SyncServiceTest {
                 departmentRepository,
                 groupChatRepository,
                 memberRepository,
-                syncExecutor,
+                bizAsyncExecutor,
                 syncCustomersExecutor,
                 transactionTemplate
         );
@@ -98,7 +98,7 @@ public class SyncServiceTest {
         doAnswer(invocation -> {
             ((Runnable) invocation.getArgument(0)).run();
             return null;
-        }).when(syncExecutor).execute(any(Runnable.class));
+        }).when(bizAsyncExecutor).execute(any(Runnable.class));
 
         doAnswer(invocation -> {
             ((Runnable) invocation.getArgument(0)).run();

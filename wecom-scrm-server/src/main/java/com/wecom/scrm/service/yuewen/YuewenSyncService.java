@@ -38,7 +38,7 @@ public class YuewenSyncService {
     private final YuewenRechargeRecordRepository rechargeRepository;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void syncAllActiveProduct(List<YuewenProduct> products, long startTime, long endTime) {
         log.info("Starting global yuewen sync from {} to {}", startTime, endTime);
         for (YuewenProduct product : products) {
@@ -54,7 +54,7 @@ public class YuewenSyncService {
         }
     }
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void manualSync(String appFlag, LocalDateTime start, LocalDateTime end) {
         if (start == null) {
             start = LocalDateTime.now().minusDays(365);
@@ -91,7 +91,7 @@ public class YuewenSyncService {
         log.info("Finished manual user sync for appFlag: {}", appFlag);
     }
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void manualSyncRecharge(String appFlag, LocalDateTime start, LocalDateTime end) {
         if (start == null || end == null) {
             throw new RuntimeException("Start time and end time are required");
@@ -238,7 +238,7 @@ public class YuewenSyncService {
         log.info("Sync completed for appFlag: {}， startTime:{} endTime:{}", appFlag, startTimestamp, endTimestamp);
     }
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void asyncSyncUsersForOneYear(String appFlag) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startLimit = now.minusDays(365);
@@ -320,7 +320,7 @@ public class YuewenSyncService {
 
 
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void manualSyncConsume(String appFlag, LocalDateTime start, LocalDateTime end) {
         if (start == null || end == null) {
             throw new RuntimeException("Start time and end time are required");

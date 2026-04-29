@@ -123,7 +123,7 @@ public class TagService {
         }
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     public void asyncMarkTags(String userid, String externalUserid, List<String> addTagIds, List<String> removeTagIds) {
         try {
             self.markTags(userid, externalUserid, addTagIds, removeTagIds);
@@ -170,7 +170,7 @@ public class TagService {
         }
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     public void batchMarkTags(TagDTO.BatchMarkTagsRequest request) {
         List<TagDTO.TagTarget> targets = request.getTargets();
 

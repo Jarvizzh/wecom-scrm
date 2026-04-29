@@ -37,7 +37,7 @@ public class ChangduUserService {
         return userRepository.findUsers(distributorId, openId, nickname, pageable);
     }
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void syncUsers(Long distributorId, LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null) {
             startTime = LocalDateTime.now().minusYears(1);

@@ -257,7 +257,7 @@ public class ChangduSyncService {
         }
     }
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void syncAllEnabledProduct(LocalDateTime start, LocalDateTime end) {
         log.info("Starting global Changdu sync from {} to {}", start, end);
         List<ChangduProduct> products = productRepository.findAll();

@@ -85,7 +85,7 @@ public class MomentService {
         return moment;
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     public void publishMomentToWeCom(Long internalId) throws Exception {
         log.info("Starting async publish for moment task ID: {}", internalId);
         

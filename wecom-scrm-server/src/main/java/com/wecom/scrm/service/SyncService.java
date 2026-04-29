@@ -44,7 +44,7 @@ public class SyncService {
     private final WecomDepartmentRepository departmentRepository;
     private final GroupChatRepository groupChatRepository;
     private final GroupChatMemberRepository memberRepository;
-    private final Executor syncExecutor;
+    private final Executor bizAsyncExecutor;
     private final Executor syncCustomersExecutor;
     private final TransactionTemplate transactionTemplate;
 
@@ -61,7 +61,7 @@ public class SyncService {
                        WecomDepartmentRepository departmentRepository,
                        GroupChatRepository groupChatRepository,
                        GroupChatMemberRepository memberRepository,
-                       @Qualifier("syncExecutor") Executor syncExecutor,
+                       @Qualifier("bizAsyncExecutor") Executor bizAsyncExecutor,
                        @Qualifier("syncCustomersExecutor") Executor syncCustomersExecutor,
                        TransactionTemplate transactionTemplate) {
         this.wxCpServiceManager = wxCpServiceManager;
@@ -75,12 +75,12 @@ public class SyncService {
         this.departmentRepository = departmentRepository;
         this.groupChatRepository = groupChatRepository;
         this.memberRepository = memberRepository;
-        this.syncExecutor = syncExecutor;
+        this.bizAsyncExecutor = bizAsyncExecutor;
         this.syncCustomersExecutor = syncCustomersExecutor;
         this.transactionTemplate = transactionTemplate;
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     @Transactional
     public void syncAllUsers() {
         WecomSyncLog syncLog = new WecomSyncLog();
@@ -120,7 +120,7 @@ public class SyncService {
         }
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     @Transactional
     public void syncAllDepartments() {
         WecomSyncLog syncLog = new WecomSyncLog();
@@ -153,7 +153,7 @@ public class SyncService {
         }
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     @Transactional
     public void syncCorpTags() {
         WecomSyncLog syncLog = new WecomSyncLog();
@@ -227,7 +227,7 @@ public class SyncService {
         }
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     public void syncAllCustomers() {
         WecomSyncLog syncLog = new WecomSyncLog();
         syncLog.setSyncType("CUSTOMER_SYNC");
@@ -435,7 +435,7 @@ public class SyncService {
         });
     }
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     public void syncGroupChats() {
         WecomSyncLog syncLog = new WecomSyncLog();
         syncLog.setSyncType("GROUP_CHAT_SYNC");
@@ -460,7 +460,7 @@ public class SyncService {
                 for (WxCpUserExternalGroupChatList.ChatStatus status : chatList) {
                     syncChatIds.add(status.getChatId());
                     futures.add(CompletableFuture.runAsync(() -> 
-                        syncSingleGroupChat(status.getChatId(), status.getStatus()), syncExecutor));
+                        syncSingleGroupChat(status.getChatId(), status.getStatus()), bizAsyncExecutor));
                 }
 
                 cursor = list.getNextCursor();
@@ -573,7 +573,7 @@ public class SyncService {
 
 
 
-    @Async("syncExecutor")
+    @Async("bizAsyncExecutor")
     public void initialSync() {
         log.info("Starting automated initial synchronization...");
         try {

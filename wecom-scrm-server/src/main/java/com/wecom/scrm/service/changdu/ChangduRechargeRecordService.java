@@ -28,7 +28,7 @@ public class ChangduRechargeRecordService {
         return recordRepository.findRecords(distributorId, openId, tradeNo, nickname, pageable);
     }
 
-    @Async("thirdPartySyncExecutor")
+    @Async("bizAsyncExecutor")
     public void syncRecords(Long distributorId, LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null) {
             startTime = LocalDateTime.now().minusYears(1);

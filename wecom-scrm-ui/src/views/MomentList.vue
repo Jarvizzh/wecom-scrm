@@ -16,32 +16,75 @@
         <el-table-column prop="id" label="ID" width="50" />
         <el-table-column prop="taskName" label="任务名称" min-width="150" show-overflow-tooltip />
         
-        <el-table-column label="发表员工" min-width="180">
+        <el-table-column label="发表员工" min-width="200">
           <template #default="{ row }">
-            <template v-if="!getVisibleRange(row)?.senderList?.length">
+            <template v-if="!getVisibleRange(row)?.senderList?.length && !getVisibleRange(row)?.departmentList?.length">
               <el-tag type="info" size="small">全部员工</el-tag>
             </template>
             <div v-else class="tag-group">
+              <!-- Departments -->
               <el-tag 
-                v-for="uid in getVisibleRange(row).senderList" 
-                :key="uid" 
+                v-for="did in getVisibleRange(row).departmentList?.slice(0, 2)" 
+                :key="'dept-' + did" 
+                size="small" 
+                type="warning"
+                class="name-tag"
+              >
+                {{ getDeptName(did) }}
+              </el-tag>
+              
+              <!-- Users -->
+              <el-tag 
+                v-for="uid in getVisibleRange(row).senderList?.slice(0, 2)" 
+                :key="'user-' + uid" 
                 size="small" 
                 class="name-tag"
               >
                 {{ getUserName(uid) }}
               </el-tag>
+
+              <!-- More Popover -->
+              <el-popover
+                v-if="(getVisibleRange(row).senderList?.length || 0) + (getVisibleRange(row).departmentList?.length || 0) > 4"
+                placement="top"
+                :width="300"
+                trigger="hover"
+              >
+                <template #reference>
+                  <el-tag size="small" type="info" class="more-tag">
+                    +{{ (getVisibleRange(row).senderList?.length || 0) + (getVisibleRange(row).departmentList?.length || 0) - 4 }}
+                  </el-tag>
+                </template>
+                <div class="popover-tag-group">
+                  <el-tag 
+                    v-for="did in getVisibleRange(row).departmentList" 
+                    :key="'dept-p-' + did" 
+                    size="small" 
+                    type="warning"
+                  >
+                    {{ getDeptName(did) }}
+                  </el-tag>
+                  <el-tag 
+                    v-for="uid in getVisibleRange(row).senderList" 
+                    :key="'user-p-' + uid" 
+                    size="small"
+                  >
+                    {{ getUserName(uid) }}
+                  </el-tag>
+                </div>
+              </el-popover>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column label="可见客户标签" min-width="180">
+        <el-table-column label="可见客户标签" min-width="200">
           <template #default="{ row }">
             <template v-if="!getVisibleRange(row)?.externalContactList?.tagList?.length">
               <el-tag type="info" size="small">全部客户</el-tag>
             </template>
             <div v-else class="tag-group">
               <el-tag 
-                v-for="tid in getVisibleRange(row).externalContactList.tagList" 
+                v-for="tid in getVisibleRange(row).externalContactList.tagList.slice(0, 3)" 
                 :key="tid" 
                 size="small" 
                 type="success"
@@ -49,6 +92,29 @@
               >
                 {{ getTagName(tid) }}
               </el-tag>
+
+              <el-popover
+                v-if="getVisibleRange(row).externalContactList.tagList.length > 3"
+                placement="top"
+                :width="300"
+                trigger="hover"
+              >
+                <template #reference>
+                  <el-tag size="small" type="info" class="more-tag">
+                    +{{ getVisibleRange(row).externalContactList.tagList.length - 2 }}
+                  </el-tag>
+                </template>
+                <div class="popover-tag-group">
+                  <el-tag 
+                    v-for="tid in getVisibleRange(row).externalContactList.tagList" 
+                    :key="'tag-p-' + tid" 
+                    size="small" 
+                    type="success"
+                  >
+                    {{ getTagName(tid) }}
+                  </el-tag>
+                </div>
+              </el-popover>
             </div>
           </template>
         </el-table-column>
@@ -122,13 +188,12 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMoments, deleteMoment, syncMomentStatuses } from '@/api/moment'
-import { getUsers } from '@/api/user'
+import { getUsers, getDepartments } from '@/api/user'
 import { getTagGroups, getTagsByGroup } from '@/api/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Refresh, Edit, Delete, CopyDocument } from '@element-plus/icons-vue'
+import { Plus, Refresh, Edit, Delete, CopyDocument} from '@element-plus/icons-vue'
 
 const router = useRouter()
-
 
 const tableData = ref([])
 const loading = ref(false)
@@ -137,6 +202,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const userMap = reactive<Record<string, string>>({})
+const deptMap = reactive<Record<number, string>>({})
 const tagMap = reactive<Record<string, string>>({})
 
 const fetchMoments = async () => {
@@ -157,19 +223,21 @@ const fetchMoments = async () => {
 
 const loadBaseData = async () => {
   try {
-    const [userRes, tagGroups] = await Promise.all([
-      getUsers({ page: 1, size: 1000 }),
+    const [userRes, deptRes, tagGroups] = await Promise.all([
+      getUsers({ page: 1, size: 2000 }),
+      getDepartments(),
       getTagGroups()
     ])
     ;(userRes as any).content?.forEach((u: any) => userMap[u.userid] = u.name)
+    ;(deptRes as any)?.forEach((d: any) => deptMap[d.departmentId] = d.name)
     
     if (Array.isArray(tagGroups)) {
-      for (const g of tagGroups) {
+      await Promise.all(tagGroups.map(async (g: any) => {
         const tags = await getTagsByGroup(g.groupId) as any
         if (Array.isArray(tags)) {
           tags.forEach((t: any) => tagMap[t.tagId] = t.name)
         }
-      }
+      }))
     }
   } catch (e) {
     console.error('Load base data error:', e)
@@ -257,6 +325,7 @@ const getVisibleRange = (row: any) => {
 }
 
 const getUserName = (uid: string) => userMap[uid] || uid
+const getDeptName = (did: number | string) => deptMap[Number(did)] || `部门${did}`
 const getTagName = (tid: string) => tagMap[tid] || tid
 const formatDateTime = (val: string) => {
   if (!val) return ''
@@ -292,10 +361,25 @@ const formatDateTime = (val: string) => {
   gap: 4px;
 }
 
+.popover-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
 .name-tag {
-  max-width: 120px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.more-tag {
+  cursor: pointer;
 }
 </style>
