@@ -49,6 +49,30 @@ const routes = [
         meta: { title: '客户朋友圈 / Moments' }
       },
       {
+        path: 'moments/create',
+        name: 'MomentCreate',
+        component: () => import('@/views/MomentCreate.vue'),
+        meta: { title: '创建朋友圈 / New Moment' }
+      },
+      {
+        path: 'moments/edit/:id',
+        name: 'MomentEdit',
+        component: () => import('@/views/MomentCreate.vue'),
+        meta: { title: '编辑朋友圈 / Edit Moment' }
+      },
+      {
+        path: 'moments/detail/:id',
+        name: 'MomentDetail',
+        component: () => import('@/views/MomentDetail.vue'),
+        meta: { title: '朋友圈详情 / Moment Details' }
+      },
+      {
+        path: 'moments/copy/:id',
+        name: 'MomentCopy',
+        component: () => import('@/views/MomentCreate.vue'),
+        meta: { title: '复制朋友圈 / Copy Moment' }
+      },
+      {
         path: 'customer-messages',
         name: 'CustomerMessages',
         component: () => import('@/views/CustomerMessageList.vue'),

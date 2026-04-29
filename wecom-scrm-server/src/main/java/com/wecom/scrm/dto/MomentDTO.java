@@ -8,9 +8,12 @@ public class MomentDTO {
 
     @Data
     public static class CreateRequest {
+        private String taskName;
         private String text;
         private List<Attachment> attachments;
         private VisibleRange visibleRange;
+        private Integer sendType; // 0: Immediate, 1: Scheduled
+        private String sendTime; // YYYY-MM-DD HH:mm:ss
     }
 
     @Data

@@ -20,29 +20,30 @@
             <el-radio label="all" value="all">全部员工</el-radio>
             <el-radio label="specified" value="specified">指定员工</el-radio>
           </el-radio-group>
-          <div v-show="form.isAllSenders === 'specified'" style="margin-top: 10px">
-            <el-tree-select
-              v-model="selectedTreeKeys"
-              :data="departmentUserTree"
-              multiple
-              show-checkbox
-              filterable
-              node-key="id"
-              placeholder="请选择员工 (可按部门勾选)"
-              style="width: 100%"
-              :props="{ label: 'label', children: 'children' }"
-            >
-              <template #default="{ data }">
-                <div class="tree-node-content" :class="data.isUser ? 'user-node' : 'dept-node'">
-                  <el-icon class="node-icon">
-                    <UserFilled v-if="data.isUser" />
-                    <Folder v-else />
-                  </el-icon>
-                  <span class="node-label">{{ data.label }}</span>
-                </div>
-              </template>
-            </el-tree-select>
-          </div>
+        </el-form-item>
+
+        <el-form-item v-show="form.isAllSenders === 'specified'">
+          <el-tree-select
+            v-model="selectedTreeKeys"
+            :data="departmentUserTree"
+            multiple
+            show-checkbox
+            filterable
+            node-key="id"
+            placeholder="请选择员工 (可按部门勾选)"
+            style="width: 100%"
+            :props="{ label: 'label', children: 'children' }"
+          >
+            <template #default="{ data }">
+              <div class="tree-node-content" :class="data.isUser ? 'user-node' : 'dept-node'">
+                <el-icon class="node-icon">
+                  <UserFilled v-if="data.isUser" />
+                  <Folder v-else />
+                </el-icon>
+                <span class="node-label">{{ data.label }}</span>
+              </div>
+            </template>
+          </el-tree-select>
         </el-form-item>
         
         <el-form-item label="发送时间">

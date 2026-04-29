@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface WecomMomentRecordRepository extends JpaRepository<WecomMomentRecord, Long> {
     List<WecomMomentRecord> findByMomentId(Long momentId);
     Optional<WecomMomentRecord> findByMomentIdAndUserid(Long momentId, String userid);
+    void deleteByMomentId(Long momentId);
 }

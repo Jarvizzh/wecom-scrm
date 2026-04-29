@@ -35,6 +35,24 @@ public class MomentController {
         return ResponseEntity.ok(momentService.listMoments(page, size));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<WecomMoment> getTask(@PathVariable Long id) {
+        return momentService.getMomentById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<WecomMoment> updateTask(@PathVariable Long id, @RequestBody MomentDTO.CreateRequest request) throws Exception {
+        return ResponseEntity.ok(momentService.updateMomentTask(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+        momentService.deleteMomentTask(id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{id}/records")
     public ResponseEntity<List<WecomMomentRecord>> listRecords(@PathVariable Long id) {
         return ResponseEntity.ok(momentService.getRecords(id));

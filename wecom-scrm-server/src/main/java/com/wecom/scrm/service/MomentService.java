@@ -16,12 +16,16 @@ import me.chanjar.weixin.cp.bean.external.moment.SenderList;
 import me.chanjar.weixin.cp.bean.external.moment.VisibleRange;
 import me.chanjar.weixin.cp.bean.external.moment.ExternalContactList;
 import me.chanjar.weixin.cp.bean.external.msg.*;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,18 +38,75 @@ public class MomentService {
     private final WxCpServiceManager wxCpServiceManager;
     private final WecomMomentRepository momentRepository;
     private final WecomMomentRecordRepository momentRecordRepository;
+    private final MomentService self;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public MomentService(WxCpServiceManager wxCpServiceManager,
                          WecomMomentRepository momentRepository,
-                         WecomMomentRecordRepository momentRecordRepository) {
+                         WecomMomentRecordRepository momentRecordRepository,
+                         @Lazy MomentService self) {
         this.wxCpServiceManager = wxCpServiceManager;
         this.momentRepository = momentRepository;
         this.momentRecordRepository = momentRecordRepository;
+        this.self = self;
     }
 
     @Transactional
     public WecomMoment createMomentTask(MomentDTO.CreateRequest request, String creatorUserid) throws Exception {
+        // Save to database first
+        WecomMoment moment = new WecomMoment();
+        moment.setTaskName(request.getTaskName());
+        moment.setText(request.getText());
+        moment.setAttachments(objectMapper.writeValueAsString(request.getAttachments()));
+        if (request.getVisibleRange() != null) {
+            moment.setVisibleRangeType(1);
+            moment.setVisibleRangeUsers(objectMapper.writeValueAsString(request.getVisibleRange()));
+        } else {
+            moment.setVisibleRangeType(0);
+        }
+        moment.setCreatorUserid(creatorUserid);
+        moment.setSendType(request.getSendType());
+        
+        if (request.getSendType() != null && request.getSendType() == 1) {
+            moment.setSendTime(LocalDateTime.parse(request.getSendTime(), DATE_TIME_FORMATTER));
+            moment.setStatus(3); // Scheduled
+        } else {
+            moment.setStatus(0); // Pending/Processing
+        }
+
+        moment = momentRepository.save(moment);
+
+        // If immediate, publish to WeCom (Asynchronous call outside this transaction)
+        if (moment.getSendType() == null || moment.getSendType() == 0) {
+            self.publishMomentToWeCom(moment.getId());
+        }
+        
+        return moment;
+    }
+
+    @Async("syncExecutor")
+    public void publishMomentToWeCom(Long internalId) throws Exception {
+        log.info("Starting async publish for moment task ID: {}", internalId);
+        
+        Optional<WecomMoment> momentOpt = momentRepository.findById(internalId);
+        if (!momentOpt.isPresent()) {
+            log.error("Moment task not found: {}", internalId);
+            return;
+        }
+        WecomMoment moment = momentOpt.get();
+
+        // Reconstruct request from entity JSON
+        MomentDTO.CreateRequest request = new MomentDTO.CreateRequest();
+        request.setText(moment.getText());
+        if (moment.getAttachments() != null) {
+            request.setAttachments(objectMapper.readValue(moment.getAttachments(), 
+                new com.fasterxml.jackson.core.type.TypeReference<List<MomentDTO.Attachment>>() {}));
+        }
+        if (moment.getVisibleRangeUsers() != null) {
+            request.setVisibleRange(objectMapper.readValue(moment.getVisibleRangeUsers(), MomentDTO.VisibleRange.class));
+        }
+
         WxCpAddMomentTask task = new WxCpAddMomentTask();
         
         // Text
@@ -60,7 +121,6 @@ public class MomentService {
             List<Attachment> attachments = new ArrayList<>();
             for (MomentDTO.Attachment att : request.getAttachments()) {
                 Attachment attachment = new Attachment();
-                // We use setters that automatically set msgType in WxJava
                 if ("image".equals(att.getMsgtype()) && att.getImage() != null) {
                     Image image = new Image();
                     image.setMediaId(att.getImage().getMediaId());
@@ -74,7 +134,7 @@ public class MomentService {
                     Link link = new Link();
                     link.setTitle(att.getLink().getTitle());
                     link.setUrl(att.getLink().getUrl());
-                        link.setPicUrl(att.getLink().getPicUrl());
+                    link.setPicUrl(att.getLink().getPicUrl());
                     link.setDesc(att.getLink().getDesc());
                     attachment.setLink(link);
                 } else if ("miniprogram".equals(att.getMsgtype()) && att.getMiniprogram() != null) {
@@ -113,29 +173,19 @@ public class MomentService {
             task.setVisibleRange(range);
         }
 
-        // Call WeCom API
-        WxCpAddMomentResult result = wxCpServiceManager.getWxCpService().getExternalContactService().addMomentTask(task);
-        if (result == null || result.getJobId() == null) {
-            throw new RuntimeException("Failed to create moment task: " + (result != null ? result.getErrmsg() : "Unknown error"));
+        try {
+            WxCpAddMomentResult result = wxCpServiceManager.getWxCpService().getExternalContactService().addMomentTask(task);
+            if (result != null && result.getJobId() != null) {
+                moment.setJobid(result.getJobId());
+                moment.setStatus(0); // Processing
+            } else {
+                moment.setStatus(2); // Failed
+            }
+        } catch (Exception e) {
+            log.error("Failed to publish moment to WeCom: {}", moment.getId(), e);
+            moment.setStatus(2);
         }
-        String jobid = result.getJobId();
-        log.info("Created moment task in WeCom, jobid: {}", jobid);
-
-        // Save to database
-        WecomMoment moment = new WecomMoment();
-        moment.setJobid(jobid);
-        moment.setText(request.getText());
-        moment.setAttachments(objectMapper.writeValueAsString(request.getAttachments()));
-        if (request.getVisibleRange() != null) {
-            moment.setVisibleRangeType(1);
-            moment.setVisibleRangeUsers(objectMapper.writeValueAsString(request.getVisibleRange()));
-        } else {
-            moment.setVisibleRangeType(0);
-        }
-        moment.setStatus(0); // Pending
-        moment.setCreatorUserid(creatorUserid);
-        
-        return momentRepository.save(moment);
+        momentRepository.save(moment);
     }
 
     @Transactional
@@ -194,6 +244,57 @@ public class MomentService {
 
     public Page<WecomMoment> listMoments(int page, int size) {
         return momentRepository.findAll(PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createTime")));
+    }
+
+    public Optional<WecomMoment> getMomentById(Long id) {
+        return momentRepository.findById(id);
+    }
+
+    @Transactional
+    public WecomMoment updateMomentTask(Long id, MomentDTO.CreateRequest request) throws Exception {
+        WecomMoment moment = momentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("任务不存在"));
+        
+        if (moment.getStatus() != 3 || moment.getSendTime() == null || moment.getSendTime().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("仅定时发送且未到发送时间的内容支持编辑");
+        }
+
+        moment.setTaskName(request.getTaskName());
+        moment.setText(request.getText());
+        moment.setAttachments(objectMapper.writeValueAsString(request.getAttachments()));
+        if (request.getVisibleRange() != null) {
+            moment.setVisibleRangeType(1);
+            moment.setVisibleRangeUsers(objectMapper.writeValueAsString(request.getVisibleRange()));
+        } else {
+            moment.setVisibleRangeType(0);
+        }
+        
+        if (request.getSendType() != null && request.getSendType() == 1) {
+            moment.setSendTime(LocalDateTime.parse(request.getSendTime(), DATE_TIME_FORMATTER));
+        } else {
+            // If changed to immediate send
+            moment.setSendType(0);
+            moment.setStatus(0);
+            moment.setSendTime(null);
+            moment = momentRepository.save(moment);
+            self.publishMomentToWeCom(moment.getId());
+            return moment;
+        }
+
+        return momentRepository.save(moment);
+    }
+
+    @Transactional
+    public void deleteMomentTask(Long id) {
+        WecomMoment moment = momentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("任务不存在"));
+        
+        if (moment.getStatus() != 3 || moment.getSendTime() == null || moment.getSendTime().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("仅定时发送且未到发送时间的内容支持删除");
+        }
+        
+        momentRecordRepository.deleteByMomentId(id);
+        momentRepository.delete(moment);
     }
 
     public List<WecomMomentRecord> getRecords(Long momentId) {

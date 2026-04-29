@@ -12,9 +12,11 @@
                   <el-icon><InfoFilled /></el-icon>
                   <span>任务基本信息</span>
                 </div>
-                <el-tag :type="getStatusType(taskInfo?.status)" effect="dark" round>
-                  {{ getStatusLabel(taskInfo?.status) }}
-                </el-tag>
+                <div class="header-ops">
+                  <el-tag :type="getStatusType(taskInfo?.status)" effect="dark" round>
+                    {{ getStatusLabel(taskInfo?.status) }}
+                  </el-tag>
+                </div>
               </div>
             </template>
             <el-descriptions :column="isMobile ? 1 : 2" border size="large" class="custom-desc">

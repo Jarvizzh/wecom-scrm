@@ -4,7 +4,7 @@
       <div class="logo">
         <div class="logo-main" v-show="!isCollapse">
           <img src="@/assets/logo.svg" class="logo-img" alt="logo" />
-          <h2 class="logo-text">Venus</h2>
+          <h2 class="logo-text">VENUS</h2>
         </div>
         <div class="sidebar-toggle-top" @click="toggleCollapse">
           <el-icon v-if="isCollapse"><Expand /></el-icon>

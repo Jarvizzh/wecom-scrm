@@ -105,12 +105,15 @@ CREATE TABLE IF NOT EXISTS `wecom_moment` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
     `moment_id` VARCHAR(64) DEFAULT NULL COMMENT '企微朋友圈任务ID',
     `jobid` VARCHAR(64) DEFAULT NULL COMMENT '异步任务ID',
+    `task_name` VARCHAR(128) DEFAULT NULL COMMENT '任务名称',
     `text` TEXT DEFAULT NULL COMMENT '朋友圈文字内容',
     `attachments` TEXT DEFAULT NULL COMMENT '朋友圈附件(JSON格式)',
     `visible_range_type` TINYINT DEFAULT 0 COMMENT '可见范围类型: 0=全部, 1=部分',
     `visible_range_users` TEXT DEFAULT NULL COMMENT '可见范围明细(JSON格式)',
     `status` TINYINT DEFAULT 0 COMMENT '状态: 0=处理中, 1=已发布, 2=发布失败',
     `creator_userid` VARCHAR(64) DEFAULT NULL COMMENT '创建者员工ID',
+    `send_type` TINYINT DEFAULT 0 COMMENT '发送方式: 0=立即发送, 1=定时发送',
+    `send_time` DATETIME DEFAULT NULL COMMENT '定时发送时间',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='企业微信朋友圈任务表';

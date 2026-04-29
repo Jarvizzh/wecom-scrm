@@ -24,6 +24,9 @@ public class WecomMoment {
     @Column(name = "jobid", length = 64)
     private String jobid;
 
+    @Column(name = "task_name", length = 128)
+    private String taskName;
+
     @Column(columnDefinition = "TEXT")
     private String text;
 
@@ -41,6 +44,12 @@ public class WecomMoment {
 
     @Column(name = "creator_userid", length = 64)
     private String creatorUserid;
+
+    @Column(name = "send_type", columnDefinition = "TINYINT DEFAULT 0")
+    private Integer sendType; // 0: Immediate, 1: Scheduled
+
+    @Column(name = "send_time")
+    private LocalDateTime sendTime;
 
     @CreationTimestamp
     @Column(name = "create_time", updatable = false)

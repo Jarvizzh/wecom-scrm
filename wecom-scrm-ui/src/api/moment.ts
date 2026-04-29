@@ -16,7 +16,29 @@ export function getMoments(params?: { page: number; size: number }) {
   })
 }
 
-export function getMomentRecords(id: number) {
+export function getMoment(id: number | string) {
+  return request({
+    url: `/moments/${id}`,
+    method: 'get'
+  })
+}
+
+export function updateMoment(id: number | string, data: any) {
+  return request({
+    url: `/moments/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+export function deleteMoment(id: number | string) {
+  return request({
+    url: `/moments/${id}`,
+    method: 'delete'
+  })
+}
+
+export function getMomentRecords(id: number | string) {
   return request({
     url: `/moments/${id}/records`,
     method: 'get'

@@ -10,5 +10,7 @@ public interface WecomMomentRepository extends JpaRepository<WecomMoment, Long> 
     Optional<WecomMoment> findByJobid(String jobid);
     Optional<WecomMoment> findByMomentId(String momentId);
 
+    List<WecomMoment> findByStatusAndSendTypeAndSendTimeBefore(Integer status, Integer sendType, java.time.LocalDateTime sendTime);
+
     List<WecomMoment> findAllByOrderByCreateTimeDesc();
 }

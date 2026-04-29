@@ -9,6 +9,7 @@
       </template>
 
       <el-table :data="welcomeMsgs" v-loading="loading" style="width: 100%">
+        <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="名称" min-width="150" />
         <el-table-column label="发送员工" min-width="180">
           <template #default="{ row }">
