@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS `wecom_event_log` (
     `external_userid` VARCHAR(64) COMMENT '外部联系人ID',
     `userid` VARCHAR(64) COMMENT '涉及员工ID',
     `content` TEXT COMMENT '事件明细内容(JSON)',
-    `status` TINYINT DEFAULT 0 COMMENT '处理状态: 0=待处理, 1=成功, 2=失败',
+    `status` TINYINT DEFAULT 0 COMMENT '处理状态: 0=待处理, 1=成功, 2=失败, 3=处理中',
     `retry_count` INT DEFAULT 0 COMMENT '重试次数',
     `error_msg` TEXT COMMENT '错误日志',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -41,7 +41,7 @@ public class WecomEventLog {
     private String content;
 
     @Column(columnDefinition = "TINYINT DEFAULT 0")
-    private Integer status = 0; // 0:Pending, 1:Success, 2:Failed
+    private Integer status = 0; // 0:Pending, 1:Success, 2:Failed, 3:Processing
 
     @Column(name = "retry_count", columnDefinition = "INT DEFAULT 0")
     private Integer retryCount = 0;

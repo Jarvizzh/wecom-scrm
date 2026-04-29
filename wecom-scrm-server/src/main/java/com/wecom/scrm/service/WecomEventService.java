@@ -31,6 +31,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import java.util.concurrent.Executor;
+
 @Slf4j
 @Service
 public class WecomEventService {
@@ -43,6 +46,8 @@ public class WecomEventService {
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final WecomEventService self;
+    private final Executor eventSaveExecutor;
+    private final Executor vipEventSaveExecutor;
 
     public WecomEventService(WecomEventLogRepository eventLogRepository,
             WecomUserRepository userRepository,
@@ -51,7 +56,9 @@ public class WecomEventService {
             WxCpServiceManager wxCpServiceManager,
             ObjectMapper objectMapper,
             ApplicationEventPublisher eventPublisher,
-            @Lazy WecomEventService self) {
+            @Lazy WecomEventService self,
+            @Qualifier("eventSaveExecutor") Executor eventSaveExecutor,
+            @Qualifier("vipEventSaveExecutor") Executor vipEventSaveExecutor) {
         this.eventLogRepository = eventLogRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
@@ -60,25 +67,34 @@ public class WecomEventService {
         this.objectMapper = objectMapper;
         this.eventPublisher = eventPublisher;
         this.self = self;
+        this.eventSaveExecutor = eventSaveExecutor;
+        this.vipEventSaveExecutor = vipEventSaveExecutor;
     }
 
     /**
      * Entry point for asynchronous callback handling. 
-     * This moves the DB transaction out of the Web thread.
+     * Now routes events to different thread pools based on priority.
      */
-    @Async("eventSaveExecutor")
     public void asyncSaveEvent(String corpId, WxCpXmlMessage msg) {
-        log.debug("Async callback ingestion for corpId: {}", corpId);
-        try {
-            // Call the transactional method via proxy to ensure @Transactional works
-            self.saveEventAndPubilsh(corpId, msg);
-        } catch (Exception e) {
-            log.error("Failed to async save WeCom event for corpId: {}", corpId, e);
-        }
+        boolean isHighPriority = "add_external_contact".equals(msg.getChangeType());
+        int priority = isHighPriority ? 9 : 0;
+        Executor executor = isHighPriority ? vipEventSaveExecutor : eventSaveExecutor;
+
+        log.debug("Async callback ingestion (Priority: {}) for corpId: {}", 
+                isHighPriority ? "HIGH" : "NORMAL", corpId);
+                
+        executor.execute(() -> {
+            try {
+                // Call the transactional method via proxy to ensure @Transactional works
+                self.saveEventAndPubilsh(corpId, msg, priority);
+            } catch (Exception e) {
+                log.error("Failed to async save WeCom event for corpId: {}", corpId, e);
+            }
+        });
     }
 
     @Transactional
-    public WecomEventLog saveEventAndPubilsh(String corpId, WxCpXmlMessage msg) {
+    public WecomEventLog saveEventAndPubilsh(String corpId, WxCpXmlMessage msg, int priority) {
         WecomEventLog eventLog = new WecomEventLog();
         eventLog.setCorpId(corpId);
         eventLog.setMsgType(msg.getMsgType());
@@ -98,8 +114,8 @@ public class WecomEventService {
 
         WecomEventLog savedLog = eventLogRepository.save(eventLog);
 
-        // Publish event for asynchronous processing
-        eventPublisher.publishEvent(new WecomEvent(this, savedLog));
+        // Publish event for asynchronous processing, passing priority in-memory
+        eventPublisher.publishEvent(new WecomEvent(this, savedLog, priority));
 
         return savedLog;
     }
