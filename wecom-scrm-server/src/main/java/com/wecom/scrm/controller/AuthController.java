@@ -10,10 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +27,26 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
     }
+
+    @GetMapping("/secret/{secretKey}")
+    public ResponseEntity<?> secret(@PathVariable String secretKey) {
+        log.info("Login attempt for user: {}", secretKey);
+        try {
+            //todo
+            if (secretKey.equals("jarvis") || secretKey.equals("youji1119")) {
+                return ResponseEntity.ok("secretKey验证通过");
+            } else {
+                log.warn("Login failed: Invalid credentials for secretKey {}", secretKey);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(createErrorResponse("秘钥错误"));
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error during login for secretKey {}", secretKey, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("系统繁忙，请稍后再试"));
+        }
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {

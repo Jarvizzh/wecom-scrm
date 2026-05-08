@@ -120,18 +120,6 @@
                   <img v-if="att.link?.picUrl" :src="att.link.picUrl" class="link-thumb" />
                   <div class="link-title">{{ att.link?.title || '链接标题' }}</div>
                 </div>
-
-                <!-- Mini Program -->
-                <div v-else-if="att.msgtype === 'miniprogram'" class="moment-link-card mp">
-                  <img v-if="att.miniprogram?.picUrl" :src="att.miniprogram.picUrl" class="link-thumb" />
-                  <div class="link-content">
-                    <div class="link-title">{{ att.miniprogram?.title || '小程序标题' }}</div>
-                    <div class="link-footer">
-                      <el-icon size="12"><Compass /></el-icon>
-                      <span>小程序</span>
-                    </div>
-                  </div>
-                </div>
               </template>
             </div>
 

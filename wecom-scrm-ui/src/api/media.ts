@@ -1,11 +1,11 @@
 import request from './request'
 
-export function uploadMedia(file: File) {
+export function uploadMediaForMoment(file: File) {
   const formData = new FormData()
   formData.append('file', file)
   
   return request({
-    url: '/media/upload',
+    url: '/media/uploadForMoment',
     method: 'post',
     headers: {
       'Content-Type': 'multipart/form-data'

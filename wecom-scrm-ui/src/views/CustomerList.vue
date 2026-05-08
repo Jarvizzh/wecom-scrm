@@ -105,7 +105,7 @@
                   :key="tag.tagId"
                   :label="tag.name"
                   :value="tag.tagId"
-                />
+                ></el-option>
               </el-option-group>
             </el-select>
           </el-form-item>
@@ -188,7 +188,12 @@
         <el-table-column label="客户信息" min-width="240">
           <template #default="scope">
             <div class="user-info-cell">
-              <el-avatar :size="48" :src="scope.row.avatar" class="user-avatar" />
+              <el-avatar 
+                :size="40" 
+                :src="scope.row.avatar" 
+                shape="square"
+                class="user-avatar" 
+              />
               <div class="user-detail">
                 <div class="name-row">
                   <span class="user-name">{{ scope.row.customerName }}</span>
@@ -619,7 +624,7 @@ const fetchCustomers = async () => {
       employeeName: searchEmployee.value ? searchEmployee.value : undefined,
       mpAppId: searchMpAppId.value ? searchMpAppId.value : undefined,
       tagIds: searchTags.value ? searchTags.value : undefined,
-      status: searchStatus.value ? searchStatus.value : undefined,
+      status: (searchStatus.value !== undefined && searchStatus.value !== null) ? searchStatus.value : undefined,
       onlyDuplicates: onlyDuplicates.value
     })) as any
     tableData.value = res.content
@@ -742,7 +747,7 @@ const handleMarkTags = async () => {
         employeeName: searchEmployee.value ? searchEmployee.value : undefined,
         mpAppId: searchMpAppId.value ? searchMpAppId.value : undefined,
         tagIds: searchTags.value ? searchTags.value : undefined,
-        status: searchStatus.value ? searchStatus.value : undefined,
+        status: (searchStatus.value !== undefined && searchStatus.value !== null) ? searchStatus.value : undefined,
         onlyDuplicates: onlyDuplicates.value
       })
       ElMessage.success('批量同步任务处理中...')
@@ -1003,29 +1008,41 @@ onMounted(() => {
 }
 
 .user-avatar {
-  border: 3px solid #fff;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  border: 1px solid #f1f5f9;
+  border-radius: 6px !important;
+  flex-shrink: 0;
   background-color: #f1f5f9;
 }
 
 .user-detail {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.name-row {
+  line-height: 1.6;
 }
 
 .user-name {
   font-weight: 700;
   color: #1e293b;
   font-size: 15px;
+  word-break: break-all;
+  display: inline;
 }
 
 .type-tag {
   font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
   font-weight: 700;
   text-transform: uppercase;
+  margin-left: 4px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .type-tag.is-wechat {

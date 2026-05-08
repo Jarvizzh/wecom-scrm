@@ -60,7 +60,7 @@ public class MomentController {
 
     @PostMapping("/sync")
     public ResponseEntity<String> syncStatuses() {
-        new Thread(momentService::syncAllMomentStatuses).start();
+        momentService.syncAllMomentStatuses();
         return ResponseEntity.ok("Sync task started in background.");
     }
 }

@@ -2,6 +2,7 @@ package com.wecom.scrm.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wecom.scrm.dto.WecomMsgType;
 import com.wecom.scrm.dto.WelcomeMessageAttachmentDTO;
 import com.wecom.scrm.entity.WecomWelcomeMsg;
 import com.wecom.scrm.repository.WecomWelcomeMsgRepository;
@@ -108,7 +109,7 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
                     Attachment attachment = new Attachment();
                     String msgtype = att.getMsgtype();
 
-                    if ("image".equals(msgtype)) {
+                    if (WecomMsgType.IMAGE.getValue().equals(msgtype)) {
                         WelcomeMessageAttachmentDTO.Image image = att.getImage();
                         if (image != null && image.getMediaId() != null) {
                             Image img = new Image();
@@ -116,7 +117,7 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
                             img.setPicUrl(image.getPicUrl());
                             attachment.setImage(img);
                         }
-                    } else if ("link".equals(msgtype)) {
+                    } else if (WecomMsgType.LINK.getValue().equals(msgtype)) {
                         WelcomeMessageAttachmentDTO.Link link = att.getLink();
                         if (link != null) {
                             Link lnk = new Link();
@@ -126,7 +127,7 @@ public class WelcomeMsgHandler implements WxCpMessageHandler {
                             lnk.setUrl(link.getUrl());
                             attachment.setLink(lnk);
                         }
-                    } else if ("miniprogram".equals(msgtype)) {
+                    } else if (WecomMsgType.MINIPROGRAM.getValue().equals(msgtype)) {
                         WelcomeMessageAttachmentDTO.MiniProgram mp = att.getMiniprogram();
                         if (mp != null) {
                             MiniProgram miniProgram = new MiniProgram();

@@ -1,5 +1,6 @@
 package com.wecom.scrm.controller;
 
+import com.wecom.scrm.dto.WecomMsgType;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.result.WxMediaUploadResult;
 import com.wecom.scrm.config.WxCpServiceManager;
@@ -24,27 +25,21 @@ public class MediaController {
         this.wxCpServiceManager = wxCpServiceManager;
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<Map<String, String>> uploadMedia(@RequestParam("file") MultipartFile file) throws Exception {
+    @PostMapping("/uploadForMoment")
+    public ResponseEntity<Map<String, String>> uploadMediaForMoment(@RequestParam("file") MultipartFile file) throws Exception {
         // Map file extension to Wx media type, here we assume "image" for MVP
         // wecom supports: image, voice, video, file
-        String mediaType = "image";
-
-        // WxJava requires a File object or an InputStream with filename
-        // We'll use getInputStream
+        String mediaType = WecomMsgType.IMAGE.getValue();
 
         String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image.jpg";
-        // The provided snippet for `uploadAttachment` is syntactically incorrect.
-        // Assuming the intent was to keep the original uploadAttachment call
-        // and potentially add a pic_url to the response if applicable,
-        // but the instruction and snippet are contradictory for this method.
-        // The original uploadAttachment call is restored to maintain functionality.
+        
+        // uploadAttachment is specifically for moments/group-messages
         WxMediaUploadResult result = wxCpServiceManager.getWxCpService().getExternalContactService().uploadAttachment(
                 mediaType, filename, 1, file.getInputStream());
 
         Map<String, String> response = new HashMap<>();
         response.put("media_id", result.getMediaId());
-        response.put("url", result.getUrl()); // Could be null for temporary media
+        response.put("url", result.getUrl()); 
 
         return ResponseEntity.ok(response);
     }
@@ -70,7 +65,7 @@ public class MediaController {
 
     @PostMapping("/uploadTemp")
     public ResponseEntity<Map<String, String>> uploadTempMedia(@RequestParam("file") MultipartFile file) throws Exception {
-        String mediaType = "image";
+        String mediaType = WecomMsgType.IMAGE.getValue();
         String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image.jpg";
 
         File tempFile = File.createTempFile("upload-temp-", filename);

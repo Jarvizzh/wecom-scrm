@@ -1,7 +1,11 @@
 package com.wecom.scrm.service;
 
+import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wecom.scrm.dto.MomentDTO;
+import com.wecom.scrm.dto.WecomAttachmentDTO;
+import com.wecom.scrm.dto.WecomMsgType;
 import com.wecom.scrm.entity.WecomMoment;
 import com.wecom.scrm.entity.WecomMomentRecord;
 import com.wecom.scrm.repository.WecomMomentRecordRepository;
@@ -23,6 +27,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -54,6 +60,7 @@ public class MomentService {
 
     @Transactional
     public WecomMoment createMomentTask(MomentDTO.CreateRequest request, String creatorUserid) throws Exception {
+        String currentCorpId = WxCpServiceManager.getCurrentCorpId();
         // Save to database first
         WecomMoment moment = new WecomMoment();
         moment.setTaskName(request.getTaskName());
@@ -79,7 +86,21 @@ public class MomentService {
 
         // If immediate, publish to WeCom (Asynchronous call outside this transaction)
         if (moment.getSendType() == null || moment.getSendType() == 0) {
-            self.publishMomentToWeCom(moment.getId());
+            Long momentId = moment.getId();
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            self.publishMomentToWeCom(momentId);
+                        } catch (Exception e) {
+                            log.error("Failed to trigger async publish after commit", e);
+                        }
+                    }
+                });
+            } else {
+                self.publishMomentToWeCom(momentId);
+            }
         }
         
         return moment;
@@ -101,7 +122,7 @@ public class MomentService {
         request.setText(moment.getText());
         if (moment.getAttachments() != null) {
             request.setAttachments(objectMapper.readValue(moment.getAttachments(), 
-                new com.fasterxml.jackson.core.type.TypeReference<List<MomentDTO.Attachment>>() {}));
+                new TypeReference<List<WecomAttachmentDTO>>() {}));
         }
         if (moment.getVisibleRangeUsers() != null) {
             request.setVisibleRange(objectMapper.readValue(moment.getVisibleRangeUsers(), MomentDTO.VisibleRange.class));
@@ -119,31 +140,29 @@ public class MomentService {
         // Attachments
         if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
             List<Attachment> attachments = new ArrayList<>();
-            for (MomentDTO.Attachment att : request.getAttachments()) {
+            for (WecomAttachmentDTO att : request.getAttachments()) {
                 Attachment attachment = new Attachment();
-                if ("image".equals(att.getMsgtype()) && att.getImage() != null) {
+                if (WecomMsgType.IMAGE.getValue().equals(att.getMsgtype()) && att.getImage() != null) {
                     Image image = new Image();
                     image.setMediaId(att.getImage().getMediaId());
                     attachment.setImage(image);
-                } else if ("video".equals(att.getMsgtype()) && att.getVideo() != null) {
+                } else if (WecomMsgType.VIDEO.getValue().equals(att.getMsgtype()) && att.getVideo() != null) {
                     Video video = new Video();
                     video.setMediaId(att.getVideo().getMediaId());
                     video.setThumbMediaId(att.getVideo().getThumbMediaId());
                     attachment.setVideo(video);
-                } else if ("link".equals(att.getMsgtype()) && att.getLink() != null) {
+                } else if (WecomMsgType.LINK.getValue().equals(att.getMsgtype()) && att.getLink() != null) {
                     Link link = new Link();
                     link.setTitle(att.getLink().getTitle());
                     link.setUrl(att.getLink().getUrl());
-                    link.setPicUrl(att.getLink().getPicUrl());
                     link.setDesc(att.getLink().getDesc());
+                    if (att.getLink().getMediaId() != null) {
+                        link.setMediaId(att.getLink().getMediaId());
+                    } else if (att.getLink().getPicUrl() != null) {
+                        // Fallback just in case, though WeCom requires media_id for moments
+                        link.setPicUrl(att.getLink().getPicUrl());
+                    }
                     attachment.setLink(link);
-                } else if ("miniprogram".equals(att.getMsgtype()) && att.getMiniprogram() != null) {
-                    MiniProgram miniProgram = new MiniProgram();
-                    miniProgram.setTitle(att.getMiniprogram().getTitle());
-                    miniProgram.setPicMediaId(att.getMiniprogram().getPicMediaId());
-                    miniProgram.setAppid(att.getMiniprogram().getAppid());
-                    miniProgram.setPage(att.getMiniprogram().getPage());
-                    attachment.setMiniProgram(miniProgram);
                 }
                 attachments.add(attachment);
             }
@@ -188,7 +207,7 @@ public class MomentService {
         momentRepository.save(moment);
     }
 
-    @Transactional
+    @Async("bizAsyncExecutor")
     public void syncAllMomentStatuses() {
         List<WecomMoment> pendingMoments = momentRepository.findAll(); 
         for (WecomMoment moment : pendingMoments) {
@@ -277,7 +296,22 @@ public class MomentService {
             moment.setStatus(0);
             moment.setSendTime(null);
             moment = momentRepository.save(moment);
-            self.publishMomentToWeCom(moment.getId());
+            
+            Long momentId = moment.getId();
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            self.publishMomentToWeCom(momentId);
+                        } catch (Exception e) {
+                            log.error("Failed to trigger async publish after commit", e);
+                        }
+                    }
+                });
+            } else {
+                self.publishMomentToWeCom(momentId);
+            }
             return moment;
         }
 
@@ -288,11 +322,6 @@ public class MomentService {
     public void deleteMomentTask(Long id) {
         WecomMoment moment = momentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("任务不存在"));
-        
-        if (moment.getStatus() != 3 || moment.getSendTime() == null || moment.getSendTime().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("仅定时发送且未到发送时间的内容支持删除");
-        }
-        
         momentRecordRepository.deleteByMomentId(id);
         momentRepository.delete(moment);
     }

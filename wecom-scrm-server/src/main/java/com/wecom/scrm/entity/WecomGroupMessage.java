@@ -39,7 +39,7 @@ public class WecomGroupMessage {
     private String content; // Text message content
 
     @Column(columnDefinition = "TEXT")
-    private String attachments; // JSON: List of MomentDTO.Attachment
+    private String attachments; // JSON: List of WecomAttachmentDTO
 
     @Column(columnDefinition = "TEXT")
     private String msgid; // WeCom returned msgid after sending

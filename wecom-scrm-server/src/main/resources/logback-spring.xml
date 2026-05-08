@@ -3,13 +3,13 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <property name="LOG_FILE" value="logs/wecom-scrm.log"/>
+    <property name="LOG_FILE" value="logs/venus-scrm.log"/>
 
     <appender name="DAILY_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->l
-            <fileNamePattern>logs/wecom-scrm.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- daily rollover -->
+            <fileNamePattern>logs/venus-scrm.%d{yyyy-MM-dd}.log</fileNamePattern>
             <!-- keep 30 days' worth of history -->
             <maxHistory>30</maxHistory>
             <!-- total size of all archive files, if total size > 1GB, it will delete old archives -->

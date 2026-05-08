@@ -369,7 +369,7 @@ const buildDepartmentUserTree = (departments: any[], users: any[]) => {
   })
   
   users.forEach(user => {
-    const userNode = { label: user.name, isUser: true, avatar: user.avatar, id: `user_${user.userid}` }
+    const userNode = { label: user.name, isUser: true, avatar: user.avatar, id: `user_${user.userid}`, userid: user.userid }
     if (user.departmentIds) {
       try {
         const deptIds = JSON.parse(user.departmentIds)
@@ -440,7 +440,7 @@ onMounted(async () => {
           senderList.forEach((uid: string) => {
             const findInTree = (nodes: any[]) => {
               nodes.forEach(n => {
-                if (n.id && n.id.endsWith(`_${uid}`)) {
+                if (n.userid === uid) {
                   initialKeys.push(n.id)
                 }
                 if (n.children) findInTree(n.children)

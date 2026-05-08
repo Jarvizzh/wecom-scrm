@@ -40,7 +40,7 @@ public class WecomMoment {
     private String visibleRangeUsers;
 
     @Column(columnDefinition = "TINYINT DEFAULT 0")
-    private Integer status; // 0: Pending, 1: Published, 2: Failed
+    private Integer status; // 0: Pending, 1: Published, 2: Failed, 3:Wait
 
     @Column(name = "creator_userid", length = 64)
     private String creatorUserid;

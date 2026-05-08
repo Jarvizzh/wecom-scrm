@@ -35,7 +35,7 @@ public class AsyncConfig implements AsyncConfigurer {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(15);
-        executor.setQueueCapacity(100000);
+        executor.setQueueCapacity(80000);
         executor.setThreadNamePrefix("sync-customer-");
         executor.setTaskDecorator(new MdcTaskDecorator());
         executor.setWaitForTasksToCompleteOnShutdown(true);

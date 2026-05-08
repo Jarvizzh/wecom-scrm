@@ -98,7 +98,13 @@
         <el-table-column label="用户信息" width="150">
           <template #default="scope">
             <div class="user-info-cell">
-              <el-avatar :size="40" :src="scope.row.avatar" :icon="UserFilled" />
+              <el-avatar 
+                :size="40" 
+                :src="scope.row.avatar" 
+                shape="square"
+                class="user-avatar"
+                :icon="UserFilled" 
+              />
               <div class="user-text">
                 <div class="name">{{ scope.row.nickname || '未知' }}</div>
               </div>
@@ -536,9 +542,21 @@ onMounted(() => {
   padding: 4px 0;
 }
 
+.user-avatar {
+  border-radius: 6px !important;
+  flex-shrink: 0;
+}
+
+.user-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .user-text .name {
   font-weight: 600;
   color: #303133;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .monospace-id {

@@ -85,16 +85,22 @@
         </el-table-column>
         <el-table-column label="用户信息" min-width="180">
           <template #default="scope">
-            <div style="display: flex; align-items: center; gap: 8px">
-              <el-avatar :size="32" :src="scope.row.avatar">{{ scope.row.nickname?.charAt(0) || 'U' }}</el-avatar>
-              <div style="display: flex; flex-direction: column; line-height: 1.2">
-                <div style="display: flex; align-items: center; gap: 4px">
-                  <span style="font-weight: 500">{{ scope.row.nickname || '-' }}</span>
-                  <el-tag v-if="scope.row.sex === 1" size="small" type="primary" effect="plain" style="padding: 0 4px; height: 16px; line-height: 14px">男</el-tag>
-                  <el-tag v-else-if="scope.row.sex === 2" size="small" type="danger" effect="plain" style="padding: 0 4px; height: 16px; line-height: 14px">女</el-tag>
-                </div>
+            <div class="user-info-cell" v-if="scope.row.nickname || scope.row.avatar">
+              <el-avatar 
+                :size="32" 
+                :src="scope.row.avatar" 
+                shape="square"
+                class="user-avatar"
+              >
+                {{ scope.row.nickname?.charAt(0) || 'U' }}
+              </el-avatar>
+              <div class="user-text">
+                <span class="nickname">{{ scope.row.nickname || '-' }}</span>
+                <el-tag v-if="scope.row.sex === 1" size="small" type="primary" effect="plain" class="sex-tag">男</el-tag>
+                <el-tag v-else-if="scope.row.sex === 2" size="small" type="danger" effect="plain" class="sex-tag">女</el-tag>
               </div>
             </div>
+            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column label="微信OpenID" min-width="250">
@@ -372,6 +378,32 @@ onMounted(() => {
 .card-header .el-icon {
   font-size: 18px;
   color: #409eff;
+}
+
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  border-radius: 4px !important;
+  flex-shrink: 0;
+}
+
+.user-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nickname {
+  font-weight: 500;
+  color: #303133;
+}
+
+.sex-tag {
+  margin-left: 2px;
 }
 
 .monospace-id {

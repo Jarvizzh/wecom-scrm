@@ -3,7 +3,9 @@ package com.wecom.scrm.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wecom.scrm.dto.CustomerMessageDTO;
-import com.wecom.scrm.dto.MomentDTO;
+import com.wecom.scrm.dto.WecomAttachmentDTO;
+import com.wecom.scrm.dto.WecomMsgType;
+import com.wecom.scrm.entity.WecomCustomer;
 import com.wecom.scrm.entity.WecomCustomerMessage;
 import com.wecom.scrm.repository.WecomCustomerMessageRepository;
 import com.wecom.scrm.repository.WecomCustomerRepository;
@@ -228,27 +230,27 @@ public class CustomerMessageService {
         }
 
         if (message.getAttachments() != null) {
-            List<MomentDTO.Attachment> atts = objectMapper.readValue(message.getAttachments(),
-                    new TypeReference<List<MomentDTO.Attachment>>() {
+            List<WecomAttachmentDTO> atts = objectMapper.readValue(message.getAttachments(),
+                    new TypeReference<List<WecomAttachmentDTO>>() {
                     });
             List<Attachment> attachments = new ArrayList<>();
-            for (MomentDTO.Attachment att : atts) {
+            for (WecomAttachmentDTO att : atts) {
                 Attachment attachment = new Attachment();
-                if ("link".equals(att.getMsgtype()) && att.getLink() != null) {
+                if (WecomMsgType.LINK.getValue().equals(att.getMsgtype()) && att.getLink() != null) {
                     Link link = new Link();
                     link.setTitle(att.getLink().getTitle());
                     link.setUrl(att.getLink().getUrl());
                     link.setDesc(att.getLink().getDesc());
                     link.setPicUrl(att.getLink().getPicUrl());
                     attachment.setLink(link);
-                } else if ("miniprogram".equals(att.getMsgtype()) && att.getMiniprogram() != null) {
+                } else if (WecomMsgType.MINIPROGRAM.getValue().equals(att.getMsgtype()) && att.getMiniprogram() != null) {
                     MiniProgram mp = new MiniProgram();
                     mp.setTitle(att.getMiniprogram().getTitle());
                     mp.setAppid(att.getMiniprogram().getAppid());
                     mp.setPage(att.getMiniprogram().getPage());
                     mp.setPicMediaId(att.getMiniprogram().getPicMediaId());
                     attachment.setMiniProgram(mp);
-                } else if ("image".equals(att.getMsgtype()) && att.getImage() != null) {
+                } else if (WecomMsgType.IMAGE.getValue().equals(att.getMsgtype()) && att.getImage() != null) {
                     Image image = new Image();
                     image.setMediaId(att.getImage().getMediaId());
                     attachment.setImage(image);

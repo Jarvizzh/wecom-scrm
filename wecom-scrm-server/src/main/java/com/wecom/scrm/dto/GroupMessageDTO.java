@@ -17,7 +17,7 @@ public class GroupMessageDTO {
         private Integer targetType; // 0: All Groups, 1: Filtered Groups
         private TargetCondition targetCondition;
         private String text;
-        private List<MomentDTO.Attachment> attachments;
+        private List<WecomAttachmentDTO> attachments;
     }
 
     @Data

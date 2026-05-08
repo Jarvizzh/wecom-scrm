@@ -154,14 +154,14 @@
               type="primary" 
               link 
               :icon="Edit"
-              v-if="canOperate(scope.row)"
+              v-if="canEdit(scope.row)"
               @click="handleEdit(scope.row)"
             >编辑</el-button>
             <el-button 
               type="danger" 
               link 
               :icon="Delete"
-              v-if="canOperate(scope.row)"
+              v-if="canDelete(scope.row)"
               @click="handleDelete(scope.row)"
             >删除</el-button>
           </template>
@@ -300,7 +300,14 @@ const handleDelete = (row: any) => {
   })
 }
 
-const canOperate = (row: any) => {
+const canEdit = (row: any) => {
+  const now = new Date()
+  const sendTime = row.sendTime ? new Date(row.sendTime) : null
+  return row.status === 3 && sendTime && sendTime > now
+}
+
+const canDelete = (row: any) => {
+  if (row.status === 2) return true // Allow deleting failed tasks
   const now = new Date()
   const sendTime = row.sendTime ? new Date(row.sendTime) : null
   return row.status === 3 && sendTime && sendTime > now

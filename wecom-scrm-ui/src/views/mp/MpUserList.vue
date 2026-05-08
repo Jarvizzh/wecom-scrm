@@ -39,7 +39,13 @@
         <el-table-column label="粉丝信息" min-width="200">
           <template #default="scope">
             <div class="user-info-cell">
-              <el-avatar :size="40" :src="scope.row.avatarUrl" :icon="UserFilled" />
+              <el-avatar 
+                :size="40" 
+                :src="scope.row.avatarUrl" 
+                shape="square"
+                class="user-avatar"
+                :icon="UserFilled" 
+              />
               <div class="user-text">
                 <div class="name">
                   {{ scope.row.nickname || '微信用户' }}
@@ -236,12 +242,25 @@ onMounted(() => {
   padding: 4px 0;
 }
 
+.user-avatar {
+  border-radius: 6px !important;
+  flex-shrink: 0;
+}
+
+.user-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .user-text .name {
   font-weight: 600;
   color: #303133;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .male-icon { color: #409eff; }

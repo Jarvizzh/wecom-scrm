@@ -10,46 +10,10 @@ public class MomentDTO {
     public static class CreateRequest {
         private String taskName;
         private String text;
-        private List<Attachment> attachments;
+        private List<WecomAttachmentDTO> attachments;
         private VisibleRange visibleRange;
         private Integer sendType; // 0: Immediate, 1: Scheduled
         private String sendTime; // YYYY-MM-DD HH:mm:ss
-    }
-
-    @Data
-    public static class Attachment {
-        private String msgtype; // image, video, link, miniprogram
-        private Image image;
-        private Video video;
-        private Link link;
-        private MiniProgram miniprogram;
-    }
-
-    @Data
-    public static class Image {
-        private String mediaId;
-    }
-
-    @Data
-    public static class Video {
-        private String mediaId;
-        private String thumbMediaId;
-    }
-
-    @Data
-    public static class Link {
-        private String title;
-        private String url;
-        private String picUrl;
-        private String desc;
-    }
-
-    @Data
-    public static class MiniProgram {
-        private String title;
-        private String picMediaId;
-        private String appid;
-        private String page;
     }
 
     @Data

@@ -100,7 +100,13 @@
             <el-table-column prop="userid" label="员工信息" min-width="200">
               <template #default="scope">
                 <div class="user-info-cell">
-                  <el-avatar :size="40" :src="scope.row.avatar" class="user-avatar" :icon="UserFilled" />
+                  <el-avatar 
+                    :size="40" 
+                    :src="scope.row.avatar" 
+                    shape="square"
+                    class="user-avatar" 
+                    :icon="UserFilled" 
+                  />
                   <div class="user-text">
                     <div class="name">{{ scope.row.name }}</div>
                     <div class="id">账号: {{ scope.row.userid }}</div>
@@ -455,7 +461,15 @@ const formatDateTime = (dateStr: string) => {
   padding: 4px 0;
 }
 
+.user-avatar {
+  background-color: #409eff;
+  border-radius: 6px !important;
+  flex-shrink: 0;
+}
+
 .user-text {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -464,6 +478,8 @@ const formatDateTime = (dateStr: string) => {
 .user-text .name {
   font-weight: 600;
   color: #303133;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .user-text .id {

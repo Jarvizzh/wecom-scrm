@@ -53,7 +53,12 @@
           <template #default="scope">
             <div class="relation-container">
               <div v-if="scope.row.userid" class="entity-item">
-                <el-avatar :size="24" :src="scope.row.userAvatar" class="avatar-sm">
+                <el-avatar 
+                  :size="24" 
+                  :src="scope.row.userAvatar" 
+                  shape="square"
+                  class="avatar-sm"
+                >
                   <el-icon><UserFilled /></el-icon>
                 </el-avatar>
                 <div class="entity-details">
@@ -61,7 +66,12 @@
                 </div>
               </div>
               <div v-if="scope.row.externalUserid" class="entity-item">
-                <el-avatar :size="24" :src="scope.row.externalUserAvatar" class="avatar-sm">
+                <el-avatar 
+                  :size="24" 
+                  :src="scope.row.externalUserAvatar" 
+                  shape="square"
+                  class="avatar-sm"
+                >
                   <el-icon><UserFilled /></el-icon>
                 </el-avatar>
                 <div class="entity-details">
@@ -74,7 +84,12 @@
                 </div>
               </div>
               <div v-if="scope.row.memberName" class="entity-item">
-                <el-avatar :size="24" :src="scope.row.memberAvatar" class="avatar-sm">
+                <el-avatar 
+                  :size="24" 
+                  :src="scope.row.memberAvatar" 
+                  shape="square"
+                  class="avatar-sm"
+                >
                   <el-icon><UserFilled /></el-icon>
                 </el-avatar>
                 <div class="entity-details">
@@ -146,7 +161,11 @@
           <el-descriptions-item label="重试次数">{{ selectedEvent.retryCount }}</el-descriptions-item>
           <el-descriptions-item label="相关员工">
             <div v-if="selectedEvent.userid" class="detail-entity">
-              <el-avatar :size="32" :src="selectedEvent.userAvatar">
+              <el-avatar 
+                :size="32" 
+                :src="selectedEvent.userAvatar"
+                shape="square"
+              >
                 <el-icon><UserFilled /></el-icon>
               </el-avatar>
               <div class="entity-meta">
@@ -157,7 +176,11 @@
           </el-descriptions-item>
           <el-descriptions-item label="外部联系人">
             <div v-if="selectedEvent.externalUserid" class="detail-entity">
-              <el-avatar :size="32" :src="selectedEvent.externalUserAvatar">
+              <el-avatar 
+                :size="32" 
+                :src="selectedEvent.externalUserAvatar"
+                shape="square"
+              >
                 <el-icon><UserFilled /></el-icon>
               </el-avatar>
               <div class="entity-meta">
@@ -175,7 +198,11 @@
           </el-descriptions-item>
           <el-descriptions-item label="变更成员" v-if="selectedEvent.memberName">
             <div class="detail-entity">
-              <el-avatar :size="32" :src="selectedEvent.memberAvatar">
+              <el-avatar 
+                :size="32" 
+                :src="selectedEvent.memberAvatar"
+                shape="square"
+              >
                 <el-icon><UserFilled /></el-icon>
               </el-avatar>
               <div class="entity-meta">
@@ -341,9 +368,13 @@ const formatJson = (content: string) => {
 
 .avatar-sm {
   border: 1px solid #ebeef5;
+  border-radius: 4px !important;
+  flex-shrink: 0;
 }
 
 .entity-details {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   line-height: 1.4;
@@ -354,6 +385,8 @@ const formatJson = (content: string) => {
   font-size: 13px;
   font-weight: 500;
   color: #303133;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .entity-name.customer-name {

@@ -85,9 +85,16 @@
         </el-table-column>
         <el-table-column label="用户信息" min-width="150">
           <template #default="scope">
-            <div style="display: flex; align-items: center; gap: 8px" v-if="scope.row.nickname || scope.row.avatar">
-              <el-avatar :size="32" :src="scope.row.avatar">{{ scope.row.nickname?.charAt(0) }}</el-avatar>
-              <span>{{ scope.row.nickname }}</span>
+            <div class="user-info-cell" v-if="scope.row.nickname || scope.row.avatar">
+              <el-avatar 
+                :size="32" 
+                :src="scope.row.avatar" 
+                shape="square"
+                class="user-avatar"
+              >
+                {{ scope.row.nickname?.charAt(0) }}
+              </el-avatar>
+              <span class="nickname">{{ scope.row.nickname }}</span>
             </div>
             <span v-else>-</span>
           </template>
@@ -365,6 +372,22 @@ onMounted(() => {
 .card-header .el-icon {
   font-size: 18px;
   color: #409eff;
+}
+
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  border-radius: 4px !important;
+  flex-shrink: 0;
+}
+
+.nickname {
+  font-weight: 500;
+  color: #303133;
 }
 
 .monospace-id {

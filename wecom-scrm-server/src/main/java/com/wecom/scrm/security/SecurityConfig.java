@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers("/api/auth/login", "/api/wecom/callback/**", "/api/media/image/**").permitAll()
+                .antMatchers("/api/auth/login","/api/auth/secret/**", "/api/wecom/callback/**", "/api/media/image/**").permitAll()
                 .anyRequest().authenticated();
 
         // Add JWT filter before standard password filter

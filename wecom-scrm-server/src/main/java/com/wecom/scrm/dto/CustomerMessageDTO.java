@@ -18,7 +18,7 @@ public class CustomerMessageDTO {
         private Integer targetType; // 0: All, 1: Filtered
         private TargetCondition targetCondition;
         private String text;
-        private List<MomentDTO.Attachment> attachments;
+        private List<WecomAttachmentDTO> attachments;
         private List<String> senderList;
     }
 

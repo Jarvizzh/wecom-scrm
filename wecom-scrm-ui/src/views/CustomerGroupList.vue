@@ -162,6 +162,7 @@
                 v-if="scope.row.type !== 1"
                 :size="40" 
                 :src="scope.row.avatar" 
+                shape="square"
                 class="member-avatar"
               >
                 {{ scope.row.memberName?.charAt(0) }}
@@ -569,14 +570,17 @@ onMounted(() => {
 }
 
 .member-avatar {
-  border: 2px solid #fff;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  border: 1px solid #f1f5f9;
+  border-radius: 4px !important;
+  flex-shrink: 0;
   background-color: #f1f5f9;
   color: var(--primary-color);
   font-weight: 700;
 }
 
 .member-detail {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -586,6 +590,8 @@ onMounted(() => {
   font-weight: 700;
   color: #1e293b;
   font-size: 14px;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .role-tag {

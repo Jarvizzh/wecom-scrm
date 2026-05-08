@@ -12,7 +12,7 @@
               <span>基本信息 / Basic Info</span>
             </div>
             <el-form-item label="任务名称" prop="taskName">
-              <el-input v-model="form.taskName" placeholder="建议包含日期和业务逻辑，例如：321促销朋友圈" />
+              <el-input v-model="form.taskName" placeholder="建议包含日期 and 业务逻辑，例如：321促销朋友圈" />
             </el-form-item>
             
             <el-form-item label="发表员工">
@@ -115,11 +115,9 @@
                       <el-icon class="att-icon">
                         <Picture v-if="att.msgtype === 'image'" />
                         <Link v-else-if="att.msgtype === 'link'" />
-                        <Compass v-else-if="att.msgtype === 'miniprogram'" />
                       </el-icon>
                       <span class="att-name">
                         <template v-if="att.msgtype === 'link'">{{ att.link?.title || '未命名链接' }}</template>
-                        <template v-else-if="att.msgtype === 'miniprogram'">{{ att.miniprogram?.title || '未命名小程序' }}</template>
                         <template v-else-if="att.msgtype === 'image'">图片素材</template>
                       </span>
                     </div>
@@ -211,30 +209,6 @@
              </el-form-item>
           </el-form>
         </el-tab-pane>
-        <el-tab-pane label="小程序" name="miniprogram">
-          <el-form :model="mpForm" label-width="90px">
-             <el-form-item label="标题" required>
-               <el-input v-model="mpForm.title" placeholder="请输入小程序标题" />
-             </el-form-item>
-             <el-form-item label="AppID" required>
-               <el-input v-model="mpForm.appid" placeholder="请输入小程序AppID" />
-             </el-form-item>
-             <el-form-item label="页面路径" required>
-               <el-input v-model="mpForm.page" placeholder="例如: pages/index/index" />
-             </el-form-item>
-             <el-form-item label="展示图" required>
-                <el-upload
-                  class="attachment-uploader small"
-                  action=""
-                  :http-request="(options: any) => uploadFile(options, 'miniprogram')"
-                  :show-file-list="false"
-                >
-                  <img v-if="mpForm.picUrl" :src="mpForm.picUrl" class="upload-preview small" />
-                  <el-icon v-else class="upload-icon small"><Plus /></el-icon>
-                </el-upload>
-             </el-form-item>
-          </el-form>
-        </el-tab-pane>
       </el-tabs>
       <template #footer>
         <el-button @click="attachmentDialogVisible = false">取消</el-button>
@@ -250,9 +224,9 @@ import { useRouter, useRoute } from 'vue-router'
 import { createMoment, getMoment, updateMoment } from '@/api/moment'
 import { getUsers, getDepartments } from '@/api/user'
 import { getTagGroups, getTagsByGroup } from '@/api/tag'
-import { uploadImg, uploadTempMedia, getImageUrl } from '@/api/media'
+import { uploadMediaForMoment, getImageUrl } from '@/api/media'
 import { ElMessage } from 'element-plus'
-import { InfoFilled, ChatLineRound, UserFilled, Folder, Plus, Monitor, PriceTag, Collection, Picture, Link, Compass, Close, EditPen } from '@element-plus/icons-vue'
+import { InfoFilled, ChatLineRound, UserFilled, Folder, Plus, Monitor, PriceTag, Collection, Picture, Link, Close, EditPen } from '@element-plus/icons-vue'
 import { useResponsive } from '@/hooks/useResponsive'
 import MobilePreview from './MobilePreview.vue'
 
@@ -282,7 +256,6 @@ const activeTab = ref('image')
 const editingIndex = ref(-1)
 const imageForm = reactive({ mediaId: '', picUrl: '' })
 const linkForm = reactive({ title: '', url: '', desc: '', picUrl: '', mediaId: '' })
-const mpForm = reactive({ title: '', appid: '', page: '', picUrl: '', mediaId: '', picMediaId: '' })
 
 const form = reactive({
   taskName: '',
@@ -301,7 +274,25 @@ const form = reactive({
 
 const rules = {
   taskName: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
-  sendTime: [{ required: true, message: '请选择定时发送时间', trigger: 'change' }]
+  sendTime: [
+    { 
+      required: true, 
+      validator: (_rule: any, value: any, callback: any) => {
+        if (form.sendType === 1) {
+          if (!value) {
+            return callback(new Error('请选择定时发送时间'))
+          }
+          const sendTime = new Date(value.replace(/-/g, '/')).getTime()
+          const now = Date.now()
+          if (sendTime <= now) {
+            return callback(new Error('发送时间不得早于当前时间'))
+          }
+        }
+        callback()
+      }, 
+      trigger: 'change' 
+    }
+  ]
 }
 
 const disabledDate = (time: Date) => {
@@ -325,13 +316,8 @@ const editAttachment = (index: number) => {
     linkForm.title = att.link.title
     linkForm.url = att.link.url
     linkForm.desc = att.link.desc
-    linkForm.picUrl = att.link.picUrl
-  } else if (att.msgtype === 'miniprogram') {
-    mpForm.title = att.miniprogram.title
-    mpForm.appid = att.miniprogram.appid
-    mpForm.page = att.miniprogram.page
-    mpForm.picUrl = getImageUrl(att.miniprogram.picMediaId, att.miniprogram.picUrl)
-    mpForm.picMediaId = att.miniprogram.picMediaId
+    linkForm.mediaId = att.link.mediaId
+    linkForm.picUrl = getImageUrl(att.link.mediaId, att.link.picUrl)
   }
   
   attachmentDialogVisible.value = true
@@ -344,18 +330,14 @@ const removeAttachment = (index: number) => {
 const uploadFile = async (options: any, type: string) => {
   try {
     let res: any
-    if (type === 'link') {
-      res = await uploadImg(options.file)
-      linkForm.picUrl = res.pic_url
-    } else {
-      res = await uploadTempMedia(options.file)
-      if (type === 'image') {
-        imageForm.mediaId = res.media_id
-        imageForm.picUrl = URL.createObjectURL(options.file)
-      } else if (type === 'miniprogram') {
-        mpForm.picMediaId = res.media_id
-        mpForm.picUrl = URL.createObjectURL(options.file)
-      }
+    // Moments use uploadAttachment (uploadMediaForMoment) for image AND link cover
+    res = await uploadMediaForMoment(options.file)
+    if (type === 'image') {
+      imageForm.mediaId = res.media_id
+      imageForm.picUrl = URL.createObjectURL(options.file)
+    } else if (type === 'link') {
+      linkForm.mediaId = res.media_id
+      linkForm.picUrl = URL.createObjectURL(options.file)
     }
     ElMessage.success('上传成功')
   } catch (error) {
@@ -372,26 +354,15 @@ const confirmAttachment = () => {
       image: { mediaId: imageForm.mediaId, picUrl: imageForm.picUrl }
     }
   } else if (activeTab.value === 'link') {
-    if (!linkForm.title || !linkForm.url) return ElMessage.warning('请填写链接标题 and URL')
+    if (!linkForm.title || !linkForm.url || !linkForm.mediaId) return ElMessage.warning('请填写链接标题、URL并上传封面图')
     newAtt = {
       msgtype: 'link',
       link: { 
         title: linkForm.title,
         url: linkForm.url,
         desc: linkForm.desc,
+        mediaId: linkForm.mediaId,
         picUrl: linkForm.picUrl
-      }
-    }
-  } else {
-    if (!mpForm.title || !mpForm.appid || !mpForm.picMediaId) return ElMessage.warning('请填写必填项（标题/AppID/展示图）')
-    newAtt = {
-      msgtype: 'miniprogram',
-      miniprogram: {
-        title: mpForm.title,
-        appid: mpForm.appid,
-        page: mpForm.page,
-        picUrl: mpForm.picUrl,
-        picMediaId: mpForm.picMediaId
       }
     }
   }
@@ -481,7 +452,7 @@ onMounted(async () => {
       form.taskName = isCopy.value ? `${data.taskName} (复制)` : data.taskName
       form.text = data.text || ''
       form.sendType = data.sendType
-      form.sendTime = data.sendTime.replace('T', ' ').substring(0, 19)
+      form.sendTime = data.sendTime ? data.sendTime.replace('T', ' ').substring(0, 19) : ''
       
       if (data.attachments) {
         form.attachments = JSON.parse(data.attachments)
@@ -554,7 +525,11 @@ const submitForm = async () => {
           selectedTreeUserKeys.value.forEach(key => {
             if (key.startsWith('user_')) {
               const parts = key.split('_')
-              if (parts.length >= 2) uniqueSenders.add(parts[parts.length - 1])
+              if (parts.length >= 3) {
+                uniqueSenders.add(parts.slice(2).join('_'))
+              } else if (parts.length === 2) {
+                uniqueSenders.add(parts[1])
+              }
             }
           })
           form.visibleRange.senderList = Array.from(uniqueSenders)
@@ -718,13 +693,6 @@ const submitForm = async () => {
 .footer-tip {
   font-size: 12px;
   color: #909399;
-}
-
-.form-actions {
-  margin-top: 40px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
 }
 
 .sticky-preview {
