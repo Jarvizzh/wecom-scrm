@@ -446,17 +446,3 @@ CREATE TABLE IF NOT EXISTS `wecom_changdu_recharge_record` (
     KEY `idx_dist_trade` (`distributor_id`, `trade_no`),
     KEY `idx_external_id` (`external_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='常读充值记录表';
-
--- 28. 系统用户表
-CREATE TABLE IF NOT EXISTS `sys_user` (
-    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-    `username` VARCHAR(64) NOT NULL UNIQUE COMMENT '用户名',
-    `password` VARCHAR(128) NOT NULL COMMENT '密码',
-    `nickname` VARCHAR(64) DEFAULT NULL COMMENT '昵称',
-    `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像',
-    `status` TINYINT DEFAULT 0 COMMENT '状态: 0=正常, 1=封禁',
-    `is_super_admin` BIT DEFAULT 0 COMMENT '是否超级管理员: 0=否, 1=是',
-    `permissions` TEXT DEFAULT NULL COMMENT '导航栏权限(JSON格式)',
-    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统管理用户表';
