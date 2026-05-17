@@ -82,6 +82,12 @@ const handleLogin = async () => {
         const res: any = await request.post('/auth/login', loginForm)
         localStorage.setItem('token', res.token)
         localStorage.setItem('username', res.username)
+        localStorage.setItem('isSuperAdmin', res.isSuperAdmin ? 'true' : 'false')
+        if (res.permissions) {
+          localStorage.setItem('permissions', res.permissions)
+        } else {
+          localStorage.removeItem('permissions')
+        }
         ElMessage.success('登录成功')
         router.push('/')
       } catch (error: any) {

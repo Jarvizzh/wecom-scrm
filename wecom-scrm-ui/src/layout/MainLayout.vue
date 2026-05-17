@@ -22,125 +22,136 @@
         :collapse-transition="false"
       >
         <template v-if="currentCorpId">
-          <el-menu-item index="/dashboard">
+          <el-menu-item v-if="canShow('/dashboard')" index="/dashboard">
             <el-icon><DataLine /></el-icon>
             <span>首页看板</span>
           </el-menu-item>
-          <el-menu-item index="/users">
+          <el-menu-item v-if="canShow('/users')" index="/users">
             <el-icon><Avatar /></el-icon>
             <span>企微账号</span>
           </el-menu-item>
 
-          <el-menu-item index="/customers">
+          <el-menu-item v-if="canShow('/customers')" index="/customers">
             <el-icon><User /></el-icon>
             <span>客户管理</span>
           </el-menu-item>
-          <el-menu-item index="/customer-groups">
+          <el-menu-item v-if="canShow('/customer-groups')" index="/customer-groups">
             <el-icon><ChatSquare /></el-icon>
             <span>客户群管理</span>
           </el-menu-item>
 
-          <el-menu-item index="/tags">
+          <el-menu-item v-if="canShow('/tags')" index="/tags">
             <el-icon><PriceTag /></el-icon>
             <span>标签管理</span>
           </el-menu-item>
-          <el-sub-menu index="operations">
+          <el-sub-menu v-if="canShow('operations')" index="operations">
             <template #title>
               <el-icon><Operation /></el-icon>
               <span>客户运营</span>
             </template>
-            <el-menu-item index="/welcome-message">
+            <el-menu-item v-if="canShow('/welcome-message')" index="/welcome-message">
               <el-icon><Message /></el-icon>
               <span>客户欢迎语</span>
             </el-menu-item>
-            <el-menu-item index="/moments">
+            <el-menu-item v-if="canShow('/moments')" index="/moments">
               <el-icon><Promotion /></el-icon>
               <span>客户朋友圈</span>
             </el-menu-item>
-            <el-menu-item index="/customer-messages">
+            <el-menu-item v-if="canShow('/customer-messages')" index="/customer-messages">
               <el-icon><ChatDotRound /></el-icon>
               <span>客户群发</span>
             </el-menu-item>
-            <el-menu-item index="/group-messages">
+            <el-menu-item v-if="canShow('/group-messages')" index="/group-messages">
               <el-icon><ChatLineRound /></el-icon>
               <span>客户群群发</span>
             </el-menu-item>
           </el-sub-menu>
-          <el-sub-menu index="mp">
+          <el-sub-menu v-if="canShow('mp')" index="mp">
             <template #title>
               <el-icon><Connection /></el-icon>
               <span>微信公众号</span>
             </template>
-            <el-menu-item index="/mp-accounts">
+            <el-menu-item v-if="canShow('/mp-accounts')" index="/mp-accounts">
               <el-icon><Monitor /></el-icon>
               <span>账号管理</span>
             </el-menu-item>
-            <el-menu-item index="/mp-users">
+            <el-menu-item v-if="canShow('/mp-users')" index="/mp-users">
               <el-icon><User /></el-icon>
               <span>用户列表</span>
             </el-menu-item>
           </el-sub-menu>
 
-          <el-sub-menu index="thirdparty">
+          <el-sub-menu v-if="canShow('thirdparty')" index="thirdparty">
             <template #title>
               <el-icon><Connection /></el-icon>
               <span>第三方平台</span>
             </template>
-            <el-sub-menu index="yuewen">
+            <el-sub-menu v-if="canShow('yuewen')" index="yuewen">
               <template #title>
                 <el-icon><Notebook /></el-icon>
                 <span>阅文小说</span>
               </template>
-              <el-menu-item index="/yuewen-products">
+              <el-menu-item v-if="canShow('/yuewen-products')" index="/yuewen-products">
                 <el-icon><Tickets /></el-icon>
                 <span>产品管理</span>
               </el-menu-item>
-              <el-menu-item index="/yuewen-users">
+              <el-menu-item v-if="canShow('/yuewen-users')" index="/yuewen-users">
                 <el-icon><User /></el-icon>
                 <span>用户列表</span>
               </el-menu-item>
-              <el-menu-item index="/yuewen-recharge">
+              <el-menu-item v-if="canShow('/yuewen-recharge')" index="/yuewen-recharge">
                 <el-icon><Wallet /></el-icon>
                 <span>充值记录</span>
               </el-menu-item>
-               <el-menu-item index="/yuewen-consume">
+               <el-menu-item v-if="canShow('/yuewen-consume')" index="/yuewen-consume">
                 <el-icon><Wallet /></el-icon>
                 <span>消费记录</span>
               </el-menu-item>
             </el-sub-menu>
-            <el-sub-menu index="changdu">
+            <el-sub-menu v-if="canShow('changdu')" index="changdu">
               <template #title>
                 <el-icon><Notebook /></el-icon>
                 <span>常读小说</span>
               </template>
-              <el-menu-item index="/changdu-products">
+              <el-menu-item v-if="canShow('/changdu-products')" index="/changdu-products">
                 <el-icon><Tickets /></el-icon>
                 <span>产品管理</span>
               </el-menu-item>
-              <el-menu-item index="/changdu-users">
+              <el-menu-item v-if="canShow('/changdu-users')" index="/changdu-users">
                 <el-icon><User /></el-icon>
                 <span>用户列表</span>
               </el-menu-item>
-              <el-menu-item index="/changdu-recharge">
+              <el-menu-item v-if="canShow('/changdu-recharge')" index="/changdu-recharge">
                 <el-icon><Wallet /></el-icon>
                 <span>充值记录</span>
               </el-menu-item>
             </el-sub-menu>
           </el-sub-menu>
-          <el-menu-item index="/sync-logs">
+          <el-menu-item v-if="canShow('/sync-logs')" index="/sync-logs">
             <el-icon><Fold /></el-icon>
             <span>同步日志</span>
           </el-menu-item>
-          <el-menu-item index="/wecom-events">
+          <el-menu-item v-if="canShow('/wecom-events')" index="/wecom-events">
             <el-icon><Notification /></el-icon>
             <span>回调日志</span>
           </el-menu-item>
         </template>
         
-        <el-menu-item index="/enterprises">
+        <el-menu-item v-if="canShow('/enterprises')" index="/enterprises">
           <el-icon><Setting /></el-icon>
           <span>企业管理</span>
         </el-menu-item>
+
+        <el-sub-menu v-if="isSuperAdmin" index="system">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="/sys-users">
+            <el-icon><User /></el-icon>
+            <span>系统用户</span>
+          </el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
 
@@ -169,122 +180,133 @@
           @select="drawerVisible = false"
         >
           <template v-if="currentCorpId">
-            <el-menu-item index="/dashboard">
+            <el-menu-item v-if="canShow('/dashboard')" index="/dashboard">
               <el-icon><DataLine /></el-icon>
               <span>首页看板</span>
             </el-menu-item>
-            <el-menu-item index="/users">
+            <el-menu-item v-if="canShow('/users')" index="/users">
               <el-icon><Avatar /></el-icon>
               <span>企微账号</span>
             </el-menu-item>
-            <el-menu-item index="/customers">
+            <el-menu-item v-if="canShow('/customers')" index="/customers">
               <el-icon><User /></el-icon>
               <span>客户管理</span>
             </el-menu-item>
-            <el-menu-item index="/customer-groups">
+            <el-menu-item v-if="canShow('/customer-groups')" index="/customer-groups">
               <el-icon><ChatSquare /></el-icon>
               <span>客户群管理</span>
             </el-menu-item>
 
-            <el-menu-item index="/tags">
+            <el-menu-item v-if="canShow('/tags')" index="/tags">
               <el-icon><PriceTag /></el-icon>
               <span>标签管理</span>
             </el-menu-item>
-            <el-sub-menu index="operations">
+            <el-sub-menu v-if="canShow('operations')" index="operations">
               <template #title>
                 <el-icon><Operation /></el-icon>
                 <span>客户运营</span>
               </template>
-              <el-menu-item index="/welcome-message">
+              <el-menu-item v-if="canShow('/welcome-message')" index="/welcome-message">
                 <el-icon><Message /></el-icon>
                 <span>客户欢迎语</span>
               </el-menu-item>
-              <el-menu-item index="/moments">
+              <el-menu-item v-if="canShow('/moments')" index="/moments">
                 <el-icon><Promotion /></el-icon>
                 <span>客户朋友圈</span>
               </el-menu-item>
-              <el-menu-item index="/customer-messages">
+              <el-menu-item v-if="canShow('/customer-messages')" index="/customer-messages">
                 <el-icon><ChatDotRound /></el-icon>
                 <span>客户群发</span>
               </el-menu-item>
-              <el-menu-item index="/group-messages">
+              <el-menu-item v-if="canShow('/group-messages')" index="/group-messages">
                 <el-icon><ChatLineRound /></el-icon>
                 <span>客户群群发</span>
               </el-menu-item>
             </el-sub-menu>
-            <el-sub-menu index="mp">
+            <el-sub-menu v-if="canShow('mp')" index="mp">
               <template #title>
                 <el-icon><Connection /></el-icon>
                 <span>微信公众号</span>
               </template>
-              <el-menu-item index="/mp-accounts">
+              <el-menu-item v-if="canShow('/mp-accounts')" index="/mp-accounts">
                 <el-icon><Monitor /></el-icon>
                 <span>账号管理</span>
               </el-menu-item>
-              <el-menu-item index="/mp-users">
+              <el-menu-item v-if="canShow('/mp-users')" index="/mp-users">
                 <el-icon><User /></el-icon>
                 <span>用户列表</span>
               </el-menu-item>
             </el-sub-menu>
 
-            <el-sub-menu index="thirdparty">
+            <el-sub-menu v-if="canShow('thirdparty')" index="thirdparty">
               <template #title>
                 <el-icon><Connection /></el-icon>
                 <span>第三方平台</span>
               </template>
-              <el-sub-menu index="yuewen">
+              <el-sub-menu v-if="canShow('yuewen')" index="yuewen">
                 <template #title>
                   <span>阅文</span>
                 </template>
-                <el-menu-item index="/yuewen-products">
+                <el-menu-item v-if="canShow('/yuewen-products')" index="/yuewen-products">
                   <el-icon><Tickets /></el-icon>
                   <span>产品管理</span>
                 </el-menu-item>
-                <el-menu-item index="/yuewen-users">
+                <el-menu-item v-if="canShow('/yuewen-users')" index="/yuewen-users">
                   <el-icon><User /></el-icon>
                   <span>用户列表</span>
                 </el-menu-item>
-                <el-menu-item index="/yuewen-consume">
+                <el-menu-item v-if="canShow('/yuewen-consume')" index="/yuewen-consume">
                   <el-icon><Wallet /></el-icon>
                   <span>消费记录</span>
                 </el-menu-item>
-                <el-menu-item index="/yuewen-recharge">
+                <el-menu-item v-if="canShow('/yuewen-recharge')" index="/yuewen-recharge">
                   <el-icon><Wallet /></el-icon>
                   <span>充值记录</span>
                 </el-menu-item>
               </el-sub-menu>
-              <el-sub-menu index="changdu">
+              <el-sub-menu v-if="canShow('changdu')" index="changdu">
                 <template #title>
                   <span>常读</span>
                 </template>
-                <el-menu-item index="/changdu-products">
+                <el-menu-item v-if="canShow('/changdu-products')" index="/changdu-products">
                   <el-icon><Tickets /></el-icon>
                   <span>产品管理</span>
                 </el-menu-item>
-                <el-menu-item index="/changdu-users">
+                <el-menu-item v-if="canShow('/changdu-users')" index="/changdu-users">
                   <el-icon><User /></el-icon>
                   <span>用户列表</span>
                 </el-menu-item>
-                <el-menu-item index="/changdu-recharge">
+                <el-menu-item v-if="canShow('/changdu-recharge')" index="/changdu-recharge">
                   <el-icon><Wallet /></el-icon>
                   <span>充值记录</span>
                 </el-menu-item>
               </el-sub-menu>
             </el-sub-menu>
-            <el-menu-item index="/sync-logs">
+            <el-menu-item v-if="canShow('/sync-logs')" index="/sync-logs">
               <el-icon><Fold /></el-icon>
               <span>同步日志</span>
             </el-menu-item>
-            <el-menu-item index="/wecom-events">
+            <el-menu-item v-if="canShow('/wecom-events')" index="/wecom-events">
               <el-icon><Notification /></el-icon>
               <span>回调日志</span>
             </el-menu-item>
           </template>
           
-          <el-menu-item index="/enterprises">
+          <el-menu-item v-if="canShow('/enterprises')" index="/enterprises">
             <el-icon><Setting /></el-icon>
             <span>企业管理</span>
           </el-menu-item>
+
+          <el-sub-menu v-if="isSuperAdmin" index="system">
+            <template #title>
+              <el-icon><Setting /></el-icon>
+              <span>系统管理</span>
+            </template>
+            <el-menu-item index="/sys-users">
+              <el-icon><User /></el-icon>
+              <span>系统用户</span>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </div>
     </el-drawer>
@@ -363,7 +385,7 @@
       </el-header>
       
       <el-main class="main-content">
-        <template v-if="currentCorpId || route.path === '/enterprises'">
+        <template v-if="currentCorpId || route.path === '/enterprises' || route.path === '/sys-users'">
           <router-view v-slot="{ Component }">
             <transition name="fade" mode="out-in">
               <component :is="Component" />
@@ -393,7 +415,8 @@ import { useRoute, useRouter } from 'vue-router'
 import request from '@/api/request'
 import { 
   Setting, CaretBottom, ArrowDown, Plus, Select, Wallet,
-  Expand, Fold, Notification, Menu, Tickets, Connection
+  Expand, Fold, Notification, Menu, Tickets, Connection,
+  DataLine, Avatar, User, ChatSquare, PriceTag, Operation, Message, Promotion, ChatDotRound, ChatLineRound, Monitor, Notebook
 } from '@element-plus/icons-vue'
 import EnterpriseFormDialog from '@/views/EnterpriseFormDialog.vue'
 import { useResponsive } from '@/hooks/useResponsive'
@@ -425,10 +448,44 @@ const currentUserName = computed(() => {
   return localStorage.getItem('username') || 'Admin'
 })
 
+const isSuperAdmin = computed(() => localStorage.getItem('isSuperAdmin') === 'true')
+const permissions = computed(() => {
+  const p = localStorage.getItem('permissions')
+  if (!p) return []
+  try {
+    return JSON.parse(p)
+  } catch (e) {
+    return []
+  }
+})
+
+const canShow = (path: string): boolean => {
+  if (isSuperAdmin.value) return true
+  // Special case for sub-menus
+  if (path === 'operations') {
+    return ['/welcome-message', '/moments', '/customer-messages', '/group-messages'].some(p => permissions.value.includes(p))
+  }
+  if (path === 'mp') {
+    return ['/mp-accounts', '/mp-users'].some(p => permissions.value.includes(p))
+  }
+  if (path === 'thirdparty') {
+    return canShow('yuewen') || canShow('changdu')
+  }
+  if (path === 'yuewen') {
+    return ['/yuewen-products', '/yuewen-users', '/yuewen-recharge', '/yuewen-consume'].some(p => permissions.value.includes(p))
+  }
+  if (path === 'changdu') {
+    return ['/changdu-products', '/changdu-users', '/changdu-recharge'].some(p => permissions.value.includes(p))
+  }
+  return permissions.value.includes(path)
+}
+
 const handleLogout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('username')
   localStorage.removeItem('currentCorpId')
+  localStorage.removeItem('isSuperAdmin')
+  localStorage.removeItem('permissions')
   router.push('/login')
 }
 

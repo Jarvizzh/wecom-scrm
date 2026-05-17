@@ -1,5 +1,7 @@
 package com.wecom.scrm.controller;
 
+import com.wecom.scrm.entity.SysUser;
+import com.wecom.scrm.repository.SysUserRepository;
 import com.wecom.scrm.security.JwtUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +24,12 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final SysUserRepository sysUserRepository;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtils jwtUtils, SysUserRepository sysUserRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
+        this.sysUserRepository = sysUserRepository;
     }
 
     @GetMapping("/secret/{secretKey}")
@@ -57,10 +61,18 @@ public class AuthController {
             );
 
             String token = jwtUtils.generateToken(authentication.getName());
+            
+            SysUser user = sysUserRepository.findByUsername(authentication.getName()).orElse(null);
 
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("username", authentication.getName());
+            if (user != null) {
+                response.put("nickname", user.getNickname());
+                response.put("avatar", user.getAvatar());
+                response.put("isSuperAdmin", user.getIsSuperAdmin());
+                response.put("permissions", user.getPermissions());
+            }
 
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {

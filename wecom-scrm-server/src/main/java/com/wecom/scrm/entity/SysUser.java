@@ -32,6 +32,15 @@ public class SysUser {
     @Column(length = 255)
     private String avatar;
 
+    @Column(columnDefinition = "TINYINT DEFAULT 0")
+    private Integer status = 0; // 0-Normal, 1-Banned
+
+    @Column(name = "is_super_admin", columnDefinition = "BIT DEFAULT 0")
+    private Boolean isSuperAdmin = false;
+
+    @Column(columnDefinition = "TEXT")
+    private String permissions; // JSON string of route paths
+
     @CreatedDate
     @Column(name = "create_time", updatable = false)
     private Date createTime;

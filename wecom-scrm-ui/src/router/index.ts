@@ -215,6 +215,12 @@ const routes = [
         name: 'Enterprises',
         component: () => import('@/views/EnterpriseList.vue'),
         meta: { title: '企业管理 / Enterprise Management' }
+      },
+      {
+        path: 'sys-users',
+        name: 'SysUsers',
+        component: () => import('@/views/SysUserList.vue'),
+        meta: { title: '系统用户管理 / System Users' }
       }
     ]
   },
@@ -235,6 +241,31 @@ router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
   if (to.name !== 'Login' && !token) {
     next({ name: 'Login' })
+  } else if (token && to.name === 'Login') {
+    next({ name: 'Dashboard' })
+  } else if (token) {
+    const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true'
+    const permissionsStr = localStorage.getItem('permissions')
+    const permissions = permissionsStr ? JSON.parse(permissionsStr) : []
+    
+    // Check path permission (basic check)
+    const path = to.path === '/' ? '/dashboard' : to.path
+    
+    // Whitelist paths
+    const whitelist = ['/dashboard', '/login']
+    
+    if (isSuperAdmin || whitelist.includes(path)) {
+      next()
+    } else {
+      // Check if the path or its parent path is in permissions
+      const hasPermission = permissions.some((p: string) => path.startsWith(p))
+      if (hasPermission) {
+        next()
+      } else {
+        console.warn('Access denied to:', path)
+        next({ name: 'Dashboard' })
+      }
+    }
   } else {
     next()
   }

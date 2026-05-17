@@ -35,16 +35,18 @@ public class DataInitializer implements CommandLineRunner {
             // Encode the password using the system's password encoder
             user.setPassword(passwordEncoder.encode("123456"));
             user.setNickname("Administrator");
+            user.setIsSuperAdmin(true);
             
             sysUserRepository.save(user);
             log.info("Successfully seeded default admin user (admin / 123456)");
         } else {
-            log.info("Default admin user already exists.");
-            
-            // Optional: You can force a password reset here for testing if the user is stuck
-            // SysUser user = adminUser.get();
-            // user.setPassword(passwordEncoder.encode("123456"));
-            // sysUserRepository.save(user);
+            log.info("Default admin user already exists. Ensuring super admin status...");
+            SysUser user = adminUser.get();
+            if (user.getIsSuperAdmin() == null || !user.getIsSuperAdmin()) {
+                user.setIsSuperAdmin(true);
+                sysUserRepository.save(user);
+                log.info("Updated existing admin to super admin.");
+            }
         }
     }
 }
