@@ -85,16 +85,6 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column label="所属产品" width="120">
-          <template #default="scope">
-            <el-tag 
-              size="small" 
-              :style="getProductTagStyle(scope.row.distributorId)"
-            >
-              {{ getProductName(scope.row.distributorId) }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column label="用户信息" width="150">
           <template #default="scope">
             <div class="user-info-cell">
@@ -111,12 +101,38 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column label="所属产品" width="120">
+          <template #default="scope">
+            <el-tag 
+              size="small" 
+              :style="getProductTagStyle(scope.row.distributorId)"
+            >
+              {{ getProductName(scope.row.distributorId) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="微信OpenID" min-width="250">
           <template #default="scope">
             <span class="monospace-id">{{ scope.row.openId || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="registerTime" label="注册时间" width="180" />
+        <el-table-column label="归属员工" width="150" show-overflow-tooltip>
+          <template #default="scope">
+            {{ scope.row.employeeName || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="关系状态" width="100">
+          <template #default="scope">
+            <el-tag 
+              v-if="scope.row.relationStatus !== undefined && scope.row.relationStatus !== null"
+              :type="getRelationStatusType(scope.row.relationStatus)"
+              size="small"
+            >
+              {{ getRelationStatusLabel(scope.row.relationStatus) }}
+            </el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="rechargeAmount" label="累计充值" width="120" sortable="custom">
           <template #default="scope">
             <span style="font-weight: 600; color: #f56c6c">¥ {{ ((scope.row.rechargeAmount || 0) / 100).toFixed(2) }}</span>
@@ -128,6 +144,7 @@
             {{ ((scope.row.balanceAmount || 0) / 100).toFixed(2) }}
           </template>
         </el-table-column>
+        <el-table-column prop="registerTime" label="注册时间" width="180" />
         <el-table-column label="来源信息" min-width="180">
           <template #default="scope">
             <div class="sub-text">推广: {{ scope.row.promotionName || '-' }}</div>
@@ -251,14 +268,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getChangduUsers, syncChangduUsers, getChangduProducts } from '@/api/changdu'
+import { getChangduUsers, syncChangduUsers, getChangduProducts, type ChangduUser } from '@/api/changdu'
 import { getProductTagStyle } from '@/utils/color'
 import { getTagGroups, getTagsByGroup, batchMarkCustomerTags } from '@/api/tag'
 import { User, Search, Refresh, UserFilled, PriceTag } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
-const users = ref<any[]>([])
+const users = ref<ChangduUser[]>([])
 const total = ref(0)
 const page = ref(1)
 const size = ref(10)
@@ -486,6 +503,24 @@ const resetSyncForm = () => {
   syncForm.distributorId = undefined
   syncForm.timeRange = []
   if (syncFormRef.value) syncFormRef.value.resetFields()
+}
+
+const getRelationStatusLabel = (status: number) => {
+  switch (status) {
+    case 0: return '正常'
+    case 1: return '已删除'
+    case 2: return '已流失'
+    default: return '未知'
+  }
+}
+
+const getRelationStatusType = (status: number) => {
+  switch (status) {
+    case 0: return 'success'
+    case 1: return 'warning'
+    case 2: return 'danger'
+    default: return 'info'
+  }
 }
 
 onMounted(() => {

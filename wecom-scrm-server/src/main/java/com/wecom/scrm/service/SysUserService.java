@@ -1,5 +1,6 @@
 package com.wecom.scrm.service;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.wecom.scrm.entity.SysUser;
 import com.wecom.scrm.repository.SysUserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@DS("master")
 @Slf4j
 @Service
 public class SysUserService {

@@ -137,11 +137,6 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="微信OpenID" min-width="250">
-          <template #default="scope">
-            <span class="monospace-id">{{ scope.row.openid }}</span>
-          </template>
-        </el-table-column>
         <el-table-column label="所属产品" width="150">
           <template #default="scope">
             <el-tag 
@@ -150,6 +145,28 @@
             >
               {{ scope.row.productName || scope.row.appFlag }}
             </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="微信OpenID" min-width="250">
+          <template #default="scope">
+            <span class="monospace-id">{{ scope.row.openid }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="归属员工" width="150" show-overflow-tooltip>
+          <template #default="scope">
+            {{ scope.row.employeeName || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="关系状态" width="100">
+          <template #default="scope">
+            <el-tag 
+              v-if="scope.row.relationStatus !== undefined && scope.row.relationStatus !== null"
+              :type="getRelationStatusType(scope.row.relationStatus)"
+              size="small"
+            >
+              {{ getRelationStatusLabel(scope.row.relationStatus) }}
+            </el-tag>
+            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column prop="chargeAmount" label="累计充值(元)" width="150" sortable="custom">
@@ -532,6 +549,24 @@ const formatTime = (timeStr: string) => {
   if (!timeStr) return ''
   const date = new Date(timeStr)
   return date.toLocaleString()
+}
+
+const getRelationStatusLabel = (status: number) => {
+  switch (status) {
+    case 0: return '正常'
+    case 1: return '已删除'
+    case 2: return '已流失'
+    default: return '未知'
+  }
+}
+
+const getRelationStatusType = (status: number) => {
+  switch (status) {
+    case 0: return 'success'
+    case 1: return 'warning'
+    case 2: return 'danger'
+    default: return 'info'
+  }
 }
 
 onMounted(() => {

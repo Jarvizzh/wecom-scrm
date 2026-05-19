@@ -20,6 +20,30 @@ export function syncChangduProducts() {
   return request.post('/admin/changdu/products/sync')
 }
 
+export interface ChangduUser {
+  id: number
+  distributorId: number
+  encryptedDeviceId: string
+  deviceBrand: string
+  mediaSource: string
+  bookSource: string
+  rechargeTimes: number
+  rechargeAmount: number
+  balanceAmount: number
+  registerTime: string
+  promotionId: string
+  promotionName: string
+  bookName: string
+  externalId: string
+  openId: string
+  nickname: string
+  avatar: string
+  createTime: string
+  updateTime: string
+  employeeName?: string
+  relationStatus?: number
+}
+
 // User APIs
 export function getChangduUsers(params: { 
   page: number; 
@@ -30,11 +54,11 @@ export function getChangduUsers(params: {
   avatar?: string;
   sortField?: string;
   sortOrder?: string;
-}) {
+}): Promise<{ content: ChangduUser[]; totalElements: number }> {
   return request.get('/admin/changdu/users', { params })
 }
 
-export function getChangduByCustomer(externalUserid: string): Promise<any[]> {
+export function getChangduByCustomer(externalUserid: string): Promise<ChangduUser[]> {
   return request.get(`/admin/changdu/users/customer/${externalUserid}`)
 }
 

@@ -2,18 +2,16 @@ package com.wecom.scrm.entity;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
 @DS("master")
 @Table(name = "sys_user")
-@EntityListeners(AuditingEntityListener.class)
 public class SysUser {
 
     @Id
@@ -41,11 +39,11 @@ public class SysUser {
     @Column(columnDefinition = "TEXT")
     private String permissions; // JSON string of route paths
 
-    @CreatedDate
+    @CreationTimestamp
     @Column(name = "create_time", updatable = false)
-    private Date createTime;
+    private LocalDateTime createTime;
 
-    @LastModifiedDate
+    @UpdateTimestamp
     @Column(name = "update_time")
-    private Date updateTime;
+    private LocalDateTime updateTime;
 }

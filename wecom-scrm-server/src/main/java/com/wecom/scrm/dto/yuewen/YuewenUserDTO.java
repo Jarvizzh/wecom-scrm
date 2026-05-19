@@ -25,6 +25,8 @@ public class YuewenUserDTO {
     private String externalUserid;
     private LocalDateTime yuewenUpdateTime;
     private String productName;
+    private String employeeName;
+    private Integer relationStatus;
 
     public static YuewenUserDTO fromEntity(YuewenUser entity) {
         YuewenUserDTO dto = new YuewenUserDTO();

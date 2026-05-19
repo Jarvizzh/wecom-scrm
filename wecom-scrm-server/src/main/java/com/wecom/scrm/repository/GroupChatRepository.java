@@ -22,12 +22,16 @@ public interface GroupChatRepository extends JpaRepository<WecomGroupChat, Long>
 
     @Query("SELECT new com.wecom.scrm.vo.GroupChatVO(g.id, g.chatId, g.name, g.owner, u.name, g.createTime, g.memberCount, g.status) " +
            "FROM WecomGroupChat g LEFT JOIN WecomUser u ON g.owner = u.userid " +
-           "WHERE (:owner IS NULL OR g.owner = :owner) " +
+           "WHERE (g.status = 0) " +
+           "AND (:owner IS NULL OR g.owner = :owner) " +
            "AND (:name IS NULL OR g.name LIKE %:name%)")
     Page<GroupChatVO> findAllWithVO(@Param("owner") String owner, @Param("name") String name, Pageable pageable);
 
     @Query("SELECT g.chatId FROM WecomGroupChat g WHERE (:status IS NULL OR g.status = :status)")
     List<String> findChatIdsByStatus(@Param("status") Integer status);
+
+    @Query("SELECT g.chatId FROM WecomGroupChat g WHERE g.status != :status")
+    List<String> findChatIdsByStatusNot(@Param("status") Integer status);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE WecomGroupChat g SET g.status = 2 WHERE g.chatId IN :chatIds")

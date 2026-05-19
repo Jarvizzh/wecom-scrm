@@ -26,6 +26,8 @@ export interface YuewenUser {
   externalUserid: string
   yuewenUpdateTime: string
   productName?: string
+  employeeName?: string
+  relationStatus?: number
 }
 
 export interface PageResponse<T> {

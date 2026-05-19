@@ -1,136 +1,152 @@
 <template>
   <div class="dashboard-container">
-    <!-- Recharge Summary Section -->
-    <el-row :gutter="20">
-      <el-col :xs="24" :sm="12" :md="8" v-for="item in rechargeCards" :key="item.title" class="mb-20">
-        <el-card shadow="hover" class="stats-card recharge-card" :body-style="{ padding: '20px' }">
-          <div class="card-content">
-            <div class="card-info">
-              <div class="card-title">{{ item.title }}</div>
-              <div class="card-value">¥ {{ item.value.toFixed(2) }}</div>
+    <!-- Recharge Statistics Module (Super Admin Only) -->
+    <div v-if="isSuperAdmin" class="dashboard-module recharge-module">
+      <div class="module-header">
+        <el-icon><Money /></el-icon>
+        <span class="module-title">充值统计</span>
+      </div>
+      
+      <!-- Recharge Summary Cards -->
+      <el-row :gutter="20">
+        <el-col :xs="24" :sm="12" :md="8" v-for="item in rechargeCards" :key="item.title" class="mb-20">
+          <el-card shadow="hover" class="stats-card recharge-card" :body-style="{ padding: '20px' }">
+            <div class="card-content">
+              <div class="card-info">
+                <div class="card-title">{{ item.title }}</div>
+                <div class="card-value">¥ {{ item.value.toFixed(2) }}</div>
+              </div>
+              <div class="card-icon" :style="{ backgroundColor: item.color }">
+                <el-icon><component :is="item.icon" /></el-icon>
+              </div>
             </div>
-            <div class="card-icon" :style="{ backgroundColor: item.color }">
-              <el-icon><component :is="item.icon" /></el-icon>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+          </el-card>
+        </el-col>
+      </el-row>
 
-    <!-- Recharge Trend & Products Section -->
-    <el-row :gutter="20" class="charts-row">
-      <el-col :span="24" class="mb-30">
-        <el-card shadow="hover">
-          <template #header>
-            <div class="card-header">
-              <span>近10日充值趋势</span>
-            </div>
-          </template>
-          <div ref="rechargeTrendChartRef" class="chart-box"></div>
-        </el-card>
-      </el-col>
-      <el-col :span="24" class="mb-30">
-        <el-card shadow="hover" class="product-stats-card">
-          <template #header>
-            <div class="card-header">
-              <span>分产品充值统计（近10日）</span>
-            </div>
-          </template>
-          <el-tabs v-model="activeProductTab" class="custom-tabs">
-            <el-tab-pane label="阅文" name="yuewen">
-              <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
-                <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
-                  <template #default="{ row }">
-                    <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
-                    <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
-                  </template>
-                </el-table-column>
-                <el-table-column label="今日" width="110" align="right" fixed="right">
-                  <template #default="{ row }">
-                    <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
-                    <div class="user-count">{{ row.todayUserCount }} 人</div>
-                  </template>
-                </el-table-column>
-                <el-table-column label="本月" width="110" align="right" fixed="right">
-                  <template #default="{ row }">
-                    <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
-                    <div class="user-count">{{ row.monthUserCount }} 人</div>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-tab-pane>
-            <el-tab-pane label="常读" name="changdu">
-              <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
-                <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
-                  <template #default="{ row }">
-                    <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
-                    <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
-                  </template>
-                </el-table-column>
-                <el-table-column label="今日" width="110" align="right" fixed="right">
-                  <template #default="{ row }">
-                    <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
-                    <div class="user-count">{{ row.todayUserCount }} 人</div>
-                  </template>
-                </el-table-column>
-                <el-table-column label="本月" width="110" align="right" fixed="right">
-                  <template #default="{ row }">
-                    <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
-                    <div class="user-count">{{ row.monthUserCount }} 人</div>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-tab-pane>
-          </el-tabs>
-        </el-card>
-      </el-col>
-    </el-row>
+      <!-- Recharge Trend & Products -->
+      <el-row :gutter="20" class="charts-row">
+        <el-col :span="24" class="mb-30">
+          <el-card shadow="hover">
+            <template #header>
+              <div class="card-header">
+                <span>近10日充值趋势</span>
+              </div>
+            </template>
+            <div ref="rechargeTrendChartRef" class="chart-box"></div>
+          </el-card>
+        </el-col>
+        <el-col :span="24" class="mb-30">
+          <el-card shadow="hover" class="product-stats-card">
+            <template #header>
+              <div class="card-header">
+                <span>分产品充值统计（近10日）</span>
+              </div>
+            </template>
+            <el-tabs v-model="activeProductTab" class="custom-tabs">
+              <el-tab-pane label="阅文" name="yuewen">
+                <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
+                  <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                  <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
+                    <template #default="{ row }">
+                      <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
+                      <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="今日" width="110" align="right" fixed="right">
+                    <template #default="{ row }">
+                      <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
+                      <div class="user-count">{{ row.todayUserCount }} 人</div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="本月" width="110" align="right" fixed="right">
+                    <template #default="{ row }">
+                      <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
+                      <div class="user-count">{{ row.monthUserCount }} 人</div>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+              <el-tab-pane label="常读" name="changdu">
+                <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
+                  <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                  <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
+                    <template #default="{ row }">
+                      <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
+                      <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="今日" width="110" align="right" fixed="right">
+                    <template #default="{ row }">
+                      <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
+                      <div class="user-count">{{ row.todayUserCount }} 人</div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="本月" width="110" align="right" fixed="right">
+                    <template #default="{ row }">
+                      <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
+                      <div class="user-count">{{ row.monthUserCount }} 人</div>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+            </el-tabs>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
 
-    <!-- Summary Section -->
-    <el-row :gutter="20" class="info-row">
-      <el-col :xs="24" :sm="12" :md="6" v-for="item in summaryCards" :key="item.title" class="mb-30">
-        <el-card shadow="hover" class="stats-card" :body-style="{ padding: '20px' }">
-          <div class="card-content">
-            <div class="card-info">
-              <div class="card-title">{{ item.title }}</div>
-              <div class="card-value">{{ item.value }}</div>
-            </div>
-            <div class="card-icon" :style="{ backgroundColor: item.color }">
-              <el-icon><component :is="item.icon" /></el-icon>
-            </div>
-          </div>
-          <div class="card-footer" v-if="item.footer">
-            <span class="footer-label">{{ item.footer }}</span>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- Customer Statistics Module -->
+    <div class="dashboard-module customer-module">
+      <div class="module-header">
+        <el-icon><User /></el-icon>
+        <span class="module-title">客户统计</span>
+      </div>
 
-    <!-- Charts Section -->
-    <el-row :gutter="20" class="charts-row">
-      <el-col :xs="24" :sm="24" :md="16">
-        <el-card shadow="hover">
-          <template #header>
-            <div class="card-header">
-              <span>近10日新增客户趋势</span>
+      <!-- Customer Summary Cards -->
+      <el-row :gutter="20" class="info-row">
+        <el-col :xs="24" :sm="12" :md="6" v-for="item in summaryCards" :key="item.title" class="mb-30">
+          <el-card shadow="hover" class="stats-card" :body-style="{ padding: '20px' }">
+            <div class="card-content">
+              <div class="card-info">
+                <div class="card-title">{{ item.title }}</div>
+                <div class="card-value">{{ item.value }}</div>
+              </div>
+              <div class="card-icon" :style="{ backgroundColor: item.color }">
+                <el-icon><component :is="item.icon" /></el-icon>
+              </div>
             </div>
-          </template>
-          <div ref="trendChartRef" class="chart-box"></div>
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :sm="24" :md="8">
-        <el-card shadow="hover">
-          <template #header>
-            <div class="card-header">
-              <span>客户来源分布</span>
+            <div class="card-footer" v-if="item.footer">
+              <span class="footer-label">{{ item.footer }}</span>
             </div>
-          </template>
-          <div ref="sourceChartRef" class="chart-box"></div>
-        </el-card>
-      </el-col>
-    </el-row>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <!-- Customer Charts -->
+      <el-row :gutter="20" class="charts-row">
+        <el-col :xs="24" :sm="24" :md="16">
+          <el-card shadow="hover">
+            <template #header>
+              <div class="card-header">
+                <span>近10日新增客户趋势</span>
+              </div>
+            </template>
+            <div ref="trendChartRef" class="chart-box"></div>
+          </el-card>
+        </el-col>
+        <el-col :xs="24" :sm="24" :md="8">
+          <el-card shadow="hover">
+            <template #header>
+              <div class="card-header">
+                <span>客户来源分布</span>
+              </div>
+            </template>
+            <div ref="sourceChartRef" class="chart-box"></div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 
@@ -139,6 +155,8 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import * as echarts from 'echarts';
 import { getStats } from '@/api/dashboard';
 import { User, ChatDotRound, Collection, Connection, Money, Wallet, Coin } from '@element-plus/icons-vue';
+
+const isSuperAdmin = ref(localStorage.getItem('isSuperAdmin') === 'true');
 
 const stats = ref({
   totalCustomerCount: 0,
@@ -395,9 +413,32 @@ const handleResize = () => {
 
 <style scoped>
 .dashboard-container {
-  padding: 20px;
+  padding: 24px;
   background-color: #f5f7fa;
   min-height: calc(100vh - 100px);
+}
+
+.dashboard-module {
+  margin-bottom: 40px;
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-left: 4px;
+}
+
+.module-header .el-icon {
+  font-size: 20px;
+  color: #409eff;
+}
+
+.module-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
 }
 
 @media (max-width: 768px) {

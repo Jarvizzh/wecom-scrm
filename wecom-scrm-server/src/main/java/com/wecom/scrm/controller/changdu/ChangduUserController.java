@@ -1,6 +1,6 @@
 package com.wecom.scrm.controller.changdu;
 
-import com.wecom.scrm.entity.changdu.ChangduUser;
+import com.wecom.scrm.dto.changdu.ChangduUserDTO;
 import com.wecom.scrm.service.changdu.ChangduUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +18,7 @@ public class ChangduUserController {
     private final ChangduUserService userService;
 
     @GetMapping
-    public Page<ChangduUser> getUsers(
+    public Page<ChangduUserDTO> getUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long distributorId,
@@ -30,7 +30,7 @@ public class ChangduUserController {
     }
 
     @GetMapping("/customer/{externalUserid}")
-    public List<ChangduUser> getByCustomer(@PathVariable String externalUserid) {
+    public List<ChangduUserDTO> getByCustomer(@PathVariable String externalUserid) {
         return userService.findByCustomer(externalUserid);
     }
 

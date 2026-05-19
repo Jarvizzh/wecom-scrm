@@ -442,30 +442,34 @@ public class SyncService {
         syncLog.setStatus(0); // Running
         syncLog = syncLogRepository.save(syncLog);
         try {
-            String cursor = null;
-            int limit = 1000;
-            boolean hasMore = true;
             Set<String> syncChatIds = new HashSet<>();
             List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-            while (hasMore) {
-                WxCpUserExternalGroupChatList list = wxCpServiceManager.getWxCpService().getExternalContactService()
-                        .listGroupChat(limit, cursor, 0, null);
+            // Sync both status 0 (Normal) and status 1 (Disbanded) groups
+            for (int statusFilter : new int[]{0, 1}) {
+                String cursor = null;
+                int limit = 1000;
+                boolean hasMore = true;
 
-                List<WxCpUserExternalGroupChatList.ChatStatus> chatList = list.getGroupChatList();
-                if (chatList == null || chatList.isEmpty()) {
-                    break;
-                }
+                while (hasMore) {
+                    WxCpUserExternalGroupChatList list = wxCpServiceManager.getWxCpService().getExternalContactService()
+                            .listGroupChat(limit, cursor, statusFilter, null);
 
-                for (WxCpUserExternalGroupChatList.ChatStatus status : chatList) {
-                    syncChatIds.add(status.getChatId());
-                    futures.add(CompletableFuture.runAsync(() -> 
-                        syncSingleGroupChat(status.getChatId(), status.getStatus()), bizAsyncExecutor));
-                }
+                    List<WxCpUserExternalGroupChatList.ChatStatus> chatList = list.getGroupChatList();
+                    if (chatList == null || chatList.isEmpty()) {
+                        break;
+                    }
 
-                cursor = list.getNextCursor();
-                if (cursor == null || cursor.isEmpty()) {
-                    hasMore = false;
+                    for (WxCpUserExternalGroupChatList.ChatStatus status : chatList) {
+                        syncChatIds.add(status.getChatId());
+                        futures.add(CompletableFuture.runAsync(() -> 
+                            syncSingleGroupChat(status.getChatId(), status.getStatus()), bizAsyncExecutor));
+                    }
+
+                    cursor = list.getNextCursor();
+                    if (cursor == null || cursor.isEmpty()) {
+                        hasMore = false;
+                    }
                 }
             }
 
@@ -475,9 +479,9 @@ public class SyncService {
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             }
 
-            // Identify lost group chats
-            List<String> dbActiveChatIds = groupChatRepository.findChatIdsByStatus(0);
-            Set<String> lostChatIds = dbActiveChatIds.stream()
+            // Identify lost group chats (present in DB as non-deleted, but not in current sync)
+            List<String> dbNonDeletedChatIds = groupChatRepository.findChatIdsByStatusNot(2);
+            Set<String> lostChatIds = dbNonDeletedChatIds.stream()
                     .filter(id -> !syncChatIds.contains(id))
                     .collect(Collectors.toSet());
 

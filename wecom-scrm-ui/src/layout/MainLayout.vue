@@ -362,7 +362,7 @@
                   </div>
                 </el-dropdown-item>
                 
-                <div class="dropdown-footer" @click.stop="openAddDialog">
+                <div v-if="isSuperAdmin" class="dropdown-footer" @click.stop="openAddDialog">
                   <el-icon><Plus /></el-icon> <span>管理与添加企业</span>
                 </div>
               </el-dropdown-menu>
@@ -397,7 +397,7 @@
             <el-empty description="请先在右上方选择一个企业开始工作">
                <template #extra>
                  <p v-if="enterprises.length > 0">点击右上角的企业切换按钮，选择一个已有的企业。</p>
-                 <el-button v-else type="primary" @click="openAddDialog">立即去添加企业</el-button>
+                 <el-button v-else-if="isSuperAdmin" type="primary" @click="openAddDialog">立即去添加企业</el-button>
                </template>
             </el-empty>
           </div>

@@ -15,7 +15,7 @@
               @keyup.enter="fetchCustomers" 
             />
           </el-form-item>
-          <el-form-item label="UnionID">
+          <el-form-item v-if="isSuperAdmin" label="UnionID">
             <el-input 
               v-model="searchUnionid" 
               placeholder="精准过滤" 
@@ -45,7 +45,7 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="来源公众号">
+          <el-form-item v-if="isSuperAdmin" label="来源公众号">
             <el-select 
               v-model="searchMpAppId" 
               placeholder="所有账号" 
@@ -234,7 +234,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="UnionID" width="160" class-name="hidden-md-and-down">
+        <el-table-column v-if="isSuperAdmin" label="UnionID" width="160" class-name="hidden-md-and-down">
           <template #default="scope">
             <el-tooltip
               v-if="scope.row.unionid"
@@ -248,14 +248,14 @@
           </template>
         </el-table-column>
         
-        <el-table-column label="关联公众号" width="100" class-name="hidden-lg-and-down">
+        <el-table-column v-if="isSuperAdmin" label="关联公众号" width="100" class-name="hidden-lg-and-down">
           <template #default="scope">
             <span v-if="scope.row.mpName" class="mp-info-text">{{ scope.row.mpName }}</span>
             <span v-else class="empty-text">-</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="OpenID" width="120" class-name="hidden-lg-and-down">
+        <el-table-column v-if="isSuperAdmin" label="OpenID" width="120" class-name="hidden-lg-and-down">
           <template #default="scope">
              <el-tooltip
               v-if="scope.row.mpOpenid"
@@ -300,18 +300,18 @@
               plain
               class="action-icon-btn"
               :icon="CollectionTag" 
-              @click="openTagDialog(scope.row)" 
-            />
-            <el-tooltip content="第三方平台数据" placement="top">
-              <el-button 
-                type="success" 
-                circle
-                plain
-                class="action-icon-btn"
-                :icon="Tickets" 
-                @click="openThirdPartyDialog(scope.row)" 
+              @click="openTagDialog(scope.row)"
               />
-            </el-tooltip>
+              <el-tooltip v-if="isSuperAdmin" content="第三方平台数据" placement="top">
+                <el-button
+                  type="success"
+                  circle
+                  plain
+                  class="action-icon-btn"
+                  :icon="Tickets" 
+                  @click="openThirdPartyDialog(scope.row)" 
+                />
+              </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -550,6 +550,7 @@ const onlyDuplicates = ref(false)
 const employeeList = ref<any[]>([])
 const mpAccounts = ref<any[]>([])
 const isAllSelected = ref(false)
+const isSuperAdmin = ref(localStorage.getItem('isSuperAdmin') === 'true')
 
 const tagDialogVisible = ref(false)
 const tagsLoading = ref(false)

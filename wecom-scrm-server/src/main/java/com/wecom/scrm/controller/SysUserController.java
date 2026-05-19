@@ -1,5 +1,6 @@
 package com.wecom.scrm.controller;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.wecom.scrm.entity.SysUser;
 import com.wecom.scrm.service.SysUserService;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@DS("master")
 @RestController
 @RequestMapping("/api/sys/users")
 @PreAuthorize("hasRole('ADMIN')")
