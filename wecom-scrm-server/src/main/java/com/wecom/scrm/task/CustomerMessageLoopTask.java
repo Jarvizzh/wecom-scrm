@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -108,7 +109,8 @@ public class CustomerMessageLoopTask {
         log.info("Triggering loop task {} for occurrence time: {}", loop.getId(), executionTime);
         
         WecomCustomerMessage msg = new WecomCustomerMessage();
-        msg.setTaskName(loop.getTaskName() + " (循环自动生成)");
+        String dateStr = executionTime.format(DateTimeFormatter.ofPattern("yyMMddHH"));
+        msg.setTaskName(loop.getTaskName() + "_" + dateStr);
         msg.setSendType(1); // Scheduled
         msg.setSendTime(executionTime);
         msg.setTargetType(loop.getTargetType());
