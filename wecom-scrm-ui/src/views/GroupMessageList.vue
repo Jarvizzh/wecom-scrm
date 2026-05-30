@@ -3,7 +3,10 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>【客户群】群发任务列表</span>
+          <div class="left">
+            <el-icon><ChatLineRound /></el-icon>
+            <span>客户群群发 / Group Broadcast</span>
+          </div>
           <div class="header-actions">
             <el-button :icon="Refresh" @click="fetchTasks" :loading="loading">刷新</el-button>
             <el-button type="primary" :icon="Plus" @click="$router.push('/group-messages/create')">
@@ -103,7 +106,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Refresh, Plus } from '@element-plus/icons-vue'
+import { Refresh, Plus, ChatLineRound } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { getGroupMessageList, deleteGroupMessage, getGroupMessageSendResult } from '@/api/groupMessage'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -190,8 +193,30 @@ onMounted(fetchTasks)
 </script>
 
 <style scoped>
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.header-actions { display: flex; gap: 10px; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.card-header .left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header .el-icon {
+  font-size: 18px;
+  color: #409eff;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
 
 .pagination-block {
   margin-top: 20px;

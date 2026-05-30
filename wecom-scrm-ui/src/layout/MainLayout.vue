@@ -65,6 +65,10 @@
               <el-icon><ChatLineRound /></el-icon>
               <span>客户群群发</span>
             </el-menu-item>
+            <el-menu-item v-if="canShow('/materials')" index="/materials">
+              <el-icon><Notebook /></el-icon>
+              <span>素材库</span>
+            </el-menu-item>
           </el-sub-menu>
           <el-sub-menu v-if="canShow('mp')" index="mp">
             <template #title>
@@ -221,6 +225,10 @@
               <el-menu-item v-if="canShow('/group-messages')" index="/group-messages">
                 <el-icon><ChatLineRound /></el-icon>
                 <span>客户群群发</span>
+              </el-menu-item>
+              <el-menu-item v-if="canShow('/materials')" index="/materials">
+                <el-icon><Notebook /></el-icon>
+                <span>素材库</span>
               </el-menu-item>
             </el-sub-menu>
             <el-sub-menu v-if="canShow('mp')" index="mp">
@@ -463,7 +471,7 @@ const canShow = (path: string): boolean => {
   if (isSuperAdmin.value) return true
   // Special case for sub-menus
   if (path === 'operations') {
-    return ['/welcome-message', '/moments', '/customer-messages', '/group-messages'].some(p => permissions.value.includes(p))
+    return ['/welcome-message', '/moments', '/customer-messages', '/group-messages', '/materials'].some(p => permissions.value.includes(p))
   }
   if (path === 'mp') {
     return ['/mp-accounts', '/mp-users'].some(p => permissions.value.includes(p))

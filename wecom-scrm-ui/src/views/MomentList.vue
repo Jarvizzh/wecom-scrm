@@ -3,7 +3,10 @@
     <el-card shadow="never">
       <template #header>
         <div class="card-header">
-          <span>客户朋友圈管理</span>
+          <div class="left">
+            <el-icon><Promotion /></el-icon>
+            <span>客户朋友圈 / Moments</span>
+          </div>
           <div class="header-actions">
             <el-button :icon="Refresh" :loading="syncing" @click="handleSync">刷新</el-button>
             <el-button type="primary" :icon="Plus" @click="$router.push('/moments/create')">创建朋友圈</el-button>
@@ -191,7 +194,7 @@ import { getMoments, deleteMoment, syncMomentStatuses } from '@/api/moment'
 import { getUsers, getDepartments } from '@/api/user'
 import { getTagGroups, getTagsByGroup } from '@/api/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Refresh, Edit, Delete, CopyDocument} from '@element-plus/icons-vue'
+import { Plus, Refresh, Edit, Delete, CopyDocument, Promotion } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
@@ -349,6 +352,20 @@ const formatDateTime = (val: string) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.card-header .left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header .el-icon {
+  font-size: 18px;
+  color: #409eff;
 }
 
 .header-actions {
