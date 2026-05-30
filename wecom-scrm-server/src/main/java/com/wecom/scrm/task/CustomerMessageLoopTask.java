@@ -75,7 +75,7 @@ public class CustomerMessageLoopTask {
             try {
                 // Determine reference time for calculation
                 LocalDateTime refTime = now;
-                if (loop.getLastTriggerTime() != null && loop.getLastTriggerTime().isAfter(now.minusMinutes(10))) {
+                if (loop.getLastTriggerTime() != null && loop.getLastTriggerTime().isAfter(now.minusMinutes(5))) {
                     refTime = loop.getLastTriggerTime();
                 }
                 
@@ -93,8 +93,8 @@ public class CustomerMessageLoopTask {
                     continue;
                 }
                 
-                // If the next execution time is within the next 10 minutes (and in the future)
-                if (nextExec.isAfter(now) && nextExec.isBefore(now.plusMinutes(10))) {
+                // If the next execution time is within the next 5 minutes (and in the future)
+                if (nextExec.isAfter(now) && nextExec.isBefore(now.plusMinutes(5))) {
                     // Trigger creation of the regular scheduled message task!
                     triggerTaskCreation(loop, nextExec);
                 }
