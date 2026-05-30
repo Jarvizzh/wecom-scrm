@@ -103,6 +103,24 @@ const routes = [
         meta: { title: '复制群发 / Copy Broadcast' }
       },
       {
+        path: 'customer-messages/loop/create',
+        name: 'CustomerMessageLoopCreate',
+        component: () => import('@/views/CustomerMessageCreate.vue'),
+        meta: { title: '新建循环群发 / New Recurring Broadcast' }
+      },
+      {
+        path: 'customer-messages/loop/edit/:id',
+        name: 'CustomerMessageLoopEdit',
+        component: () => import('@/views/CustomerMessageCreate.vue'),
+        meta: { title: '编辑循环群发 / Edit Recurring Broadcast' }
+      },
+      {
+        path: 'customer-messages/loop/copy/:id',
+        name: 'CustomerMessageLoopCopy',
+        component: () => import('@/views/CustomerMessageCreate.vue'),
+        meta: { title: '复制循环群发 / Copy Recurring Broadcast' }
+      },
+      {
         path: 'group-messages',
         name: 'GroupMessages',
         component: () => import('@/views/GroupMessageList.vue'),

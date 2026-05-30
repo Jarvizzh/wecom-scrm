@@ -446,3 +446,24 @@ CREATE TABLE IF NOT EXISTS `wecom_changdu_recharge_record` (
     KEY `idx_dist_trade` (`distributor_id`, `trade_no`),
     KEY `idx_external_id` (`external_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='常读充值记录表';
+
+
+-- 28. 循环群发任务表
+CREATE TABLE IF NOT EXISTS `wecom_customer_message_loop` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `task_name` VARCHAR(128) DEFAULT NULL COMMENT '任务名称',
+    `target_type` TINYINT DEFAULT 0 COMMENT '发送范围: 0=全部客户, 1=筛选客户',
+    `target_condition` TEXT DEFAULT NULL COMMENT '筛选条件(JSON格式)',
+    `content` TEXT DEFAULT NULL COMMENT '文字内容',
+    `attachments` TEXT DEFAULT NULL COMMENT '附件内容(JSON格式)',
+    `sender_list` TEXT DEFAULT NULL COMMENT '发送人员工ID(JSON格式)',
+    `creator_userid` VARCHAR(64) DEFAULT NULL COMMENT '创建人员工ID',
+    `loop_type` TINYINT NOT NULL COMMENT '循环类型: 1=每天, 2=每周',
+    `loop_day_of_week` VARCHAR(64) DEFAULT NULL COMMENT '每周发送日(如 1,2,3 表示周一到周三)',
+    `send_time_of_day` VARCHAR(8) NOT NULL COMMENT '发送时间(HH:mm:ss)',
+    `last_trigger_time` DATETIME DEFAULT NULL COMMENT '上次触发生成定时任务时间',
+    `status` TINYINT DEFAULT 1 COMMENT '状态: 0=停用, 1=启用',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='企业微信客户群发循环任务表';
+

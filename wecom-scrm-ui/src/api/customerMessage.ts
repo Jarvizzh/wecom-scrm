@@ -74,3 +74,58 @@ export function getMemberSendResult(id: number, userid: string) {
     method: 'get'
   })
 }
+
+export interface CustomerMessageLoop {
+  id?: number
+  taskName: string
+  targetType: number // 0: All, 1: Filtered
+  targetCondition?: TargetCondition
+  text: string
+  attachments?: any[]
+  senderList?: string[]
+  loopType: number // 1: Daily, 2: Weekly
+  loopDayOfWeek?: string // e.g. "1,2,3" (1=Mon, 7=Sun)
+  sendTimeOfDay: string // HH:mm:ss
+  lastTriggerTime?: string
+  status?: number // 0: Disabled, 1: Enabled
+  createTime?: string
+}
+
+export function createCustomerMessageLoop(data: CustomerMessageLoop) {
+  return request({
+    url: '/customer-message-loop',
+    method: 'post',
+    data
+  })
+}
+
+export function getCustomerMessageLoopList(params?: { page: number; size: number }) {
+  return request({
+    url: '/customer-message-loop/list',
+    method: 'get',
+    params
+  })
+}
+
+export function getCustomerMessageLoop(id: number | string) {
+  return request({
+    url: `/customer-message-loop/${id}`,
+    method: 'get'
+  })
+}
+
+export function updateCustomerMessageLoop(id: number | string, data: any) {
+  return request({
+    url: `/customer-message-loop/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+export function deleteCustomerMessageLoop(id: number | string) {
+  return request({
+    url: `/customer-message-loop/${id}`,
+    method: 'delete'
+  })
+}
+

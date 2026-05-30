@@ -46,22 +46,59 @@
           </el-tree-select>
         </el-form-item>
         
-        <el-form-item label="发送时间">
-          <el-radio-group v-model="form.sendType">
-            <el-radio :value="0" :label="0">立即发送</el-radio>
-            <el-radio :value="1" :label="1">定时发送</el-radio>
+        <el-form-item label="发送模式">
+          <el-radio-group v-model="formMode" :disabled="isEdit && !isCopy">
+            <el-radio value="single">单次群发</el-radio>
+            <el-radio value="loop">循环群发</el-radio>
           </el-radio-group>
         </el-form-item>
-        
-        <el-form-item v-if="form.sendType === 1" label="设定时间" prop="sendTime">
-          <el-date-picker
-            v-model="form.sendTime"
-            type="datetime"
-            placeholder="选择日期时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            :disabled-date="disabledDate"
-          />
-        </el-form-item>
+
+        <template v-if="formMode === 'loop'">
+          <el-form-item label="循环频率" prop="loopType">
+            <el-radio-group v-model="form.loopType">
+              <el-radio :value="1">每天 / Daily</el-radio>
+              <el-radio :value="2">每周 / Weekly</el-radio>
+            </el-radio-group>
+          </el-form-item>
+
+          <el-form-item v-if="form.loopType === 2" label="选择星期" prop="loopDayOfWeek">
+            <el-checkbox-group v-model="form.loopDayOfWeek">
+              <el-checkbox value="1" label="1">周一</el-checkbox>
+              <el-checkbox value="2" label="2">周二</el-checkbox>
+              <el-checkbox value="3" label="3">周三</el-checkbox>
+              <el-checkbox value="4" label="4">周四</el-checkbox>
+              <el-checkbox value="5" label="5">周五</el-checkbox>
+              <el-checkbox value="6" label="6">周六</el-checkbox>
+              <el-checkbox value="7" label="7">周日</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+
+          <el-form-item label="发送时间" prop="sendTimeOfDay">
+            <el-time-picker
+              v-model="form.sendTimeOfDay"
+              placeholder="选择发送时间"
+              value-format="HH:mm:ss"
+            />
+          </el-form-item>
+        </template>
+        <template v-else>
+          <el-form-item label="发送时间">
+            <el-radio-group v-model="form.sendType">
+              <el-radio :value="0" :label="0">立即发送</el-radio>
+              <el-radio :value="1" :label="1">定时发送</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          
+          <el-form-item v-if="form.sendType === 1" label="设定时间" prop="sendTime">
+            <el-date-picker
+              v-model="form.sendTime"
+              type="datetime"
+              placeholder="选择日期时间"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              :disabled-date="disabledDate"
+            />
+          </el-form-item>
+        </template>
 
         <!-- Target Customers -->
         <div class="section-title">
@@ -316,7 +353,14 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { createCustomerMessage, getCustomerMessage, updateCustomerMessage } from '@/api/customerMessage'
+import { 
+  createCustomerMessage, 
+  getCustomerMessage, 
+  updateCustomerMessage,
+  createCustomerMessageLoop,
+  getCustomerMessageLoop,
+  updateCustomerMessageLoop
+} from '@/api/customerMessage'
 import { getTagGroups, getTagsByGroup } from '@/api/tag'
 import { getUsers, getDepartments } from '@/api/user'
 import { uploadImg, uploadTempMedia } from '@/api/media'
@@ -333,7 +377,9 @@ const route = useRoute()
 const formRef = ref(null)
 const submitting = ref(false)
 const isEdit = computed(() => !!route.params.id)
-const isCopy = computed(() => route.name === 'CustomerMessageCopy')
+const isLoop = computed(() => route.path.includes('/loop/'))
+const isCopy = computed(() => route.name === 'CustomerMessageCopy' || route.name === 'CustomerMessageLoopCopy')
+const formMode = ref(isLoop.value ? 'loop' : 'single')
 
 const form = reactive({
   taskName: '',
@@ -350,7 +396,12 @@ const form = reactive({
   text: '',
   attachments: [] as any[],
   senderList: [] as string[],
-  isAllSenders: 'all' // 'all', 'specified'
+  isAllSenders: 'all', // 'all', 'specified'
+  // Loop task fields
+  loopType: 1, // 1: Daily, 2: Weekly
+  loopDayOfWeek: [] as string[], // array of strings for UI checkbox
+  sendTimeOfDay: '10:00:00',
+  status: 1
 })
 
 const selectedTreeKeys = ref<string[]>([])
@@ -431,7 +482,9 @@ onMounted(async () => {
     if (isEdit.value) {
       const id = route.params.id as string
       try {
-        const taskRes = await getCustomerMessage(id) as any
+        const taskRes = isLoop.value 
+          ? await getCustomerMessageLoop(id) as any
+          : await getCustomerMessage(id) as any
         if (taskRes) {
           const senderList = typeof taskRes.senderList === 'string' ? JSON.parse(taskRes.senderList) : (taskRes.senderList || [])
           
@@ -451,10 +504,16 @@ onMounted(async () => {
           selectedTreeKeys.value = initialKeys
           form.isAllSenders = senderList.length === 0 ? 'all' : 'specified'
           
+          formMode.value = isLoop.value ? 'loop' : 'single'
+
+          const loopDayOfWeekParsed = isLoop.value && taskRes.loopDayOfWeek 
+            ? taskRes.loopDayOfWeek.split(',') 
+            : []
+
           Object.assign(form, {
             taskName: isCopy.value ? `${taskRes.taskName} (复制)` : taskRes.taskName,
-            sendType: taskRes.sendType,
-            sendTime: taskRes.sendTime,
+            sendType: taskRes.sendType || 0,
+            sendTime: taskRes.sendTime || '',
             targetType: taskRes.targetType,
             text: taskRes.content,
             attachments: typeof taskRes.attachments === 'string' ? JSON.parse(taskRes.attachments) : (taskRes.attachments || []),
@@ -465,7 +524,11 @@ onMounted(async () => {
               includeTagsAny: true,
               excludeTags: []
             }),
-            senderList: senderList
+            senderList: senderList,
+            loopType: taskRes.loopType || 1,
+            loopDayOfWeek: loopDayOfWeekParsed,
+            sendTimeOfDay: taskRes.sendTimeOfDay || '10:00:00',
+            status: isCopy.value ? 1 : (taskRes.status !== undefined ? taskRes.status : 1)
           })
           
           if (form.targetCondition.addTimeStart && form.targetCondition.addTimeEnd) {
@@ -482,7 +545,7 @@ onMounted(async () => {
 })
 
 const validateSendTime = (_rule: any, value: any, callback: any) => {
-  if (form.sendType === 1) {
+  if (formMode.value === 'single' && form.sendType === 1) {
     if (!value) {
       return callback(new Error('请选择定时发送时间'))
     }
@@ -495,14 +558,33 @@ const validateSendTime = (_rule: any, value: any, callback: any) => {
   callback()
 }
 
+const validateLoopDayOfWeek = (_rule: any, value: any, callback: any) => {
+  if (formMode.value === 'loop' && form.loopType === 2) {
+    if (!value || value.length === 0) {
+      return callback(new Error('请至少选择一个循环发送日'))
+    }
+  }
+  callback()
+}
+
+const validateSendTimeOfDay = (_rule: any, value: any, callback: any) => {
+  if (formMode.value === 'loop') {
+    if (!value) {
+      return callback(new Error('请选择发送时间'))
+    }
+  }
+  callback()
+}
+
 const disabledDate = (time: Date) => {
   return time.getTime() < Date.now() - 8.64e7 // Disable dates before today
 }
 
 const rules = {
   taskName: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
-  // text: [{ required: true, message: '请输入发送内容', trigger: 'blur' }],
-  sendTime: [{ validator: validateSendTime, trigger: 'change' }]
+  sendTime: [{ validator: validateSendTime, trigger: 'change' }],
+  loopDayOfWeek: [{ validator: validateLoopDayOfWeek, trigger: 'change' }],
+  sendTimeOfDay: [{ validator: validateSendTimeOfDay, trigger: 'change' }]
 }
 
 const addTimeRange = ref([])
@@ -732,16 +814,49 @@ const submitForm = async () => {
         } else {
           form.senderList = []
         }
-        if (isEdit.value && !isCopy.value) {
-          await updateCustomerMessage(route.params.id as string, form as any)
-          ElMessage.success('更新群发任务成功')
+
+        if (formMode.value === 'loop') {
+          const payload = {
+            taskName: form.taskName,
+            targetType: form.targetType,
+            targetCondition: form.targetCondition,
+            text: form.text,
+            attachments: form.attachments,
+            senderList: form.senderList,
+            loopType: form.loopType,
+            loopDayOfWeek: form.loopDayOfWeek.join(','),
+            sendTimeOfDay: form.sendTimeOfDay,
+            status: form.status
+          }
+          if (isEdit.value && !isCopy.value) {
+            await updateCustomerMessageLoop(route.params.id as string, payload)
+            ElMessage.success('更新循环群发任务成功')
+          } else {
+            await createCustomerMessageLoop(payload)
+            ElMessage.success(isCopy.value ? '复制并创建循环群发任务成功' : '创建循环群发任务成功')
+          }
         } else {
-          await createCustomerMessage(form as any)
-          ElMessage.success(isCopy.value ? '复制并创建群发任务成功' : '创建群发任务成功')
+          const payload = {
+            taskName: form.taskName,
+            sendType: form.sendType,
+            sendTime: form.sendTime,
+            targetType: form.targetType,
+            targetCondition: form.targetCondition,
+            text: form.text,
+            attachments: form.attachments,
+            senderList: form.senderList
+          }
+          if (isEdit.value && !isCopy.value) {
+            await updateCustomerMessage(route.params.id as string, payload as any)
+            ElMessage.success('更新群发任务成功')
+          } else {
+            await createCustomerMessage(payload as any)
+            ElMessage.success(isCopy.value ? '复制并创建群发任务成功' : '创建群发任务成功')
+          }
         }
         router.push('/customer-messages')
       } catch (e) {
-        ElMessage.error('创建失败')
+        ElMessage.error(isEdit.value && !isCopy.value ? '更新失败' : '创建失败')
       } finally {
         submitting.value = false
       }

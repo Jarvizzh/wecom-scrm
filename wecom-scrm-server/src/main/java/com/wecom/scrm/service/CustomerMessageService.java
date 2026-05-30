@@ -262,12 +262,12 @@ public class CustomerMessageService {
     }
 
     @SuppressWarnings("unchecked")
-    List<String> findMatchedExternalUserids(WecomCustomerMessage message) throws Exception {
+    public List<String> findMatchedExternalUserids(WecomCustomerMessage message) throws Exception {
         return findMatchedExternalUserids(message, null);
     }
 
     @SuppressWarnings("unchecked")
-    List<String> findMatchedExternalUserids(WecomCustomerMessage message, String singleSender) throws Exception {
+    public List<String> findMatchedExternalUserids(WecomCustomerMessage message, String singleSender) throws Exception {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT DISTINCT r.external_userid FROM wecom_customer_relation r ");
 
