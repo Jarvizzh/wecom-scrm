@@ -3,7 +3,10 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>【客户】群发任务管理</span>
+          <div class="left">
+            <el-icon><ChatDotRound /></el-icon>
+            <span>客户单聊群发 / Broadcast</span>
+          </div>
           <div class="header-actions">
             <el-button :icon="Refresh" @click="handleRefresh" :loading="loading || loopLoading">刷新</el-button>
             <el-button type="primary" :icon="Plus" @click="handleNewTask">
@@ -220,7 +223,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { 
-  Refresh, Plus, Edit, Delete, CopyDocument,
+  Refresh, Plus, Edit, Delete, CopyDocument, ChatDotRound,
 } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { 
@@ -506,6 +509,20 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.card-header .left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header .el-icon {
+  font-size: 18px;
+  color: #409eff;
 }
 .header-actions {
   display: flex;

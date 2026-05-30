@@ -3,7 +3,10 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>客户欢迎语</span>
+          <div class="left">
+            <el-icon><Message /></el-icon>
+            <span>客户欢迎语 / Welcome Message</span>
+          </div>
           <el-button type="primary" :icon="Plus" @click="$router.push('/welcome-message/create')">新建欢迎语</el-button>
         </div>
       </template>
@@ -81,7 +84,7 @@ import { getWelcomeMsgs, deleteWelcomeMsg } from '@/api/welcomeMsg'
 import { getUsers } from '@/api/user'
 import { getTagGroups, getTagsByGroup } from '@/api/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Message } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const welcomeMsgs = ref<any[]>([])
@@ -210,6 +213,20 @@ const formatTime = (time: string) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.card-header .left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header .el-icon {
+  font-size: 18px;
+  color: #409eff;
 }
 
 .pagination-block {

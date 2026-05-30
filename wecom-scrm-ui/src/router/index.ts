@@ -175,6 +175,12 @@ const routes = [
         meta: { title: '编辑欢迎语 / Edit Welcome Message' }
       },
       {
+        path: 'materials',
+        name: 'Materials',
+        component: () => import('@/views/MaterialList.vue'),
+        meta: { title: '素材库 / Materials' }
+      },
+      {
         path: 'mp-accounts',
         name: 'MpAccounts',
         component: () => import('@/views/mp/MpAccountList.vue'),
