@@ -8,7 +8,7 @@ import java.util.List;
 public class RechargeStatVO {
     private BigDecimal todayAmount;
     private BigDecimal monthAmount;
-    private BigDecimal totalAmount;
+    private BigDecimal lastMonthAmount;
     
     private List<ProductRechargeVO> productStats;
 }

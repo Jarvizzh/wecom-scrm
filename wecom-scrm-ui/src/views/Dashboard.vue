@@ -167,13 +167,13 @@ const stats = ref({
   customerGrowthTrend: [] as any[],
   addWayDistribution: [] as any[],
   yuewenRecharge: {
-    totalAmount: 0,
+    lastMonthAmount: 0,
     todayAmount: 0,
     monthAmount: 0,
     productStats: [] as any[]
   },
   changduRecharge: {
-    totalAmount: 0,
+    lastMonthAmount: 0,
     todayAmount: 0,
     monthAmount: 0,
     productStats: [] as any[]
@@ -220,13 +220,13 @@ const getDailyUserCount = (row: any, date: string) => {
 };
 
 const rechargeCards = computed(() => {
-  const total = (stats.value.yuewenRecharge?.totalAmount || 0) + (stats.value.changduRecharge?.totalAmount || 0);
   const today = (stats.value.yuewenRecharge?.todayAmount || 0) + (stats.value.changduRecharge?.todayAmount || 0);
   const month = (stats.value.yuewenRecharge?.monthAmount || 0) + (stats.value.changduRecharge?.monthAmount || 0);
+  const lastMonth = (stats.value.yuewenRecharge?.lastMonthAmount || 0) + (stats.value.changduRecharge?.lastMonthAmount || 0);
   return [
     { title: '今日总充值', value: today, icon: Money, color: '#67C23A' },
     { title: '当月总充值', value: month, icon: Wallet, color: '#409EFF' },
-    { title: '累计总充值', value: total, icon: Coin, color: '#E6A23C' }
+    { title: '上个月总充值', value: lastMonth, icon: Coin, color: '#E6A23C' }
   ];
 });
 
