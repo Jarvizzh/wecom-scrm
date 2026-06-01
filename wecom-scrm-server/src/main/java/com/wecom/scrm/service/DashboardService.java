@@ -149,6 +149,70 @@ public class DashboardService {
 
         vo.setRechargeTrend(new ArrayList<>(trendMap.values()));
 
+        // --- Recharge Half Year Trend & Product Stats (Last 6 Months) ---
+        LocalDateTime halfYearStart = LocalDateTime.of(LocalDate.now().minusMonths(5).withDayOfMonth(1), LocalTime.MIN);
+        List<String> last6Months = new ArrayList<>();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        for (int i = 5; i >= 0; i--) {
+            last6Months.add(LocalDate.now().minusMonths(i).format(monthFormatter));
+        }
+
+        // Fetch Yuewen and Changdu 6-month daily raw data
+        List<Map<String, Object>> ywHalfYearDaily = yuewenRechargeRecordRepository.sumAmountByDateAndName(halfYearStart);
+        List<Map<String, Object>> cdHalfYearDaily = changduRechargeRecordRepository.sumPayFeeByDateAndName(halfYearStart.format(dtFormatter));
+
+        // 1. Yuewen Product Half-Year Stats
+        RechargeStatVO yuewenHalfYearRecharge = new RechargeStatVO();
+        Map<String, ProductRechargeVO> ywHalfYearProductMap = new HashMap<>();
+        mergeProductStats(ywHalfYearProductMap, ywTodayProducts, "today", false);
+        mergeProductStats(ywHalfYearProductMap, ywMonthProducts, "month", false);
+        mergeProductStats(ywHalfYearProductMap, ywLastMonthProducts, "lastMonth", false);
+        mergeProductMonthlyStats(ywHalfYearProductMap, ywHalfYearDaily, last6Months, false);
+        yuewenHalfYearRecharge.setProductStats(new ArrayList<>(ywHalfYearProductMap.values()));
+        vo.setYuewenHalfYearRecharge(yuewenHalfYearRecharge);
+
+        // 2. Changdu Product Half-Year Stats
+        RechargeStatVO changduHalfYearRecharge = new RechargeStatVO();
+        Map<String, ProductRechargeVO> cdHalfYearProductMap = new HashMap<>();
+        mergeProductStats(cdHalfYearProductMap, cdTodayProducts, "today", true);
+        mergeProductStats(cdHalfYearProductMap, cdMonthProducts, "month", true);
+        mergeProductStats(cdHalfYearProductMap, cdLastMonthProducts, "lastMonth", true);
+        mergeProductMonthlyStats(cdHalfYearProductMap, cdHalfYearDaily, last6Months, true);
+        changduHalfYearRecharge.setProductStats(new ArrayList<>(cdHalfYearProductMap.values()));
+        vo.setChangduHalfYearRecharge(changduHalfYearRecharge);
+
+        // 3. Half Year Monthly Trend Trend
+        Map<String, BigDecimal> ywMonthSum = new HashMap<>();
+        Map<String, BigDecimal> cdMonthSum = new HashMap<>();
+
+        for (Map<String, Object> row : ywHalfYearDaily) {
+            String date = row.get("date") != null ? row.get("date").toString() : "";
+            if (date.length() < 7) continue;
+            String month = date.substring(0, 7);
+            BigDecimal amt = row.get("amount") != null ? new BigDecimal(row.get("amount").toString()) : BigDecimal.ZERO;
+            ywMonthSum.put(month, ywMonthSum.getOrDefault(month, BigDecimal.ZERO).add(amt));
+        }
+        for (Map<String, Object> row : cdHalfYearDaily) {
+            String date = row.get("date") != null ? row.get("date").toString() : "";
+            if (date.length() < 7) continue;
+            String month = date.substring(0, 7);
+            BigDecimal amt = row.get("amount") != null ? convertFenToYuan(((Number) row.get("amount")).longValue()) : BigDecimal.ZERO;
+            cdMonthSum.put(month, cdMonthSum.getOrDefault(month, BigDecimal.ZERO).add(amt));
+        }
+
+        Map<String, Map<String, Object>> halfYearTrendMap = new TreeMap<>();
+        for (String monthStr : last6Months) {
+            Map<String, Object> dayMap = new HashMap<>();
+            dayMap.put("month", monthStr);
+            BigDecimal ywAmt = ywMonthSum.getOrDefault(monthStr, BigDecimal.ZERO);
+            BigDecimal cdAmt = cdMonthSum.getOrDefault(monthStr, BigDecimal.ZERO);
+            dayMap.put("yuewen", ywAmt);
+            dayMap.put("changdu", cdAmt);
+            dayMap.put("total", ywAmt.add(cdAmt));
+            halfYearTrendMap.put(monthStr, dayMap);
+        }
+        vo.setRechargeHalfYearTrend(new ArrayList<>(halfYearTrendMap.values()));
+
         return vo;
     }
 
@@ -261,6 +325,87 @@ public class DashboardService {
         }
     }
 
+    private void mergeProductMonthlyStats(Map<String, ProductRechargeVO> map, List<Map<String, Object>> dailyData, List<String> months, boolean isFen) {
+        // Map of Product -> Month -> Stat (Amount, UserCount)
+        Map<String, Map<String, Map<String, Object>>> productMonthStats = new HashMap<>();
+
+        for (Map<String, Object> row : dailyData) {
+            String name = row.get("name") != null ? row.get("name").toString() : "未知";
+            String date = row.get("date") != null ? row.get("date").toString() : "";
+            if (date.length() < 7) continue;
+            String month = date.substring(0, 7); // yyyy-MM
+            
+            BigDecimal amount = row.get("amount") != null ? new BigDecimal(row.get("amount").toString()) : BigDecimal.ZERO;
+            if (isFen) {
+                amount = convertFenToYuan(((Number) row.get("amount")).longValue());
+            }
+            Long userCount = row.get("userCount") != null ? Long.valueOf(row.get("userCount").toString()) : 0L;
+
+            Map<String, Map<String, Object>> monthMap = productMonthStats.computeIfAbsent(name, k -> new HashMap<>());
+            Map<String, Object> stat = monthMap.computeIfAbsent(month, k -> {
+                Map<String, Object> s = new HashMap<>();
+                s.put("amount", BigDecimal.ZERO);
+                s.put("userCount", 0L);
+                return s;
+            });
+            
+            stat.put("amount", ((BigDecimal) stat.get("amount")).add(amount));
+            stat.put("userCount", ((Long) stat.get("userCount")) + userCount);
+        }
+
+        // Populating the map
+        for (String name : map.keySet()) {
+            ProductRechargeVO pvo = map.get(name);
+            List<Map<String, Object>> monthlyList = new ArrayList<>();
+            Map<String, Map<String, Object>> monthStats = productMonthStats.getOrDefault(name, Collections.emptyMap());
+
+            for (String monthStr : months) {
+                Map<String, Object> monthData = new HashMap<>();
+                monthData.put("month", monthStr);
+                if (monthStats.containsKey(monthStr)) {
+                    monthData.put("amount", monthStats.get(monthStr).get("amount"));
+                    monthData.put("userCount", monthStats.get(monthStr).get("userCount"));
+                } else {
+                    monthData.put("amount", BigDecimal.ZERO);
+                    monthData.put("userCount", 0L);
+                }
+                monthlyList.add(monthData);
+            }
+            pvo.setMonthlyStats(monthlyList);
+        }
+
+        // Add products that only had activity in the monthly stats (not today/month)
+        for (String name : productMonthStats.keySet()) {
+            if (!map.containsKey(name)) {
+                ProductRechargeVO pvo = new ProductRechargeVO();
+                pvo.setProductName(name);
+                pvo.setTodayAmount(BigDecimal.ZERO);
+                pvo.setMonthAmount(BigDecimal.ZERO);
+                pvo.setLastMonthAmount(BigDecimal.ZERO);
+                pvo.setTodayUserCount(0L);
+                pvo.setMonthUserCount(0L);
+                pvo.setLastMonthUserCount(0L);
+                pvo.setDailyStats(new ArrayList<>());
+                
+                List<Map<String, Object>> monthlyList = new ArrayList<>();
+                Map<String, Map<String, Object>> monthStats = productMonthStats.get(name);
+                for (String monthStr : months) {
+                    Map<String, Object> monthData = new HashMap<>();
+                    monthData.put("month", monthStr);
+                    if (monthStats.containsKey(monthStr)) {
+                        monthData.put("amount", monthStats.get(monthStr).get("amount"));
+                        monthData.put("userCount", monthStats.get(monthStr).get("userCount"));
+                    } else {
+                        monthData.put("amount", BigDecimal.ZERO);
+                        monthData.put("userCount", 0L);
+                    }
+                    monthlyList.add(monthData);
+                }
+                pvo.setMonthlyStats(monthlyList);
+                map.put(name, pvo);
+            }
+        }
+    }
 
     private BigDecimal convertFenToYuan(Long fen) {
         if (fen == null) return BigDecimal.ZERO;

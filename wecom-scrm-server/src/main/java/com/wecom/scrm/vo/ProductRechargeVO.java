@@ -18,4 +18,7 @@ public class ProductRechargeVO {
     
     // Recent 7 days daily data: [{date: '2023-01-01', amount: 100, userCount: 10}, ...]
     private List<Map<String, Object>> dailyStats;
+    
+    // Recent 6 months monthly data: [{month: '2023-01', amount: 1000, userCount: 50}, ...]
+    private List<Map<String, Object>> monthlyStats;
 }
