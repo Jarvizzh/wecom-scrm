@@ -49,10 +49,9 @@
           <div v-show="rechargePeriodTab === 'daily'" class="transition-container">
             <el-row :gutter="20" class="charts-row">
               <el-col :span="24" class="mb-30">
-                <el-card shadow="hover" class="premium-chart-card daily-card">
+                <el-card shadow="hover">
                   <template #header>
                     <div class="card-header">
-                      <span class="card-indicator daily"></span>
                       <span>近10日充值趋势</span>
                     </div>
                   </template>
@@ -60,16 +59,15 @@
                 </el-card>
               </el-col>
               <el-col :span="24" class="mb-30">
-                <el-card shadow="hover" class="product-stats-card premium-table-card daily-card">
+                <el-card shadow="hover" class="product-stats-card">
                   <template #header>
                     <div class="card-header">
-                      <span class="card-indicator daily"></span>
                       <span>分产品充值统计（近10日）</span>
                     </div>
                   </template>
                   <el-tabs v-model="activeProductTab" class="custom-tabs">
                     <el-tab-pane label="阅文" name="yuewen">
-                      <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                      <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
                         <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
                         <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
                           <template #default="{ row }">
@@ -98,7 +96,7 @@
                       </el-table>
                     </el-tab-pane>
                     <el-tab-pane label="常读" name="changdu">
-                      <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                      <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
                         <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
                         <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
                           <template #default="{ row }">
@@ -136,10 +134,9 @@
           <div v-show="rechargePeriodTab === 'monthly'" class="transition-container">
             <el-row :gutter="20" class="charts-row">
               <el-col :span="24" class="mb-30">
-                <el-card shadow="hover" class="premium-chart-card monthly-card">
+                <el-card shadow="hover">
                   <template #header>
                     <div class="card-header">
-                      <span class="card-indicator monthly"></span>
                       <span>近半年充值趋势</span>
                     </div>
                   </template>
@@ -147,16 +144,15 @@
                 </el-card>
               </el-col>
               <el-col :span="24" class="mb-30">
-                <el-card shadow="hover" class="product-stats-card premium-table-card monthly-card">
+                <el-card shadow="hover" class="product-stats-card">
                   <template #header>
                     <div class="card-header">
-                      <span class="card-indicator monthly"></span>
                       <span>分产品充值统计（近半年）</span>
                     </div>
                   </template>
                   <el-tabs v-model="activeHalfYearProductTab" class="custom-tabs">
                     <el-tab-pane label="阅文" name="yuewen">
-                      <el-table :data="stats.yuewenHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                      <el-table :data="stats.yuewenHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
                         <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
                         <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
                           <template #default="{ row }">
@@ -167,7 +163,7 @@
                       </el-table>
                     </el-tab-pane>
                     <el-tab-pane label="常读" name="changdu">
-                      <el-table :data="stats.changduHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                      <el-table :data="stats.changduHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
                         <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
                         <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
                           <template #default="{ row }">
@@ -733,36 +729,7 @@ const handleResize = () => {
   transform: translateY(-15px);
 }
 
-/* Card Visual Accent Indicators */
-.card-indicator {
-  display: inline-block;
-  width: 4px;
-  height: 16px;
-  border-radius: 2px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
 
-.card-indicator.daily {
-  background: linear-gradient(to bottom, #409EFF, #67C23A);
-}
-
-.card-indicator.monthly {
-  background: linear-gradient(to bottom, #7c3aed, #ec4899);
-}
-
-.premium-chart-card, .premium-table-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.premium-chart-card.daily-card, .premium-table-card.daily-card {
-  border-left: 3px solid #409eff !important;
-}
-
-.premium-chart-card.monthly-card, .premium-table-card.monthly-card {
-  border-left: 3px solid #7c3aed !important;
-}
 
 .recharge-module :deep(.el-card) {
   border-radius: 16px;
