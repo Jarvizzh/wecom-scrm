@@ -14,14 +14,14 @@
             :class="{ active: rechargePeriodTab === 'daily' }" 
             @click="setRechargePeriodTab('daily')"
           >
-            按天统计 (近10日)
+            按天统计
           </div>
           <div 
             class="segment-item" 
-            :class="{ active: rechargePeriodTab === 'monthly', 'monthly-active': rechargePeriodTab === 'monthly' }" 
+            :class="{ active: rechargePeriodTab === 'monthly' }" 
             @click="setRechargePeriodTab('monthly')"
           >
-            按月统计 (近半年)
+            按月统计
           </div>
         </div>
       </div>
@@ -695,9 +695,6 @@ const handleResize = () => {
   font-weight: 600;
 }
 
-.segment-item.active.monthly-active {
-  color: #7c3aed;
-}
 
 /* Tab Content Grid Overlay to prevent jumping during transitions */
 .tab-content-wrapper {
