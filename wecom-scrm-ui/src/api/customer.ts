@@ -5,6 +5,7 @@ interface FetchCustomersParams {
   size: number;
   customerName?: string;
   unionid?: string;
+  externalUserid?: string;
   employeeName?: string;
   mpAppId?: string;
   tagIds?: string[];

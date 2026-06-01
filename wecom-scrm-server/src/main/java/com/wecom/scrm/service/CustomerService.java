@@ -36,12 +36,13 @@ public class CustomerService {
         this.mpUserRepository = mpUserRepository;
     }
 
-    public Page<CustomerRelationDTO> getCustomers(int page, int size, String customerName, String unionid, String employeeName, String mpAppId, List<String> tagIds, Integer status, boolean onlyDuplicates) {
+    public Page<CustomerRelationDTO> getCustomers(int page, int size, String customerName, String unionid, String externalUserid, String employeeName, String mpAppId, List<String> tagIds, Integer status, boolean onlyDuplicates) {
         Sort sort = onlyDuplicates ? Sort.by(Sort.Direction.ASC, "externalUserid") : Sort.by(Sort.Direction.DESC, "createTime");
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         String cleanCustomerName = StringUtils.hasText(customerName) ? customerName.trim() : null;
         String cleanUnionid = StringUtils.hasText(unionid) ? unionid.trim() : null;
+        String cleanExternalUserid = StringUtils.hasText(externalUserid) ? externalUserid.trim() : null;
         String cleanEmployeeName = StringUtils.hasText(employeeName) ? employeeName.trim() : null;
         String cleanMpAppId = StringUtils.hasText(mpAppId) ? mpAppId.trim() : null;
 
@@ -54,7 +55,7 @@ public class CustomerService {
             cleanTagIds = null;
         }
 
-        Page<CustomerRelationDTO> customerPage = relationRepository.findCustomerRelations(cleanCustomerName, cleanUnionid, cleanEmployeeName, cleanMpAppId, cleanTagIds, hasTags, status, onlyDuplicates, pageable);
+        Page<CustomerRelationDTO> customerPage = relationRepository.findCustomerRelations(cleanCustomerName, cleanUnionid, cleanExternalUserid, cleanEmployeeName, cleanMpAppId, cleanTagIds, hasTags, status, onlyDuplicates, pageable);
 
         if (customerPage.isEmpty()) {
             return customerPage;

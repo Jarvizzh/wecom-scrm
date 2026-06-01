@@ -26,11 +26,12 @@ public class CustomerController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String customerName,
             @RequestParam(required = false) String unionid,
+            @RequestParam(required = false) String externalUserid,
             @RequestParam(required = false) String employeeName,
             @RequestParam(required = false) String mpAppId,
             @RequestParam(required = false) List<String> tagIds,
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "false") boolean onlyDuplicates) {
-        return customerService.getCustomers(page, size, customerName, unionid, employeeName, mpAppId, tagIds, status, onlyDuplicates);
+        return customerService.getCustomers(page, size, customerName, unionid, externalUserid, employeeName, mpAppId, tagIds, status, onlyDuplicates);
     }
 }

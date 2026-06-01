@@ -85,7 +85,11 @@
         </el-table-column>
         <el-table-column label="用户信息" min-width="180">
           <template #default="scope">
-            <div class="user-info-cell" v-if="scope.row.nickname || scope.row.avatar">
+            <div 
+              class="user-info-cell clickable-user" 
+              v-if="scope.row.nickname || scope.row.avatar"
+              @click="handleUserClick(scope.row)"
+            >
               <el-avatar 
                 :size="32" 
                 :src="scope.row.avatar" 
@@ -195,14 +199,130 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- User Detail Dialog -->
+    <el-dialog
+      v-model="userDetailVisible"
+      title="用户基本信息"
+      width="600px"
+      align-center
+      class="user-detail-dialog"
+      :before-close="closeUserDetail"
+    >
+      <div v-loading="detailLoading" class="user-detail-content">
+        <!-- Header Profile Card -->
+        <div class="profile-header-card">
+          <el-avatar 
+            :size="64" 
+            :src="selectedUser.avatar" 
+            shape="square"
+            class="profile-avatar"
+          >
+            {{ selectedUser.nickname?.charAt(0) || 'U' }}
+          </el-avatar>
+          <div class="profile-meta">
+            <h3 class="profile-nickname">{{ selectedUser.nickname || '未知用户' }}</h3>
+            <div class="profile-tags-row">
+              <el-tag size="small" type="info" effect="plain">{{ selectedUser.appName || getProductName(selectedUser.appFlag) }}</el-tag>
+              <el-tag v-if="selectedUser.sex === 1" size="small" type="primary" effect="plain">男</el-tag>
+              <el-tag v-else-if="selectedUser.sex === 2" size="small" type="danger" effect="plain">女</el-tag>
+            </div>
+            <div class="profile-openid-row">
+              <span class="label">OpenID:</span>
+              <span class="value monospace-id">{{ selectedUser.openid || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <el-divider class="meta-divider" />
+
+        <!-- Two Sections: Platform Stats & WeCom CRM -->
+        <div class="detail-grid">
+          <!-- Platform Stats Column -->
+          <div class="detail-section">
+            <h4 class="section-title">
+              <el-icon><Wallet /></el-icon> 平台充值统计
+            </h4>
+            <div class="stats-card">
+              <div class="stats-item">
+                <span class="label">累计充值</span>
+                <span class="value amount">¥ {{ ((selectedUser.chargeAmount || 0) / 100).toFixed(2) }}</span>
+              </div>
+              <div class="stats-item">
+                <span class="label">充值次数</span>
+                <span class="value">{{ selectedUser.chargeNum || 0 }} 次</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- WeCom CRM Details Column -->
+          <div class="detail-section">
+            <h4 class="section-title">
+              <el-icon><Connection /></el-icon> 企微联系信息
+            </h4>
+            
+            <div v-if="wecomCustomer" class="stats-card">
+              <div class="stats-item">
+                <span class="label">归属员工</span>
+                <span class="value">{{ wecomCustomer.employeeName || '-' }}</span>
+              </div>
+              <div class="stats-item">
+                <span class="label">关系状态</span>
+                <div class="status-cell value">
+                  <span :class="['status-dot', 
+                    wecomCustomer.status === 0 ? 'is-active' : 
+                    wecomCustomer.status === 2 ? 'is-lost' : 'is-inactive']"></span>
+                  <span class="status-text">
+                    {{ wecomCustomer.status === 0 ? '正常' : 
+                       wecomCustomer.status === 2 ? '已流失' : '已删除' }}
+                  </span>
+                </div>
+              </div>
+              <div class="stats-item">
+                <span class="label">添加时间</span>
+                <span class="value time-text">{{ formatDateTime(wecomCustomer.relationCreateTime) }}</span>
+              </div>
+              <div class="stats-item tags-item">
+                <span class="label">客户标签</span>
+                <div class="tags-container value">
+                  <el-tag 
+                    v-for="tag in (wecomCustomer.tagNames ? wecomCustomer.tagNames.split(',') : [])" 
+                    :key="tag"
+                    size="small"
+                    effect="plain"
+                    round
+                    class="soft-tag"
+                  >
+                    {{ tag }}
+                  </el-tag>
+                  <span v-if="!wecomCustomer.tagNames" class="no-tags">-</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fallback if not added to WeCom -->
+            <div v-else class="not-added-box">
+              <el-icon class="info-icon"><InfoFilled /></el-icon>
+              <span class="info-text">未添加企微好友</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeUserDetail">关闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { getRechargeRecords, syncRechargeRecords, getProducts } from '@/api/yuewen'
+import { getRechargeRecords, syncRechargeRecords, getProducts, getUsers } from '@/api/yuewen'
+import { getCustomers } from '@/api/customer'
 import { getProductTagStyle } from '@/utils/color'
-import { Wallet, Search, Refresh } from '@element-plus/icons-vue'
+import { Wallet, Search, Refresh, Connection, InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const loading = ref(false)
@@ -211,6 +331,11 @@ const total = ref(0)
 const page = ref(1)
 const size = ref(10)
 const productOptions = ref<any[]>([])
+
+const userDetailVisible = ref(false)
+const detailLoading = ref(false)
+const selectedUser = ref<any>({})
+const wecomCustomer = ref<any>(null)
 
 const queryForm = reactive({
   appFlag: '',
@@ -333,6 +458,71 @@ const formatTime = (timeStr: string) => {
   return date.toLocaleString()
 }
 
+const handleUserClick = async (row: any) => {
+  selectedUser.value = {
+    openid: row.openid,
+    nickname: row.nickname,
+    avatar: row.avatar,
+    sex: row.sex,
+    appFlag: row.appFlag,
+    chargeAmount: 0,
+    chargeNum: 0
+  }
+  
+  userDetailVisible.value = true
+  detailLoading.value = true
+  wecomCustomer.value = null
+  
+  try {
+    const userRes: any = await getUsers({
+      page: 1,
+      size: 1,
+      openid: row.openid
+    })
+    
+    if (userRes.content && userRes.content.length > 0) {
+      const yuewenUser = userRes.content[0]
+      selectedUser.value.chargeAmount = yuewenUser.chargeAmount
+      selectedUser.value.chargeNum = yuewenUser.chargeNum
+      selectedUser.value.externalUserid = yuewenUser.externalUserid
+      
+      if (yuewenUser.externalUserid) {
+        const customerRes: any = await getCustomers({
+          page: 1,
+          size: 1,
+          externalUserid: yuewenUser.externalUserid
+        })
+        
+        if (customerRes.content && customerRes.content.length > 0) {
+          wecomCustomer.value = customerRes.content[0]
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch user detail profile:', error)
+    ElMessage.error('获取用户详细信息失败')
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+const closeUserDetail = () => {
+  userDetailVisible.value = false
+  selectedUser.value = {}
+  wecomCustomer.value = null
+}
+
+const formatDateTime = (dateStr: string) => {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 onMounted(() => {
   fetchProducts()
   fetchData()
@@ -434,5 +624,216 @@ onMounted(() => {
   font-size: 12px;
   color: #909399;
   margin-top: 5px;
+}
+
+/* Clickable User Info Cell */
+.clickable-user {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.clickable-user:hover {
+  opacity: 0.85;
+}
+
+.clickable-user .nickname {
+  transition: color 0.2s;
+}
+
+.clickable-user:hover .nickname {
+  color: #409eff;
+}
+
+/* User Detail Dialog Styles */
+.user-detail-content {
+  padding: 10px 0;
+}
+
+.profile-header-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-avatar {
+  border-radius: 8px !important;
+  flex-shrink: 0;
+  border: 1px solid #f0f0f0;
+}
+
+.profile-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profile-nickname {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-tags-row {
+  display: flex;
+  gap: 8px;
+}
+
+.profile-openid-row {
+  font-size: 13px;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-openid-row .monospace-id {
+  font-family: monospace;
+}
+
+.meta-divider {
+  margin: 20px 0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-title .el-icon {
+  color: #409eff;
+}
+
+.stats-card {
+  background-color: #fafbfc;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #f0f2f5;
+  height: 100%;
+}
+
+.stats-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.stats-item .label {
+  color: #909399;
+}
+
+.stats-item .value {
+  font-weight: 500;
+  color: #303133;
+}
+
+.stats-item .value.amount {
+  color: #f56c6c;
+  font-weight: 600;
+}
+
+.tags-item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.tags-item .value {
+  width: 100%;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.soft-tag {
+  background-color: #f0f7ff;
+  border-color: #d9ecff;
+  color: #409eff;
+}
+
+.not-added-box {
+  background-color: #fcfcfd;
+  border: 1px dashed #e4e7ed;
+  border-radius: 8px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #909399;
+  height: calc(100% - 32px);
+  min-height: 120px;
+}
+
+.not-added-box .info-icon {
+  font-size: 24px;
+  color: #c0c4cc;
+}
+
+.not-added-box .info-text {
+  font-size: 13px;
+}
+
+.status-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.is-active {
+  background-color: #67c23a;
+}
+
+.status-dot.is-lost {
+  background-color: #f56c6c;
+}
+
+.status-dot.is-inactive {
+  background-color: #909399;
+}
+
+.time-text {
+  color: #606266;
+}
+
+.no-tags {
+  color: #c0c4cc;
 }
 </style>

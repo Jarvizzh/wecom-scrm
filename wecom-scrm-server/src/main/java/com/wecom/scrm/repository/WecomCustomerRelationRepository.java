@@ -32,6 +32,7 @@ public interface WecomCustomerRelationRepository extends JpaRepository<WecomCust
            "LEFT JOIN WecomUser u ON r.userid = u.userid " +
            "WHERE (:customerName IS NULL OR c.name LIKE %:customerName%) " +
            "AND (:unionid IS NULL OR c.unionid = :unionid) " +
+           "AND (:externalUserid IS NULL OR r.externalUserid = :externalUserid) " +
            "AND (:employeeName IS NULL OR u.name LIKE %:employeeName%) " +
            "AND (:mpAppId IS NULL OR EXISTS (SELECT 1 FROM WecomMpUser m WHERE m.unionid = c.unionid AND m.mpAppId = :mpAppId)) " +
            "AND (:hasTags = false OR EXISTS (SELECT 1 FROM WecomCustomerTag ct WHERE ct.externalUserid = r.externalUserid AND ct.userid = r.userid AND ct.tagId IN :tagIds)) " +
@@ -39,6 +40,7 @@ public interface WecomCustomerRelationRepository extends JpaRepository<WecomCust
            "AND (:onlyDuplicates = false OR (SELECT COUNT(r2) FROM WecomCustomerRelation r2 WHERE r2.externalUserid = r.externalUserid AND r2.status = 0) > 1)")
     Page<CustomerRelationDTO> findCustomerRelations(@Param("customerName") String customerName, 
                                                     @Param("unionid") String unionid,
+                                                    @Param("externalUserid") String externalUserid,
                                                     @Param("employeeName") String employeeName, 
                                                     @Param("mpAppId") String mpAppId,
                                                     @Param("tagIds") List<String> tagIds,
