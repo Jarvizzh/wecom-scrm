@@ -3,8 +3,27 @@
     <!-- Recharge Statistics Module (Super Admin Only) -->
     <div v-if="isSuperAdmin" class="dashboard-module recharge-module">
       <div class="module-header">
-        <el-icon><Money /></el-icon>
-        <span class="module-title">充值统计</span>
+        <div class="header-left">
+          <el-icon><Money /></el-icon>
+          <span class="module-title">充值统计</span>
+        </div>
+        <div class="segmented-control">
+          <div class="slider-bg" :class="rechargePeriodTab"></div>
+          <div 
+            class="segment-item" 
+            :class="{ active: rechargePeriodTab === 'daily' }" 
+            @click="setRechargePeriodTab('daily')"
+          >
+            按天统计 (近10日)
+          </div>
+          <div 
+            class="segment-item" 
+            :class="{ active: rechargePeriodTab === 'monthly', 'monthly-active': rechargePeriodTab === 'monthly' }" 
+            @click="setRechargePeriodTab('monthly')"
+          >
+            按月统计 (近半年)
+          </div>
+        </div>
       </div>
       
       <!-- Recharge Summary Cards -->
@@ -24,142 +43,147 @@
         </el-col>
       </el-row>
 
-      <!-- Recharge Trend & Products -->
-      <el-tabs v-model="rechargePeriodTab" class="recharge-period-tabs custom-tabs" @tab-change="handlePeriodTabChange">
-        <el-tab-pane label="按天统计 (近10日)" name="daily">
-          <el-row :gutter="20" class="charts-row">
-            <el-col :span="24" class="mb-30">
-              <el-card shadow="hover">
-                <template #header>
-                  <div class="card-header">
-                    <span>近10日充值趋势</span>
-                  </div>
-                </template>
-                <div ref="rechargeTrendChartRef" class="chart-box"></div>
-              </el-card>
-            </el-col>
-            <el-col :span="24" class="mb-30">
-              <el-card shadow="hover" class="product-stats-card">
-                <template #header>
-                  <div class="card-header">
-                    <span>分产品充值统计（近10日）</span>
-                  </div>
-                </template>
-                <el-tabs v-model="activeProductTab" class="custom-tabs">
-                  <el-tab-pane label="阅文" name="yuewen">
-                    <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                      <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
-                      <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
-                        <template #default="{ row }">
-                          <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
-                          <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="今日" width="110" align="right" fixed="right">
-                        <template #default="{ row }">
-                          <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
-                          <div class="user-count">{{ row.todayUserCount }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="本月" width="110" align="right" fixed="right">
-                        <template #default="{ row }">
-                          <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
-                          <div class="user-count">{{ row.monthUserCount }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="上月" width="110" align="right" fixed="right">
-                        <template #default="{ row }">
-                          <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
-                          <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
-                        </template>
-                      </el-table-column>
-                    </el-table>
-                  </el-tab-pane>
-                  <el-tab-pane label="常读" name="changdu">
-                    <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                      <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
-                      <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
-                        <template #default="{ row }">
-                          <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
-                          <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="今日" width="110" align="right" fixed="right">
-                        <template #default="{ row }">
-                          <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
-                          <div class="user-count">{{ row.todayUserCount }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="本月" width="110" align="right" fixed="right">
-                        <template #default="{ row }">
-                          <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
-                          <div class="user-count">{{ row.monthUserCount }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="上月" width="110" align="right" fixed="right">
-                        <template #default="{ row }">
-                          <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
-                          <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
-                        </template>
-                      </el-table-column>
-                    </el-table>
-                  </el-tab-pane>
-                </el-tabs>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-tab-pane>
-
-        <el-tab-pane label="按月统计 (近半年)" name="monthly">
-          <el-row :gutter="20" class="charts-row">
-            <el-col :span="24" class="mb-30">
-              <el-card shadow="hover">
-                <template #header>
-                  <div class="card-header">
-                    <span>近半年充值趋势</span>
-                  </div>
-                </template>
-                <div ref="rechargeHalfYearTrendChartRef" class="chart-box"></div>
-              </el-card>
-            </el-col>
-            <el-col :span="24" class="mb-30">
-              <el-card shadow="hover" class="product-stats-card">
-                <template #header>
-                  <div class="card-header">
-                    <span>分产品充值统计（近半年）</span>
-                  </div>
-                </template>
-                <el-tabs v-model="activeHalfYearProductTab" class="custom-tabs">
-                  <el-tab-pane label="阅文" name="yuewen">
-                    <el-table :data="stats.yuewenHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                      <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
-                      <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
-                        <template #default="{ row }">
-                          <div class="amount-daily">¥ {{ getMonthlyAmount(row, month).toFixed(2) }}</div>
-                          <div class="user-count">{{ getMonthlyUserCount(row, month) }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <!-- No today, month, lastMonth columns for half-year stats -->
-                    </el-table>
-                  </el-tab-pane>
-                  <el-tab-pane label="常读" name="changdu">
-                    <el-table :data="stats.changduHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                      <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
-                      <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
-                        <template #default="{ row }">
-                          <div class="amount-daily">¥ {{ getMonthlyAmount(row, month).toFixed(2) }}</div>
-                          <div class="user-count">{{ getMonthlyUserCount(row, month) }} 人</div>
-                        </template>
-                      </el-table-column>
-                      <!-- No today, month, lastMonth columns for half-year stats -->
-                    </el-table>
-                  </el-tab-pane>
-                </el-tabs>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-tab-pane>
-      </el-tabs>
+      <!-- Recharge Trend & Products (Segmented Control Content) -->
+      <div class="tab-content-wrapper">
+        <Transition name="slide-fade">
+          <div v-show="rechargePeriodTab === 'daily'" class="transition-container">
+            <el-row :gutter="20" class="charts-row">
+              <el-col :span="24" class="mb-30">
+                <el-card shadow="hover" class="premium-chart-card daily-card">
+                  <template #header>
+                    <div class="card-header">
+                      <span class="card-indicator daily"></span>
+                      <span>近10日充值趋势</span>
+                    </div>
+                  </template>
+                  <div ref="rechargeTrendChartRef" class="chart-box"></div>
+                </el-card>
+              </el-col>
+              <el-col :span="24" class="mb-30">
+                <el-card shadow="hover" class="product-stats-card premium-table-card daily-card">
+                  <template #header>
+                    <div class="card-header">
+                      <span class="card-indicator daily"></span>
+                      <span>分产品充值统计（近10日）</span>
+                    </div>
+                  </template>
+                  <el-tabs v-model="activeProductTab" class="custom-tabs">
+                    <el-tab-pane label="阅文" name="yuewen">
+                      <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
+                          <template #default="{ row }">
+                            <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
+                            <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="今日" width="110" align="right" fixed="right">
+                          <template #default="{ row }">
+                            <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
+                            <div class="user-count">{{ row.todayUserCount }} 人</div>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="本月" width="110" align="right" fixed="right">
+                          <template #default="{ row }">
+                            <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
+                            <div class="user-count">{{ row.monthUserCount }} 人</div>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="上月" width="110" align="right" fixed="right">
+                          <template #default="{ row }">
+                            <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
+                            <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-tab-pane>
+                    <el-tab-pane label="常读" name="changdu">
+                      <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
+                          <template #default="{ row }">
+                            <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
+                            <div class="user-count">{{ getDailyUserCount(row, date) }} 人</div>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="今日" width="110" align="right" fixed="right">
+                          <template #default="{ row }">
+                            <div class="amount-today">¥ {{ row.todayAmount.toFixed(2) }}</div>
+                            <div class="user-count">{{ row.todayUserCount }} 人</div>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="本月" width="110" align="right" fixed="right">
+                          <template #default="{ row }">
+                            <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
+                            <div class="user-count">{{ row.monthUserCount }} 人</div>
+                          </template>
+                        </el-table-column>
+                        <el-table-column label="上月" width="110" align="right" fixed="right">
+                          <template #default="{ row }">
+                            <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
+                            <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-tab-pane>
+                  </el-tabs>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </Transition>
+        <Transition name="slide-fade">
+          <div v-show="rechargePeriodTab === 'monthly'" class="transition-container">
+            <el-row :gutter="20" class="charts-row">
+              <el-col :span="24" class="mb-30">
+                <el-card shadow="hover" class="premium-chart-card monthly-card">
+                  <template #header>
+                    <div class="card-header">
+                      <span class="card-indicator monthly"></span>
+                      <span>近半年充值趋势</span>
+                    </div>
+                  </template>
+                  <div ref="rechargeHalfYearTrendChartRef" class="chart-box"></div>
+                </el-card>
+              </el-col>
+              <el-col :span="24" class="mb-30">
+                <el-card shadow="hover" class="product-stats-card premium-table-card monthly-card">
+                  <template #header>
+                    <div class="card-header">
+                      <span class="card-indicator monthly"></span>
+                      <span>分产品充值统计（近半年）</span>
+                    </div>
+                  </template>
+                  <el-tabs v-model="activeHalfYearProductTab" class="custom-tabs">
+                    <el-tab-pane label="阅文" name="yuewen">
+                      <el-table :data="stats.yuewenHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
+                          <template #default="{ row }">
+                            <div class="amount-daily">¥ {{ getMonthlyAmount(row, month).toFixed(2) }}</div>
+                            <div class="user-count">{{ getMonthlyUserCount(row, month) }} 人</div>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-tab-pane>
+                    <el-tab-pane label="常读" name="changdu">
+                      <el-table :data="stats.changduHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0' }">
+                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
+                          <template #default="{ row }">
+                            <div class="amount-daily">¥ {{ getMonthlyAmount(row, month).toFixed(2) }}</div>
+                            <div class="user-count">{{ getMonthlyUserCount(row, month) }} 人</div>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </el-tab-pane>
+                  </el-tabs>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </Transition>
+      </div>
     </div>
 
     <!-- Customer Statistics Module -->
@@ -298,6 +322,11 @@ const handlePeriodTabChange = () => {
     rechargeTrendChart?.resize();
     rechargeHalfYearTrendChart?.resize();
   }, 100);
+};
+
+const setRechargePeriodTab = (tabName: string) => {
+  rechargePeriodTab.value = tabName;
+  handlePeriodTabChange();
 };
 
 const last10Days = computed(() => {
@@ -601,6 +630,167 @@ const handleResize = () => {
   gap: 10px;
   margin-bottom: 20px;
   padding-left: 4px;
+}
+
+.recharge-module .module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Premium Segmented Control (iOS capsule style) */
+.segmented-control {
+  position: relative;
+  display: inline-flex;
+  background: #e2e8f0;
+  border-radius: 20px;
+  padding: 3px;
+  border: 1px solid #cbd5e1;
+  backdrop-filter: blur(10px);
+}
+
+.slider-bg {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  background: #ffffff;
+  border-radius: 17px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 0;
+}
+
+.slider-bg.daily {
+  transform: translateX(0);
+}
+
+.slider-bg.monthly {
+  transform: translateX(100%);
+}
+
+.segment-item {
+  position: relative;
+  z-index: 1;
+  padding: 6px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  border-radius: 17px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  user-select: none;
+}
+
+.segment-item:hover {
+  color: #0f172a;
+}
+
+.segment-item.active {
+  color: #409eff;
+  font-weight: 600;
+}
+
+.segment-item.active.monthly-active {
+  color: #7c3aed;
+}
+
+/* Tab Content Grid Overlay to prevent jumping during transitions */
+.tab-content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  width: 100%;
+}
+
+.transition-container {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  width: 100%;
+}
+
+/* slide-fade transition styles */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-15px);
+}
+
+/* Card Visual Accent Indicators */
+.card-indicator {
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.card-indicator.daily {
+  background: linear-gradient(to bottom, #409EFF, #67C23A);
+}
+
+.card-indicator.monthly {
+  background: linear-gradient(to bottom, #7c3aed, #ec4899);
+}
+
+.premium-chart-card, .premium-table-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-chart-card.daily-card, .premium-table-card.daily-card {
+  border-left: 3px solid #409eff !important;
+}
+
+.premium-chart-card.monthly-card, .premium-table-card.monthly-card {
+  border-left: 3px solid #7c3aed !important;
+}
+
+.recharge-module :deep(.el-card) {
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid rgba(235, 238, 245, 0.7);
+  transition: all 0.3s ease;
+}
+
+.recharge-module :deep(.el-card:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Responsive headers on mobile */
+@media (max-width: 600px) {
+  .recharge-module .module-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .segmented-control {
+    width: 100%;
+    display: flex;
+  }
+  .segment-item {
+    flex: 1;
+    text-align: center;
+  }
 }
 
 .module-header .el-icon {
