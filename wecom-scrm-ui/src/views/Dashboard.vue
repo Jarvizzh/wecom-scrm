@@ -62,13 +62,13 @@
                 <el-card shadow="hover" class="product-stats-card">
                   <template #header>
                     <div class="card-header">
-                      <span>分产品充值统计（近10日）</span>
+                      <span>分产品充值统计</span>
                     </div>
                   </template>
                   <el-tabs v-model="activeProductTab" class="custom-tabs">
                     <el-tab-pane label="阅文" name="yuewen">
                       <el-table :data="stats.yuewenRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column prop="productName" label="产品名称" min-width="100" fixed show-overflow-tooltip />
                         <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
                           <template #default="{ row }">
                             <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
@@ -97,7 +97,7 @@
                     </el-tab-pane>
                     <el-tab-pane label="常读" name="changdu">
                       <el-table :data="stats.changduRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column prop="productName" label="产品名称" min-width="100" fixed show-overflow-tooltip />
                         <el-table-column v-for="date in last10Days" :key="date" :label="formatDate(date)" min-width="110" align="right">
                           <template #default="{ row }">
                             <div class="amount-daily">¥ {{ getDailyAmount(row, date).toFixed(2) }}</div>
@@ -147,13 +147,13 @@
                 <el-card shadow="hover" class="product-stats-card">
                   <template #header>
                     <div class="card-header">
-                      <span>分产品充值统计（近半年）</span>
+                      <span>分产品充值统计</span>
                     </div>
                   </template>
                   <el-tabs v-model="activeHalfYearProductTab" class="custom-tabs">
                     <el-tab-pane label="阅文" name="yuewen">
                       <el-table :data="stats.yuewenHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column prop="productName" label="产品名称" min-width="100" fixed show-overflow-tooltip />
                         <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
                           <template #default="{ row }">
                             <div class="amount-daily">¥ {{ getMonthlyAmount(row, month).toFixed(2) }}</div>
@@ -164,7 +164,7 @@
                     </el-tab-pane>
                     <el-tab-pane label="常读" name="changdu">
                       <el-table :data="stats.changduHalfYearRecharge?.productStats || []" size="small" height="350" stripe class="custom-table" :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: 'bold', borderBottom: '1px solid #ebeef5' }">
-                        <el-table-column prop="productName" label="产品名称" min-width="120" fixed show-overflow-tooltip />
+                        <el-table-column prop="productName" label="产品名称" min-width="100" fixed show-overflow-tooltip />
                         <el-table-column v-for="month in last6Months" :key="month" :label="formatMonth(month)" min-width="110" align="right">
                           <template #default="{ row }">
                             <div class="amount-daily">¥ {{ getMonthlyAmount(row, month).toFixed(2) }}</div>
