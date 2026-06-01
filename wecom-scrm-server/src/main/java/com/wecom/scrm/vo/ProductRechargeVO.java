@@ -11,8 +11,10 @@ public class ProductRechargeVO {
     private String productName;
     private BigDecimal todayAmount;
     private BigDecimal monthAmount;
+    private BigDecimal lastMonthAmount;
     private Long todayUserCount;
     private Long monthUserCount;
+    private Long lastMonthUserCount;
     
     // Recent 7 days daily data: [{date: '2023-01-01', amount: 100, userCount: 10}, ...]
     private List<Map<String, Object>> dailyStats;

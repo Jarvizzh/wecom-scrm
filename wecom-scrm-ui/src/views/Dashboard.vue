@@ -65,6 +65,12 @@
                       <div class="user-count">{{ row.monthUserCount }} 人</div>
                     </template>
                   </el-table-column>
+                  <el-table-column label="上月" width="110" align="right" fixed="right">
+                    <template #default="{ row }">
+                      <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
+                      <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
+                    </template>
+                  </el-table-column>
                 </el-table>
               </el-tab-pane>
               <el-tab-pane label="常读" name="changdu">
@@ -86,6 +92,12 @@
                     <template #default="{ row }">
                       <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
                       <div class="user-count">{{ row.monthUserCount }} 人</div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="上月" width="110" align="right" fixed="right">
+                    <template #default="{ row }">
+                      <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
+                      <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
                     </template>
                   </el-table-column>
                 </el-table>

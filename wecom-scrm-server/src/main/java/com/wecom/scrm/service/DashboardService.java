@@ -77,11 +77,13 @@ public class DashboardService {
 
         List<Map<String, Object>> ywTodayProducts = yuewenRechargeRecordRepository.sumAmountByTimeRangeGroupByName(todayStart, tomorrowStart);
         List<Map<String, Object>> ywMonthProducts = yuewenRechargeRecordRepository.sumAmountByTimeRangeGroupByName(monthStart, nextMonthStart);
+        List<Map<String, Object>> ywLastMonthProducts = yuewenRechargeRecordRepository.sumAmountByTimeRangeGroupByName(lastMonthStart, lastMonthEnd);
         List<Map<String, Object>> ywDailyProducts = yuewenRechargeRecordRepository.sumAmountByDateAndName(tenDaysAgo);
 
         Map<String, ProductRechargeVO> ywProductMap = new HashMap<>();
         mergeProductStats(ywProductMap, ywTodayProducts, "today", false);
         mergeProductStats(ywProductMap, ywMonthProducts, "month", false);
+        mergeProductStats(ywProductMap, ywLastMonthProducts, "lastMonth", false);
         mergeProductDailyStats(ywProductMap, ywDailyProducts, tenDaysAgo, false);
         yuewenRecharge.setProductStats(new ArrayList<>(ywProductMap.values()));
         vo.setYuewenRecharge(yuewenRecharge);
@@ -100,11 +102,14 @@ public class DashboardService {
                 todayStart.format(dtFormatter), tomorrowStart.format(dtFormatter));
         List<Map<String, Object>> cdMonthProducts = changduRechargeRecordRepository.sumPayFeeByTimeRangeGroupByName(
                 monthStart.format(dtFormatter), nextMonthStart.format(dtFormatter));
+        List<Map<String, Object>> cdLastMonthProducts = changduRechargeRecordRepository.sumPayFeeByTimeRangeGroupByName(
+                lastMonthStart.format(dtFormatter), lastMonthEnd.format(dtFormatter));
         List<Map<String, Object>> cdDailyProducts = changduRechargeRecordRepository.sumPayFeeByDateAndName(tenDaysAgo.format(dtFormatter));
 
         Map<String, ProductRechargeVO> cdProductMap = new HashMap<>();
         mergeProductStats(cdProductMap, cdTodayProducts, "today", true);
         mergeProductStats(cdProductMap, cdMonthProducts, "month", true);
+        mergeProductStats(cdProductMap, cdLastMonthProducts, "lastMonth", true);
         mergeProductDailyStats(cdProductMap, cdDailyProducts, tenDaysAgo, true);
         changduRecharge.setProductStats(new ArrayList<>(cdProductMap.values()));
         vo.setChangduRecharge(changduRecharge);
@@ -161,8 +166,10 @@ public class DashboardService {
                 vo.setProductName(k);
                 vo.setTodayAmount(BigDecimal.ZERO);
                 vo.setMonthAmount(BigDecimal.ZERO);
+                vo.setLastMonthAmount(BigDecimal.ZERO);
                 vo.setTodayUserCount(0L);
                 vo.setMonthUserCount(0L);
+                vo.setLastMonthUserCount(0L);
                 vo.setDailyStats(new ArrayList<>());
                 return vo;
             });
@@ -173,6 +180,9 @@ public class DashboardService {
             } else if ("month".equals(type)) {
                 pvo.setMonthAmount(amount);
                 pvo.setMonthUserCount(userCount);
+            } else if ("lastMonth".equals(type)) {
+                pvo.setLastMonthAmount(amount);
+                pvo.setLastMonthUserCount(userCount);
             }
         }
     }
@@ -225,8 +235,10 @@ public class DashboardService {
                 pvo.setProductName(name);
                 pvo.setTodayAmount(BigDecimal.ZERO);
                 pvo.setMonthAmount(BigDecimal.ZERO);
+                pvo.setLastMonthAmount(BigDecimal.ZERO);
                 pvo.setTodayUserCount(0L);
                 pvo.setMonthUserCount(0L);
+                pvo.setLastMonthUserCount(0L);
                 
                 List<Map<String, Object>> dailyList = new ArrayList<>();
                 Map<String, Map<String, Object>> dateStats = productDateStats.get(name);
