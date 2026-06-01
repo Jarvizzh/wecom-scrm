@@ -300,7 +300,7 @@ const last6Months = computed(() => {
 const formatMonth = (monthStr: string) => {
   if (!monthStr) return '';
   const parts = monthStr.split('-');
-  return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : monthStr;
+  return parts.length >= 2 ? `${parts[0]}-${parts[1]}` : monthStr;
 };
 
 const getMonthlyAmount = (row: any, month: string) => {
