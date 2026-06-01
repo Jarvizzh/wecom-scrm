@@ -699,7 +699,7 @@ const handleResize = () => {
 /* Tab Content Grid Overlay to prevent jumping during transitions */
 .tab-content-wrapper {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto;
   width: 100%;
 }
@@ -708,6 +708,7 @@ const handleResize = () => {
   grid-column: 1 / -1;
   grid-row: 1 / -1;
   width: 100%;
+  min-width: 0;
 }
 
 /* slide-fade transition styles */
@@ -853,6 +854,8 @@ const handleResize = () => {
 
 .product-stats-card {
   height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 .product-stats-card :deep(.el-card__body) {
   padding-top: 0;
