@@ -46,6 +46,8 @@ public class DashboardService {
         LocalDateTime nextMonthStart = monthStart.plusMonths(1);
         LocalDateTime lastMonthStart = LocalDateTime.of(LocalDate.now().minusMonths(1).withDayOfMonth(1), LocalTime.MIN);
         LocalDateTime lastMonthEnd = monthStart;
+        LocalDateTime yearStart = LocalDateTime.of(LocalDate.now().withDayOfYear(1), LocalTime.MIN);
+        LocalDateTime nextYearStart = yearStart.plusYears(1);
         LocalDateTime tenDaysAgo = todayStart.minusDays(9); // Include today, so go back 9 days
 
         vo.setTodayNewCustomerCount(wecomCustomerRelationRepository.countByCreateTimeAfter(todayStart));
@@ -72,6 +74,7 @@ public class DashboardService {
         // --- Yuewen Recharge ---
         RechargeStatVO yuewenRecharge = new RechargeStatVO();
         yuewenRecharge.setLastMonthAmount(yuewenRechargeRecordRepository.sumAmountByTimeRange(lastMonthStart, lastMonthEnd));
+        yuewenRecharge.setYearAmount(yuewenRechargeRecordRepository.sumAmountByTimeRange(yearStart, nextYearStart));
         yuewenRecharge.setTodayAmount(yuewenRechargeRecordRepository.sumAmountByTimeRange(todayStart, tomorrowStart));
         yuewenRecharge.setMonthAmount(yuewenRechargeRecordRepository.sumAmountByTimeRange(monthStart, nextMonthStart));
 
@@ -93,6 +96,8 @@ public class DashboardService {
         DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         changduRecharge.setLastMonthAmount(convertFenToYuan(changduRechargeRecordRepository.sumPayFeeByTimeRange(
                 lastMonthStart.format(dtFormatter), lastMonthEnd.format(dtFormatter))));
+        changduRecharge.setYearAmount(convertFenToYuan(changduRechargeRecordRepository.sumPayFeeByTimeRange(
+                yearStart.format(dtFormatter), nextYearStart.format(dtFormatter))));
         changduRecharge.setTodayAmount(convertFenToYuan(changduRechargeRecordRepository.sumPayFeeByTimeRange(
                 todayStart.format(dtFormatter), tomorrowStart.format(dtFormatter))));
         changduRecharge.setMonthAmount(convertFenToYuan(changduRechargeRecordRepository.sumPayFeeByTimeRange(

@@ -87,12 +87,6 @@
                             <div class="user-count">{{ row.monthUserCount }} 人</div>
                           </template>
                         </el-table-column>
-                        <el-table-column label="上月" width="110" align="right" fixed="right">
-                          <template #default="{ row }">
-                            <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
-                            <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
-                          </template>
-                        </el-table-column>
                       </el-table>
                     </el-tab-pane>
                     <el-tab-pane label="常读" name="changdu">
@@ -114,12 +108,6 @@
                           <template #default="{ row }">
                             <div class="amount-month">¥ {{ row.monthAmount.toFixed(2) }}</div>
                             <div class="user-count">{{ row.monthUserCount }} 人</div>
-                          </template>
-                        </el-table-column>
-                        <el-table-column label="上月" width="110" align="right" fixed="right">
-                          <template #default="{ row }">
-                            <div class="amount-month" style="color: #E6A23C;">¥ {{ (row.lastMonthAmount || 0).toFixed(2) }}</div>
-                            <div class="user-count">{{ row.lastMonthUserCount || 0 }} 人</div>
                           </template>
                         </el-table-column>
                       </el-table>
@@ -254,12 +242,14 @@ const stats = ref({
   addWayDistribution: [] as any[],
   yuewenRecharge: {
     lastMonthAmount: 0,
+    yearAmount: 0,
     todayAmount: 0,
     monthAmount: 0,
     productStats: [] as any[]
   },
   changduRecharge: {
     lastMonthAmount: 0,
+    yearAmount: 0,
     todayAmount: 0,
     monthAmount: 0,
     productStats: [] as any[]
@@ -364,11 +354,11 @@ const getDailyUserCount = (row: any, date: string) => {
 const rechargeCards = computed(() => {
   const today = (stats.value.yuewenRecharge?.todayAmount || 0) + (stats.value.changduRecharge?.todayAmount || 0);
   const month = (stats.value.yuewenRecharge?.monthAmount || 0) + (stats.value.changduRecharge?.monthAmount || 0);
-  const lastMonth = (stats.value.yuewenRecharge?.lastMonthAmount || 0) + (stats.value.changduRecharge?.lastMonthAmount || 0);
+  const year = (stats.value.yuewenRecharge?.yearAmount || 0) + (stats.value.changduRecharge?.yearAmount || 0);
   return [
     { title: '今日总充值', value: today, icon: Money, color: '#67C23A' },
     { title: '当月总充值', value: month, icon: Wallet, color: '#409EFF' },
-    { title: '上个月总充值', value: lastMonth, icon: Coin, color: '#E6A23C' }
+    { title: '年度总充值', value: year, icon: Coin, color: '#E6A23C' }
   ];
 });
 

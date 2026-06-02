@@ -9,6 +9,7 @@ public class RechargeStatVO {
     private BigDecimal todayAmount;
     private BigDecimal monthAmount;
     private BigDecimal lastMonthAmount;
+    private BigDecimal yearAmount;
     
     private List<ProductRechargeVO> productStats;
 }
