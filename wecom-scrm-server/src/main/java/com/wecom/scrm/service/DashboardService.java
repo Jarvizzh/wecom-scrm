@@ -35,7 +35,7 @@ public class DashboardService {
     public DashboardVO getSummary() {
         DashboardVO vo = new DashboardVO();
 
-        vo.setTotalCustomerCount(wecomCustomerRepository.count());
+        vo.setTotalCustomerCount(wecomCustomerRelationRepository.countDistinctExternalUseridByStatusNotDeleted());
         vo.setTotalEmployeeCount(wecomUserRepository.count());
         vo.setTotalGroupChatCount(groupChatRepository.count());
         vo.setTotalMessageCount(wecomCustomerMessageRepository.count());

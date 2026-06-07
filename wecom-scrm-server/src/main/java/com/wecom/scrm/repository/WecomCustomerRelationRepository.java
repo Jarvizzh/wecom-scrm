@@ -72,6 +72,9 @@ public interface WecomCustomerRelationRepository extends JpaRepository<WecomCust
     @Query("SELECT DISTINCT r.externalUserid FROM WecomCustomerRelation r WHERE (:status IS NULL OR r.status = :status)")
     List<String> findExternalUseridsByStatus(@Param("status") Integer status);
 
+    @Query("SELECT COUNT(DISTINCT r.externalUserid) FROM WecomCustomerRelation r WHERE r.status <> 1")
+    long countDistinctExternalUseridByStatusNotDeleted();
+
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE WecomCustomerRelation r SET r.status = :status WHERE r.externalUserid IN :externalUserids")
     void markStatusByExternalUseridIn(@Param("externalUserids") Collection<String> externalUserids, @Param("status") Integer status);
