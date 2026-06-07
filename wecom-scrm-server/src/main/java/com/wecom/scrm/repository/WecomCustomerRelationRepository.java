@@ -36,7 +36,7 @@ public interface WecomCustomerRelationRepository extends JpaRepository<WecomCust
            "AND (:employeeName IS NULL OR u.name LIKE %:employeeName%) " +
            "AND (:mpAppId IS NULL OR EXISTS (SELECT 1 FROM WecomMpUser m WHERE m.unionid = c.unionid AND m.mpAppId = :mpAppId)) " +
            "AND (:hasTags = false OR EXISTS (SELECT 1 FROM WecomCustomerTag ct WHERE ct.externalUserid = r.externalUserid AND ct.userid = r.userid AND ct.tagId IN :tagIds)) " +
-           "AND (:status IS NULL OR r.status = :status) " +
+           "AND (:status IS NULL AND r.status <> 1 OR :status IS NOT NULL AND r.status = :status) " +
            "AND (:onlyDuplicates = false OR (SELECT COUNT(r2) FROM WecomCustomerRelation r2 WHERE r2.externalUserid = r.externalUserid AND r2.status = 0) > 1)")
     Page<CustomerRelationDTO> findCustomerRelations(@Param("customerName") String customerName, 
                                                     @Param("unionid") String unionid,
@@ -58,7 +58,7 @@ public interface WecomCustomerRelationRepository extends JpaRepository<WecomCust
            "AND (:employeeName IS NULL OR u.name LIKE %:employeeName%) " +
            "AND (:mpAppId IS NULL OR EXISTS (SELECT 1 FROM WecomMpUser m WHERE m.unionid = c.unionid AND m.mpAppId = :mpAppId)) " +
            "AND (:hasTags = false OR EXISTS (SELECT 1 FROM WecomCustomerTag ct WHERE ct.externalUserid = r.externalUserid AND ct.userid = r.userid AND ct.tagId IN :tagIds)) " +
-           "AND (:status IS NULL OR r.status = :status) " +
+           "AND (:status IS NULL AND r.status <> 1 OR :status IS NOT NULL AND r.status = :status) " +
            "AND (:onlyDuplicates = false OR (SELECT COUNT(r2) FROM WecomCustomerRelation r2 WHERE r2.externalUserid = r.externalUserid AND r2.status = 0) > 1)")
     List<CustomerTargetDTO> findTargetsByFilters(@Param("customerName") String customerName, 
                                                                    @Param("unionid") String unionid,

@@ -78,7 +78,6 @@
               </template>
               <el-option label="正常" :value="0" />
               <el-option label="已流失" :value="2" />
-              <el-option label="已删除" :value="1" />
             </el-select>
           </el-form-item>
           <el-form-item label="标签">
