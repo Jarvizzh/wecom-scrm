@@ -21,3 +21,10 @@ export function getGroupMembers(chatId: string) {
     method: 'get'
   })
 }
+
+export function getCustomerGroupChats(externalUserid: string): Promise<any> {
+  return request({
+    url: `/group-chat/customer/${externalUserid}`,
+    method: 'get'
+  })
+}

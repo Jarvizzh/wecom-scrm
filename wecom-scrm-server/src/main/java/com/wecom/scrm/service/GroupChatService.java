@@ -56,4 +56,15 @@ public class GroupChatService {
             return vo;
         }).collect(Collectors.toList());
     }
+
+    public List<GroupChatVO> getCustomerGroupChats(String externalUserid) {
+        List<WecomGroupChatMember> memberships = memberRepository.findByUserid(externalUserid);
+        if (memberships.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<String> chatIds = memberships.stream()
+                .map(WecomGroupChatMember::getChatId)
+                .collect(Collectors.toList());
+        return groupChatRepository.findVOByChatIdIn(chatIds);
+    }
 }

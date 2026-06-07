@@ -291,7 +291,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="100" fixed="right" align="center">
+        <el-table-column label="操作" width="150" fixed="right" align="center">
           <template #default="scope">
             <el-button 
               type="primary" 
@@ -301,6 +301,16 @@
               :icon="CollectionTag" 
               @click="openTagDialog(scope.row)"
               />
+              <el-tooltip content="所在群聊" placement="top">
+                <el-button
+                  type="warning"
+                  circle
+                  plain
+                  class="action-icon-btn"
+                  :icon="ChatDotRound" 
+                  @click="openGroupChatDialog(scope.row)" 
+                />
+              </el-tooltip>
               <el-tooltip v-if="isSuperAdmin" content="第三方平台数据" placement="top">
                 <el-button
                   type="success"
@@ -519,6 +529,49 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- Group Chats Dialog -->
+    <el-dialog 
+      v-model="groupChatDialogVisible" 
+      width="700px"
+      align-center
+      class="group-chat-dialog"
+    >
+      <template #header>
+        <div class="dialog-custom-header">
+          <div class="header-icon-box group-chat-icon-box">
+             <el-icon><ChatDotRound /></el-icon>
+          </div>
+          <div class="header-text-box">
+            <h3 class="dialog-title">所在群聊</h3>
+            <p class="dialog-subtitle">查看该客户加入的企业微信外部群聊列表</p>
+          </div>
+        </div>
+      </template>
+
+      <div v-loading="groupChatLoading" class="group-chat-dialog-content" style="padding: 10px 0;">
+        <div v-if="currentCustomer" class="customer-name-banner">
+          客户：<strong>{{ currentCustomer.customerName }}</strong>
+        </div>
+        <el-table :data="customerGroupChats" class="modern-table" style="margin-top: 15px; width: 100%;">
+          <el-table-column prop="name" label="群聊名称" min-width="180" show-overflow-tooltip>
+            <template #default="scope">
+              <span>{{ scope.row.name || '未命名群聊' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="ownerName" label="群主" width="120" />
+          <el-table-column prop="memberCount" label="群成员数" width="100" align="center" />
+          <el-table-column prop="createTime" label="创建时间" width="160">
+            <template #default="scope">
+              <span>{{ scope.row.createTime || '-' }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div v-if="customerGroupChats.length === 0 && !groupChatLoading" class="empty-state-container">
+          <el-empty description="该客户暂未加入任何群聊" :image-size="80" />
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -531,7 +584,8 @@ import { getMpAccounts } from '@/api/mp'
 import { getYuewenByCustomer } from '@/api/yuewen'
 import { getChangduByCustomer } from '@/api/changdu'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Minus, CollectionTag, InfoFilled, User, Cellphone, Connection, Tickets, List } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Minus, CollectionTag, InfoFilled, User, Cellphone, Connection, Tickets, List, ChatDotRound } from '@element-plus/icons-vue'
+import { getCustomerGroupChats } from '@/api/groupChat'
 
 const tableData = ref([])
 const loading = ref(false)
@@ -565,6 +619,28 @@ const platformDialogVisible = ref(false)
 const platformLoading = ref(false)
 const yuewenUsers = ref<any[]>([])
 const changduUsers = ref<any[]>([])
+const groupChatDialogVisible = ref(false)
+const groupChatLoading = ref(false)
+const customerGroupChats = ref<any[]>([])
+
+const openGroupChatDialog = async (row: any) => {
+  if (!row.externalUserid) {
+    ElMessage.warning('该客户尚未关联外部联系人ID')
+    return
+  }
+  currentCustomer.value = row
+  groupChatDialogVisible.value = true
+  groupChatLoading.value = true
+  customerGroupChats.value = []
+  try {
+    const res = await getCustomerGroupChats(row.externalUserid)
+    customerGroupChats.value = res || []
+  } catch (error) {
+    ElMessage.error('获取群聊数据失败')
+  } finally {
+    groupChatLoading.value = false
+  }
+}
 
 const openThirdPartyDialog = async (row: any) => {
   if (!row.externalUserid) {
@@ -1444,5 +1520,19 @@ onMounted(() => {
   background-color: transparent;
   padding: 0;
   font-size: 13px;
+}
+
+.group-chat-icon-box {
+  background: #fdf6ec !important;
+  color: #e6a23c !important;
+}
+
+.customer-name-banner {
+  background-color: #f8fafc;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #334155;
+  border-left: 4px solid #e6a23c;
 }
 </style>

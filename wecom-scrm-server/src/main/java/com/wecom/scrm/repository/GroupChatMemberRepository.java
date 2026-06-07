@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface GroupChatMemberRepository extends JpaRepository<WecomGroupChatMember, Long> {
     List<WecomGroupChatMember> findByChatId(String chatId);
+    
+    List<WecomGroupChatMember> findByUserid(String userid);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM WecomGroupChatMember m WHERE m.chatId = ?1")

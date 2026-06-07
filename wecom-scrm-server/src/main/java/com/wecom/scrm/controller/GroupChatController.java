@@ -48,4 +48,9 @@ public class GroupChatController {
     public ResponseEntity<List<GroupChatMemberVO>> getGroupMembers(@PathVariable String chatId) {
         return ResponseEntity.ok(groupChatService.getGroupMembers(chatId));
     }
+
+    @GetMapping("/customer/{externalUserid}")
+    public ResponseEntity<List<GroupChatVO>> getCustomerGroupChats(@PathVariable String externalUserid) {
+        return ResponseEntity.ok(groupChatService.getCustomerGroupChats(externalUserid));
+    }
 }
