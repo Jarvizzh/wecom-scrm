@@ -122,6 +122,13 @@
                 {{ formatTime(row.lastTriggerTime) || '未运行' }}
               </template>
             </el-table-column>
+            <el-table-column prop="autoUpdateAttachmentTitle" label="更新附件标题" width="120">
+              <template #default="{ row }">
+                <el-tag :type="row.autoUpdateAttachmentTitle === 1 ? 'success' : 'info'">
+                  {{ row.autoUpdateAttachmentTitle === 1 ? '开启' : '关闭' }}
+                </el-tag>
+              </template>
+            </el-table-column>
             <el-table-column prop="status" label="启用状态" width="100">
               <template #default="{ row }">
                 <el-switch
@@ -338,7 +345,8 @@ const handleStatusChange = async (row: any) => {
       loopType: row.loopType,
       loopDayOfWeek: row.loopDayOfWeek,
       sendTimeOfDay: row.sendTimeOfDay,
-      status: row.status
+      status: row.status,
+      autoUpdateAttachmentTitle: row.autoUpdateAttachmentTitle
     }
     await updateCustomerMessageLoop(row.id, payload)
     ElMessage.success(row.status === 1 ? '启用成功' : '停用成功')

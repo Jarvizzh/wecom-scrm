@@ -55,6 +55,7 @@ public class CustomerMessageLoopService {
         loop.setLoopDayOfWeek(request.getLoopDayOfWeek());
         loop.setSendTimeOfDay(request.getSendTimeOfDay());
         loop.setStatus(request.getStatus() != null ? request.getStatus() : 1); // 1 = Enabled by default
+        loop.setAutoUpdateAttachmentTitle(request.getAutoUpdateAttachmentTitle() != null ? request.getAutoUpdateAttachmentTitle() : 0);
         loop.setCreatorUserid(creatorUserid);
 
         validateLoopConfig(loop);
@@ -91,6 +92,9 @@ public class CustomerMessageLoopService {
         loop.setSendTimeOfDay(request.getSendTimeOfDay());
         if (request.getStatus() != null) {
             loop.setStatus(request.getStatus());
+        }
+        if (request.getAutoUpdateAttachmentTitle() != null) {
+            loop.setAutoUpdateAttachmentTitle(request.getAutoUpdateAttachmentTitle());
         }
 
         validateLoopConfig(loop);

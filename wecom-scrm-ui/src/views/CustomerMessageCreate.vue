@@ -80,6 +80,19 @@
               value-format="HH:mm:ss"
             />
           </el-form-item>
+
+          <el-form-item label="更新附件标题" prop="autoUpdateAttachmentTitle">
+            <el-switch
+              v-model="form.autoUpdateAttachmentTitle"
+              :active-value="1"
+              :inactive-value="0"
+              active-text="开启"
+              inactive-text="关闭"
+            />
+            <div class="form-tip" style="color: #909399; font-size: 12px; margin-top: 5px; line-height: 1.4;">
+              开启后，每次触发任务时，会自动从素材库中随机选取未被上一次使用的标题文案来更新 H5 链接或小程序附件的标题。如果素材库中无标题文案或标题数少于附件数，则不更新。
+            </div>
+          </el-form-item>
         </template>
         <template v-else>
           <el-form-item label="发送时间">
@@ -401,7 +414,8 @@ const form = reactive({
   loopType: 1, // 1: Daily, 2: Weekly
   loopDayOfWeek: [] as string[], // array of strings for UI checkbox
   sendTimeOfDay: '10:00:00',
-  status: 1
+  status: 1,
+  autoUpdateAttachmentTitle: 0
 })
 
 const selectedTreeKeys = ref<string[]>([])
@@ -528,7 +542,8 @@ onMounted(async () => {
             loopType: taskRes.loopType || 1,
             loopDayOfWeek: loopDayOfWeekParsed,
             sendTimeOfDay: taskRes.sendTimeOfDay || '10:00:00',
-            status: isCopy.value ? 1 : (taskRes.status !== undefined ? taskRes.status : 1)
+            status: isCopy.value ? 1 : (taskRes.status !== undefined ? taskRes.status : 1),
+            autoUpdateAttachmentTitle: taskRes.autoUpdateAttachmentTitle || 0
           })
           
           if (form.targetCondition.addTimeStart && form.targetCondition.addTimeEnd) {
@@ -826,7 +841,8 @@ const submitForm = async () => {
             loopType: form.loopType,
             loopDayOfWeek: form.loopDayOfWeek.join(','),
             sendTimeOfDay: form.sendTimeOfDay,
-            status: form.status
+            status: form.status,
+            autoUpdateAttachmentTitle: form.autoUpdateAttachmentTitle
           }
           if (isEdit.value && !isCopy.value) {
             await updateCustomerMessageLoop(route.params.id as string, payload)

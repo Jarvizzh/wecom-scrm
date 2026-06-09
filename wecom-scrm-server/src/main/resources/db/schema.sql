@@ -463,6 +463,7 @@ CREATE TABLE IF NOT EXISTS `wecom_customer_message_loop` (
     `send_time_of_day` VARCHAR(8) NOT NULL COMMENT '发送时间(HH:mm:ss)',
     `last_trigger_time` DATETIME DEFAULT NULL COMMENT '上次触发生成定时任务时间',
     `status` TINYINT DEFAULT 1 COMMENT '状态: 0=停用, 1=启用',
+    `auto_update_attachment_title` TINYINT DEFAULT 0 COMMENT '自动更新附件标题文案开关: 0=关, 1=开',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='企业微信客户群发循环任务表';
@@ -480,5 +481,10 @@ CREATE TABLE IF NOT EXISTS `wecom_material` (
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='企业微信素材库表';
+
+
+-- 数据库升级脚本/Migrations:
+ALTER TABLE `wecom_customer_message_loop` ADD COLUMN `auto_update_attachment_title` TINYINT DEFAULT 0 COMMENT '自动更新附件标题文案开关: 0=关, 1=开';
+
 
 

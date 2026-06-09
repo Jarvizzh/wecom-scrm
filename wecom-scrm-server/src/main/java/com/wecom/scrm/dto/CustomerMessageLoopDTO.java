@@ -20,6 +20,7 @@ public class CustomerMessageLoopDTO {
         private String loopDayOfWeek; // e.g. "1,2,3" (1=Mon, 7=Sun)
         private String sendTimeOfDay; // e.g. "10:00:00"
         private Integer status; // 0: Disabled, 1: Enabled
+        private Integer autoUpdateAttachmentTitle;
     }
 
     @Data
@@ -34,6 +35,7 @@ public class CustomerMessageLoopDTO {
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime lastTriggerTime;
         private Integer status; // 0: Disabled, 1: Enabled
+        private Integer autoUpdateAttachmentTitle;
         private String creatorUserid;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime createTime;

@@ -56,6 +56,9 @@ public class WecomCustomerMessageLoop {
     @Column(columnDefinition = "TINYINT DEFAULT 1")
     private Integer status; // 0: Disabled, 1: Enabled
 
+    @Column(name = "auto_update_attachment_title", columnDefinition = "TINYINT DEFAULT 0")
+    private Integer autoUpdateAttachmentTitle = 0;
+
     @CreationTimestamp
     @Column(name = "create_time", updatable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
